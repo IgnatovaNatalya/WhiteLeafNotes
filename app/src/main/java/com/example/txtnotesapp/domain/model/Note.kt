@@ -1,4 +1,12 @@
 package com.example.txtnotesapp.domain.model
 
-class Note {
-}
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class Note(
+    val id: String, // Имя файла без .txt
+    val content: String,
+    val createdAt: Long, // Timestamp
+    val notebookPath: String? = null // Путь к папке относительно корня
+) : Parcelable
