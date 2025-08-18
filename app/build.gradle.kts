@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -51,7 +52,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    //implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation(libs.recyclerview)
     implementation(libs.fragment)
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.viewmodel)
