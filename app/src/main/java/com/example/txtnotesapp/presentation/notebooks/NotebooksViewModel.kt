@@ -1,4 +1,6 @@
 package com.example.txtnotesapp.presentation.notebooks
 
-class NotebooksViewModel {
+import androidx.lifecycle.ViewModel
+
+class NotebooksViewModel: ViewModel() {
 }

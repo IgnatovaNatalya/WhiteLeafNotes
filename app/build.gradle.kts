@@ -42,7 +42,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -56,14 +55,14 @@ dependencies {
     implementation(libs.fragment)
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.viewmodel)
+
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-    implementation(libs.preferences)
+   // implementation(libs.preferences)
 
     // Koin
     implementation(libs.koin)
 
     // DateTime
     implementation(libs.datetime)
-
 }

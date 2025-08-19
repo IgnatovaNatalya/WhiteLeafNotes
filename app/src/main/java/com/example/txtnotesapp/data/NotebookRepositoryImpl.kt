@@ -1,4 +1,6 @@
 package com.example.txtnotesapp.data
 
-class NotebookRepositoryImpl {
+import com.example.txtnotesapp.domain.repository.NotebookRepository
+
+class NotebookRepositoryImpl : NotebookRepository {
 }

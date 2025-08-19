@@ -1,4 +1,6 @@
 package com.example.txtnotesapp.presentation.note_edit
 
-class NoteEditViewModel {
+import androidx.lifecycle.ViewModel
+
+class NoteEditViewModel : ViewModel() {
 }
