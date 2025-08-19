@@ -9,9 +9,10 @@
         android:id="@+id/noteListFragment"
         android:name="com.example.txtnotesapp.presentation.note_list.NoteListFragment">
         <argument
-            android:name="notebook_path"
+            android:name="notebookPath"
             app:argType="string"
             android:defaultValue="@null" />
+
         <action
             android:id="@+id/action_noteListFragment_to_noteEditFragment"
             app:destination="@id/noteEditFragment" />
@@ -31,4 +32,9 @@
             app:argType="string"
             android:defaultValue="@null" />
     </fragment>
+
+    <action
+        android:id="@+id/action_global_noteListFragment"
+        app:destination="@id/noteListFragment" />
+
 </navigation>
