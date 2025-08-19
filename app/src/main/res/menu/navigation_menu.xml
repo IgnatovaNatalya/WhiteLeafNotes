@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/menu_group_main">
+        <item
+            android:id="@+id/menu_all_notes"
+            android:icon="@drawable/ic_notes"
+            android:title="Все заметки" />
+    </group>
+
+    <group android:id="@+id/menu_group_notebooks">
+        <item
+            android:id="@+id/menu_notebooks"
+            android:title="Записные книжки">
+            <menu>
+                <item
+                    android:id="@+id/menu_create_notebook"
+                    android:icon="@drawable/ic_add"
+                    android:title="Создать записную книжку" />
+            </menu>
+        </item>
+    </group>
+</menu>
