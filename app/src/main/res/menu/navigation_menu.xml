@@ -4,18 +4,18 @@
         <item
             android:id="@+id/menu_all_notes"
             android:icon="@drawable/ic_notes"
-            android:title="Все заметки" />
+            android:title="@string/all_notes" />
     </group>
 
     <group android:id="@+id/menu_group_notebooks">
         <item
             android:id="@+id/menu_notebooks"
-            android:title="Записные книжки">
+            android:title="@string/notebooks">
             <menu>
                 <item
                     android:id="@+id/menu_create_notebook"
                     android:icon="@drawable/ic_add"
-                    android:title="Создать записную книжку" />
+                    android:title="@string/create_notebook" />
             </menu>
         </item>
     </group>

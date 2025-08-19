@@ -11,6 +11,7 @@
         <argument
             android:name="notebookPath"
             app:argType="string"
+            app:nullable="true"
             android:defaultValue="@null" />
 
         <action
@@ -25,9 +26,11 @@
         <argument
             android:name="noteTitle"
             app:argType="string"
+            app:nullable="true"
             android:defaultValue="@null" />
 
         <argument
+            app:nullable="true"
             android:name="notebookPath"
             app:argType="string"
             android:defaultValue="@null" />

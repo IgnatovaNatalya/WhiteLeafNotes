@@ -1,6 +1,7 @@
 package com.example.txtnotesapp.presentation.note_list
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

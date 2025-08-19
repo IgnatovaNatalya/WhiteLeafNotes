@@ -10,21 +10,27 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
 import kotlinx.datetime.Instant
+import kotlinx.datetime.Month
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 
 
 class NoteEditFragment : Fragment() {
     private lateinit var binding: FragmentNoteEditBinding
-    private lateinit var viewModel: NoteEditViewModel
+    private lateinit var viewModel1: NoteEditViewModel
 
-//    private val viewModel: NoteEditViewModel by viewModel{
-//        parametersOf(requireArguments().getString("note_id"))
-//    }
+    private val viewModel: NoteEditViewModel by viewModel{
+        parametersOf(requireArguments().getString("noteTitle"), requireArguments().getString("notebookPath"))
+    }
 
-    private val args: NoteEditFragmentArgs by navArgs()
+    //private val args: NoteEditFragmentArgs by navArgs()
+
 
     private var isEditing = false
     private val textWatcher = object : TextWatcher {
@@ -49,25 +55,25 @@ class NoteEditFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Получение аргументов
-        val noteId = args.noteTitle
-        val notebookPath = args.notebookPath
+//        val noteId = args.noteTitle
+//        val notebookPath = args.notebookPath
 
         // Инициализация ViewModel
-        viewModel = ViewModelProvider(
-            this,
-            object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return NoteEditViewModel(
-                        get(),
-                        get(),
-                        get(),
-                        noteId,
-                        notebookPath
-                    ) as T
-                }
-            }
-        ).get(NoteEditViewModel::class.java)
+//        viewModel = ViewModelProvider(
+//            this,
+//            object : ViewModelProvider.Factory {
+//                @Suppress("UNCHECKED_CAST")
+//                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+//                    return NoteEditViewModel(
+//                        get(),
+//                        get(),
+//                        get(),
+//                        noteId,
+//                        notebookPath
+//                    ) as T
+//                }
+//            }
+//        ).get(NoteEditViewModel::class.java)
 
         setupObservers()
         setupToolbar()

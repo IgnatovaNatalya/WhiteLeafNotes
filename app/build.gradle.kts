@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.navigation.safe.args)
 }
 
 android {
@@ -58,11 +59,14 @@ dependencies {
 
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-   // implementation(libs.preferences)
 
     // Koin
     implementation(libs.koin)
 
     // DateTime
     implementation(libs.datetime)
+
+    //safe args
+    //implementation(libs.navigation.safe.args)
+
 }

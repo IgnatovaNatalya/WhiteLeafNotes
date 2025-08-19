@@ -1,12 +1,16 @@
 package com.example.txtnotesapp.presentation.root
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -15,7 +19,12 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.databinding.ActivityRootBinding
+import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class RootActivity  : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
@@ -28,7 +37,7 @@ class RootActivity  : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // Установка темы перед setContentView
-        setTheme(R.style.Theme_NotesApp)
+       setTheme(R.style.Theme_TxtNotesApp)
 
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -148,7 +157,7 @@ class RootActivity  : AppCompatActivity() {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("MainActivity", "Ошибка загрузки записных книжек", e)
+                Log.e("RootActivity", "Ошибка загрузки записных книжек", e)
             }
         }
     }
@@ -187,7 +196,7 @@ class RootActivity  : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         loadNotebooksIntoMenu()
                         Toast.makeText(
-                            this@MainActivity,
+                            this@RootActivity,
                             "Записная книжка создана",
                             Toast.LENGTH_SHORT
                         ).show()
@@ -195,7 +204,7 @@ class RootActivity  : AppCompatActivity() {
                 } else {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
-                            this@MainActivity,
+                            this@RootActivity,
                             "Записная книжка с таким именем уже существует",
                             Toast.LENGTH_SHORT
                         ).show()
@@ -204,7 +213,7 @@ class RootActivity  : AppCompatActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
-                        this@MainActivity,
+                        this@RootActivity,
                         "Ошибка создания записной книжки",
                         Toast.LENGTH_SHORT
                     ).show()
