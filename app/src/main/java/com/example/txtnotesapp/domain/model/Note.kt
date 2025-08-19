@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Note(
-    val id: String, // Имя файла без .txt
+    val title: String, // Имя файла без .txt
     val content: String,
     val createdAt: Long, // Timestamp
     val notebookPath: String? = null // Путь к папке относительно корня

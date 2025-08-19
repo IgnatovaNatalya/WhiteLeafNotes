@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">TxtNotesApp</string>
+    <string name="new_note">+</string>
+    <string name="sample_title">Title</string>
+    <string name="no_notebooks">Вы пока не создали\nни одной записной книжки</string>
+    <string name="create_note">Create note</string>
+    <string name="open">Открыть</string>
+    <string name="edit">Редактировать</string>
+    <string name="move">Переместить</string>
+    <string name="share">Поделиться</string>
+    <string name="delete">Удалить</string>
+    <string name="note">Заметка</string>
 </resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/noteListFragment">
+
+    <fragment
+        android:id="@+id/noteListFragment"
+        android:name="com.example.txtnotesapp.presentation.note_list.NoteListFragment">
+        <argument
+            android:name="notebook_path"
+            app:argType="string"
+            android:defaultValue="@null" />
+        <action
+            android:id="@+id/action_noteListFragment_to_noteEditFragment"
+            app:destination="@id/noteEditFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/noteEditFragment"
+        android:name="com.example.txtnotesapp.presentation.note_edit.NoteEditFragment">
+
+        <argument
+            android:name="noteTitle"
+            app:argType="string"
+            android:defaultValue="@null" />
+
+        <argument
+            android:name="notebookPath"
+            app:argType="string"
+            android:defaultValue="@null" />
+    </fragment>
+</navigation>

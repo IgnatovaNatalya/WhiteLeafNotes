@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/note_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".presentation.note_edit.NoteEditFragment">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/note_edit_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:contentInsetStart="0dp"
+        app:contentInsetStartWithNavigation="0dp"
+        app:navigationIcon="@drawable/arrow_back"
+        app:titleMarginStart="8dp"
+        app:title="@string/note"/>
+
+    <EditText
+        android:id="@+id/note_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/sample_title"
+        android:importantForAutofill="no"
+        android:inputType="textCapSentences|textAutoComplete|textAutoCorrect"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/note_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/note_title"
+        tools:text="31 мая 2025 г." />
+
+    <EditText
+        android:id="@+id/note_text"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:gravity="start|top"
+        android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
+        android:importantForAutofill="no"
+        android:scrollbars="vertical"
+        tools:text="Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки"
+        android:layout_height="0dp"/>
+
+    <!--FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        -->
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="140dp"
+        android:indeterminateTint="?attr/cursorColor"
+        android:visibility="gone" />
+
+</LinearLayout>
