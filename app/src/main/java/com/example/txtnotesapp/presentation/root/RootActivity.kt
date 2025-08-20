@@ -20,6 +20,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.databinding.ActivityRootBinding
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
+//import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +38,7 @@ class RootActivity  : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // Установка темы перед setContentView
-       setTheme(R.style.Theme_TxtNotesApp)
+       //setTheme(R.style.Theme_TxtNotesApp)
 
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -117,7 +118,7 @@ class RootActivity  : AppCompatActivity() {
 
     private fun loadNotebooksIntoMenu() {
         // Загрузка списка записных книжек в боковое меню
-        // Это упрощенная реализация, в реальном приложении нужно использовать ViewModel
+        // todo  переделать с ViewModel
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val notebooksDir = File(filesDir, "notes")

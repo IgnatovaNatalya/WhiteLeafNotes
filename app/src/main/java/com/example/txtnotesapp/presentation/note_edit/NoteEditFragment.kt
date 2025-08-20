@@ -8,8 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
@@ -20,17 +18,13 @@ import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
-
 class NoteEditFragment : Fragment() {
     private lateinit var binding: FragmentNoteEditBinding
-    private lateinit var viewModel1: NoteEditViewModel
 
-    private val viewModel: NoteEditViewModel by viewModel{
-        parametersOf(requireArguments().getString("noteTitle"), requireArguments().getString("notebookPath"))
+    private val viewModel: NoteEditViewModel by viewModel {
+        parametersOf(args.noteTitle, args.notebookPath)
     }
-
-    //private val args: NoteEditFragmentArgs by navArgs()
-
+    private val args: NoteEditFragmentArgs by navArgs()
 
     private var isEditing = false
     private val textWatcher = object : TextWatcher {
@@ -54,27 +48,6 @@ class NoteEditFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Получение аргументов
-//        val noteId = args.noteTitle
-//        val notebookPath = args.notebookPath
-
-        // Инициализация ViewModel
-//        viewModel = ViewModelProvider(
-//            this,
-//            object : ViewModelProvider.Factory {
-//                @Suppress("UNCHECKED_CAST")
-//                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-//                    return NoteEditViewModel(
-//                        get(),
-//                        get(),
-//                        get(),
-//                        noteId,
-//                        notebookPath
-//                    ) as T
-//                }
-//            }
-//        ).get(NoteEditViewModel::class.java)
-
         setupObservers()
         setupToolbar()
         setupEditText()
@@ -94,7 +67,7 @@ class NoteEditFragment : Fragment() {
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            //binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.error.observe(viewLifecycleOwner) { error ->
@@ -106,7 +79,7 @@ class NoteEditFragment : Fragment() {
 
         viewModel.isSaved.observe(viewLifecycleOwner) { isSaved ->
             if (isSaved) {
-                // todo сделать  индикатор сохранения
+                // todo сделать индикатор сохранения
 //                binding.saveIndicator.visibility = View.VISIBLE
 //                Handler(Looper.getMainLooper()).postDelayed({
 //                    binding.saveIndicator.visibility = View.GONE
@@ -123,15 +96,15 @@ class NoteEditFragment : Fragment() {
         binding.noteEditToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
 //                R.id.menu_undo -> {
-//                     TODO: Реализовать отмену
+//                    // TODO: Реализовать отмену
 //                    true
 //                }
 //                R.id.menu_redo -> {
-//                    TODO: Реализовать повтор
+//                    // TODO: Реализовать повтор
 //                    true
 //                }
 //                R.id.menu_more -> {
-//                    TODO: Показать дополнительное меню
+//                    // TODO: Показать дополнительное меню
 //                    true
 //                }
                 else -> false

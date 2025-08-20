@@ -14,27 +14,38 @@
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="item_notebook"
-        tools:itemCount="3"/>
+        tools:itemCount="3"
+        tools:listitem="item_notebook" />
 
     <TextView
         android:id="@+id/empty_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/no_notebooks"
         android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/no_notebooks"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/create_note"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:layout_margin="18dp"
         android:contentDescription="@string/create_note"
         android:text="@string/new_note"
-        android:layout_margin="18dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="140dp"
+        android:indeterminateTint="@color/black"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

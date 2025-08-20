@@ -1,32 +1,33 @@
 package com.example.txtnotesapp.presentation.note_list
 
+import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
 import com.example.txtnotesapp.domain.model.Note
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
-
 class NoteListFragment : Fragment() {
     private lateinit var binding: FragmentNoteListBinding
 
-//    private val viewModel: NoteListViewModel by viewModel(parameters = {
-//        val notebookPath = arguments?.getString("notebook_path")
-//        notebookPath
-//    })
+    private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
+    private val args: NoteListFragmentArgs by navArgs()
 
-    private val viewModel: NoteListViewModel by viewModel{
-        parametersOf(requireArguments().getString("notebook_path"))
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentNoteListBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -34,69 +35,113 @@ class NoteListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //val adapter = NoteAdapter { note -> openNote(note) }
-        val adapter = NoteAdapter(
-            onNoteClicked = { note ->
-                // Открыть заметку для редактирования
-                openNote(note)
-            },
-            onNoteLongClicked = { note ->
-                // Показать контекстное меню
-                showContextMenu(note)
-            }
-        )
-        binding.recyclerView.adapter = adapter
+        setupObservers()
+        setupRecyclerView()
+        setupFab()
+    }
 
+    private fun setupObservers() {
         viewModel.notes.observe(viewLifecycleOwner) { notes ->
-            if (notes.isEmpty()) {
-                binding.emptyList.visibility = View.VISIBLE
-                binding.recyclerView.visibility = View.GONE
-            } else {
-                binding.emptyList.visibility = View.GONE
-                binding.recyclerView.visibility = View.VISIBLE
-                adapter.submitList(notes)
+            toggleEmptyState(notes.isEmpty())
+            (binding.recyclerView.adapter as NoteAdapter).submitList(notes)
+        }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+                viewModel.clearError()
             }
         }
 
-        binding.createNote.setOnClickListener { createNewNote() }
+        viewModel.navigateToNote.observe(viewLifecycleOwner) { noteId ->
+            noteId?.let {
+                navigateToNoteEdit(noteId)
+                viewModel.onNoteNavigated()
+            }
+        }
     }
 
+    private fun setupRecyclerView() {
+        val adapter = NoteAdapter(
+            onNoteClicked = { note ->
+                viewModel.onNoteClicked(note.title)
+            },
+            onNoteLongClicked = { note ->
+                showContextMenu(note)
+            }
+        )
 
-    private fun createNewNote() {
-        // Создание новой заметки
+        binding.recyclerView.adapter = adapter
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Добавляем разделитель между элементами
+        binding.recyclerView.addItemDecoration(
+            DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+        )
     }
 
-    private fun openNote(note: Note) {
-        // Навигация к экрану редактирования
-        val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(note.title)
+    private fun setupFab() {
+        binding.createNote.setOnClickListener {
+            viewModel.createNewNote()
+        }
+    }
+
+    private fun navigateToNoteEdit(noteTitle: String) {
+        val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
+            noteTitle = noteTitle,
+            notebookPath = args.notebookPath
+        )
         findNavController().navigate(action)
     }
 
     private fun showContextMenu(note: Note) {
-        val menu = PopupMenu(requireContext(), binding.root)
-        menu.inflate(R.menu.note_context_menu)
-        menu.setOnMenuItemClickListener { item ->
+        val popup = PopupMenu(requireContext(), binding.root)
+        popup.menuInflater.inflate(R.menu.note_context_menu, popup.menu)
+
+        popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.menu_delete -> {
-                    //viewModel.deleteNote(note) todo
-                    true
-                }
-                R.id.menu_edit -> {
-                    // Реализация редактирования todo
+                    showDeleteConfirmationDialog(note)
                     true
                 }
                 R.id.menu_move -> {
-                    // Реализация перемещения todo
+                    showMoveNoteDialog(note)
                     true
                 }
                 R.id.menu_share -> {
-                    // Реализация поделиться todo
+                    shareNote(note)
                     true
                 }
                 else -> false
             }
         }
-        menu.show()
+
+        popup.show()
+    }
+
+    private fun showDeleteConfirmationDialog(note: Note) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Удаление заметки")
+            .setMessage("Вы уверены, что хотите удалить заметку \"${note.title}\"?")
+            .setPositiveButton("Удалить") { _, _ ->
+                viewModel.deleteNote(note)
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun showMoveNoteDialog(note: Note) {
+        // TODO: Реализовать диалог выбора целевой записной книжки
+        Toast.makeText(requireContext(), "Функция перемещения в разработке", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shareNote(note: Note) {
+        // TODO: Реализовать функциональность "поделиться"
+        Toast.makeText(requireContext(), "Функция поделиться в разработке", Toast.LENGTH_SHORT).show()
     }
 
     private fun toggleEmptyState(isEmpty: Boolean) {

@@ -1,6 +1,6 @@
 package com.example.txtnotesapp.di
 
-import android.content.SharedPreferences
+import android.content.Context
 import com.example.txtnotesapp.data.NoteRepositoryImpl
 import com.example.txtnotesapp.data.NotebookRepositoryImpl
 import com.example.txtnotesapp.data.local.FileNoteDataSource
@@ -11,10 +11,14 @@ import com.example.txtnotesapp.domain.use_case.CreateNote
 import com.example.txtnotesapp.domain.use_case.DeleteNote
 import com.example.txtnotesapp.domain.use_case.GetNote
 import com.example.txtnotesapp.domain.use_case.GetNotes
+import com.example.txtnotesapp.domain.use_case.MoveNote
+import com.example.txtnotesapp.domain.use_case.RenameNote
 import com.example.txtnotesapp.domain.use_case.SaveNote
+import com.example.txtnotesapp.domain.use_case.ShareNote
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
 import com.example.txtnotesapp.presentation.note_list.NoteListViewModel
 import com.example.txtnotesapp.presentation.notebooks.NotebooksViewModel
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -33,15 +37,32 @@ val koinModule = module {
     factory { SaveNote(get()) }
     factory { CreateNote(get()) }
     factory { DeleteNote(get()) }
-    // todo добавить другие use case
+    factory { MoveNote(get()) }
+    factory { RenameNote(get()) }
+    factory { ShareNote(get()) }
 
     // ViewModels
     viewModel { (notebookPath: String?) ->
-        NoteListViewModel(get(), get(), notebookPath)
+        NoteListViewModel(
+            getNotes = get(),
+            deleteNote = get(),
+            createNote = get(),
+            moveNote = get(),
+            preferences = androidContext().getSharedPreferences("txt_notes_prefs", Context.MODE_PRIVATE),
+            notebookPath = notebookPath,
+        )
     }
-    viewModel { (noteTitle: String?, notebookPath: String?) ->
-        NoteEditViewModel(get(), get(), get(), noteTitle, notebookPath)
+
+    viewModel { (noteId: String?, notebookPath: String?) ->
+        NoteEditViewModel(
+            getNote = get(),
+            saveNote = get(),
+            createNote = get(),
+            noteId = noteId,
+            notebookPath = notebookPath
+        )
     }
+
     viewModel { NotebooksViewModel() }
 }
 

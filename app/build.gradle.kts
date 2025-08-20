@@ -66,7 +66,4 @@ dependencies {
     // DateTime
     implementation(libs.datetime)
 
-    //safe args
-    //implementation(libs.navigation.safe.args)
-
 }

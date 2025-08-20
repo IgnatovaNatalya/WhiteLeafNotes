@@ -11,11 +11,11 @@ import com.example.txtnotesapp.domain.use_case.SaveNote
 import kotlinx.coroutines.launch
 
 class NoteEditViewModel(
-    private val getNote: GetNote,
-    private val saveNote: SaveNote,
-    private val createNote: CreateNote,
-    private val noteId: String?,
-    private val notebookPath: String?
+private val getNote: GetNote,
+private val saveNote: SaveNote,
+private val createNote: CreateNote,
+private val noteId: String?,
+private val notebookPath: String?
 ) : ViewModel() {
 
     private val _note = MutableLiveData<Note>()
@@ -77,13 +77,6 @@ class NoteEditViewModel(
                 _isSaved.postValue(false)
             }
         }
-    }
-
-    fun updateNoteTitle(newTitle: String) {
-        val currentNote = _note.value ?: return
-
-        // TODO: Реализовать переименование файла
-        // Это потребует изменения в репозитории для поддержки переименования
     }
 
     fun clearError() {
