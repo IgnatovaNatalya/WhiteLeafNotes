@@ -1,6 +1,10 @@
 package com.example.txtnotesapp.presentation.root
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -20,6 +24,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.databinding.ActivityRootBinding
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
+import com.example.txtnotesapp.utils.PermissionUtils
 //import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
@@ -37,13 +42,60 @@ class RootActivity  : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Установка темы перед setContentView
-       //setTheme(R.style.Theme_TxtNotesApp)
+        // Проверка разрешений перед установкой контента
+        if (!PermissionUtils.checkStoragePermission(this)) {
+            PermissionUtils.requestStoragePermission(this)
+            // Можно показать загрузочный экран или сообщение
+        } else {
+            initializeApp()
+        }
+    }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
+        if (requestCode == PermissionUtils.STORAGE_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                initializeApp()
+            } else {
+                // Разрешение не получено, показываем сообщение
+                Toast.makeText(
+                    this,
+                    "Для работы приложения необходимо разрешение на доступ к хранилищу",
+                    Toast.LENGTH_LONG
+                ).show()
+                // Можно предложить повторить запрос или закрыть приложение
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PermissionUtils.STORAGE_PERMISSION_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    initializeApp()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Для работы приложения необходимо разрешение на доступ к хранилищу",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+    private fun initializeApp() {
+        // Установка темы перед setContentView
+        setTheme(R.style.Theme_TxtNotesApp)
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupToolbar()
+        //setupToolbar()
         setupNavigation()
         setupDrawer()
     }
@@ -108,6 +160,7 @@ class RootActivity  : AppCompatActivity() {
         return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
@@ -241,4 +294,7 @@ class RootActivity  : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
+
+
 }

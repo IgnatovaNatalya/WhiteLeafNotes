@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
 import com.example.txtnotesapp.domain.model.Note
+import com.example.txtnotesapp.utils.PermissionUtils
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
@@ -41,6 +42,19 @@ class NoteListFragment : Fragment() {
     }
 
     private fun setupObservers() {
+
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                if (it.contains("доступ")) {
+                    // Показываем кнопку для запроса разрешений
+                    showStoragePermissionError(it)
+                } else {
+                    Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+                }
+                viewModel.clearError()
+            }
+        }
+
         viewModel.notes.observe(viewLifecycleOwner) { notes ->
             toggleEmptyState(notes.isEmpty())
             (binding.recyclerView.adapter as NoteAdapter).submitList(notes)
@@ -63,6 +77,19 @@ class NoteListFragment : Fragment() {
                 viewModel.onNoteNavigated()
             }
         }
+    }
+
+    private fun showStoragePermissionError(message: String) {
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle("Ошибка доступа")
+            .setMessage(message)
+            .setPositiveButton("Запросить разрешение") { _, _ ->
+                PermissionUtils.requestStoragePermission(requireActivity())
+            }
+            .setNegativeButton("Отмена", null)
+            .create()
+
+        dialog.show()
     }
 
     private fun setupRecyclerView() {

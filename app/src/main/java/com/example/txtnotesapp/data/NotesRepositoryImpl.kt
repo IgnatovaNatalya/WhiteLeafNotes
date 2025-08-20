@@ -2,6 +2,7 @@ package com.example.txtnotesapp.data
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.FileProvider
 import com.example.txtnotesapp.data.local.FileNoteDataSource
 import com.example.txtnotesapp.domain.model.Note
@@ -19,6 +20,11 @@ class NoteRepositoryImpl(
     override suspend fun getNotes(notebookPath: String?): List<Note> {
         return withContext(Dispatchers.IO) {
             try {
+                // Проверяем доступность хранилища для чтения
+                if (!noteDataSource.isExternalStorageReadable()) {
+                    throw IOException("Внешнее хранилище недоступно для чтения")
+                }
+
                 val notesDir = if (notebookPath != null) {
                     File(noteDataSource.baseDir, notebookPath)
                 } else {
@@ -45,14 +51,45 @@ class NoteRepositoryImpl(
                     }
                 }?.sortedByDescending { it.createdAt } ?: emptyList()
             } catch (e: Exception) {
+                // Логируем ошибку
+                Log.e("NoteRepository", "Ошибка получения заметок: ${e.message}")
                 emptyList()
             }
         }
     }
 
-    override suspend fun getNoteById(noteTitle: String, notebookPath: String?): Note? {
+    override suspend fun saveNote(note: Note) {
+        withContext(Dispatchers.IO) {
+            try {
+                // Проверяем доступность хранилища для записи
+                if (!noteDataSource.isExternalStorageWritable()) {
+                    throw IOException("Внешнее хранилище недоступно для записи")
+                }
+
+                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
+                noteFile.writeText(note.content)
+
+                // Обновляем время последнего изменения
+                if (note.createdAt > 0) {
+                    noteFile.setLastModified(note.createdAt)
+                }
+            } catch (e: Exception) {
+                Log.e("NoteRepository", "Ошибка сохранения заметки: ${e.message}")
+                throw IOException("Ошибка сохранения заметки: ${e.message}")
+            }
+        }
+    }
+
+    // Аналогично обновляем другие методы с проверкой доступности хранилища
+
+    override suspend fun getNoteByTitle(noteTitle: String, notebookPath: String?): Note? {
         return withContext(Dispatchers.IO) {
             try {
+
+                if (!noteDataSource.isExternalStorageReadable()) {
+                    throw IOException("Внешнее хранилище недоступно для чтения")
+                }
+
                 val noteFile = noteDataSource.getNoteFile(notebookPath ?: "", noteTitle)
                 if (!noteFile.exists()) {
                     return@withContext null
@@ -66,12 +103,14 @@ class NoteRepositoryImpl(
                     notebookPath = notebookPath
                 )
             } catch (e: Exception) {
-                null
+                Log.e("NoteRepository", "Ошибка получения заметки по имени: ${e.message}")
+                throw IOException("Ошибка получения заметки по имени: ${e.message}")
+
             }
         }
     }
 
-    override suspend fun saveNote(note: Note) {
+     suspend fun saveNote1(note: Note) {
         withContext(Dispatchers.IO) {
             try {
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
@@ -90,12 +129,18 @@ class NoteRepositoryImpl(
     override suspend fun deleteNote(note: Note) {
         withContext(Dispatchers.IO) {
             try {
+
+                if (!noteDataSource.isExternalStorageWritable()) {
+                    throw IOException("Внешнее хранилище недоступно для записи")
+                }
+
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
                 if (noteFile.exists()) {
                     noteFile.delete()
                 }
             } catch (e: Exception) {
                 throw IOException("Ошибка удаления заметки: ${e.message}")
+                Log.e("NoteRepository", "Ошибка удаления заметки: ${e.message}")
             }
         }
     }
@@ -103,6 +148,9 @@ class NoteRepositoryImpl(
     override suspend fun moveNote(note: Note, targetNotebookPath: String?) {
         withContext(Dispatchers.IO) {
             try {
+                if (!noteDataSource.isExternalStorageWritable()) {
+                    throw IOException("Внешнее хранилище недоступно для записи")
+                }
                 val sourceFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
                 val targetDir = if (targetNotebookPath != null) {
                     File(noteDataSource.baseDir, targetNotebookPath).apply { mkdirs() }
@@ -125,6 +173,7 @@ class NoteRepositoryImpl(
                 }
             } catch (e: Exception) {
                 throw IOException("Ошибка перемещения заметки: ${e.message}")
+                Log.e("NoteRepository", "Ошибка перемещения заметки: ${e.message}")
             }
         }
     }
@@ -132,6 +181,10 @@ class NoteRepositoryImpl(
     override suspend fun renameNote(note: Note, newName: String) {
         withContext(Dispatchers.IO) {
             try {
+                if (!noteDataSource.isExternalStorageWritable()) {
+                    throw IOException("Внешнее хранилище недоступно для записи")
+                }
+
                 val oldFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
                 val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newName)
 
@@ -148,6 +201,7 @@ class NoteRepositoryImpl(
                 }
             } catch (e: Exception) {
                 throw IOException("Ошибка переименования заметки: ${e.message}")
+                Log.e("NoteRepository", "Ошибка переименования заметки: ${e.message}")
             }
         }
     }
@@ -155,6 +209,10 @@ class NoteRepositoryImpl(
     override suspend fun shareNote(note: Note): Uri? {
         return withContext(Dispatchers.IO) {
             try {
+                if (!noteDataSource.isExternalStorageReadable()) {
+                    throw IOException("Внешнее хранилище недоступно для чтения")
+                }
+
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
                 if (!noteFile.exists()) {
                     return@withContext null
@@ -172,6 +230,8 @@ class NoteRepositoryImpl(
                     shareFile
                 )
             } catch (e: Exception) {
+                throw IOException("Ошибка шаринга заметки: ${e.message}")
+                Log.e("NoteRepository", "Ошибка шаринга заметки: ${e.message}")
                 null
             }
         }

@@ -11,7 +11,7 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/note_edit_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         app:contentInsetStart="0dp"
         app:contentInsetStartWithNavigation="0dp"
         app:navigationIcon="@drawable/arrow_back"
@@ -19,6 +19,7 @@
         app:title="@string/note"/>
 
     <com.google.android.material.textfield.TextInputEditText
+        android:layout_marginTop="50dp"
         android:id="@+id/note_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

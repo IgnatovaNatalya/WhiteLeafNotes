@@ -12,6 +12,7 @@ import com.example.txtnotesapp.domain.use_case.DeleteNote
 import com.example.txtnotesapp.domain.use_case.GetNotes
 import com.example.txtnotesapp.domain.use_case.MoveNote
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 class NoteListViewModel(
     private val getNotes: GetNotes,
@@ -39,7 +40,24 @@ class NoteListViewModel(
         saveLastOpenNotebook()
     }
 
-    fun loadNotes() {
+    //    старый метод
+//    fun loadNotes() {
+//        _isLoading.value = true
+//        _error.value = null
+//
+//        viewModelScope.launch {
+//            try {
+//                val notesList = getNotes(notebookPath)
+//                _notes.value = notesList
+//            } catch (e: Exception) {
+//                _error.value = "Ошибка загрузки заметок: ${e.message}"
+//                _notes.value = emptyList()
+//            } finally {
+//                _isLoading.value = false
+//            }
+//        }
+//    }
+    fun loadNotes() { //todo нужна аналогичная проверка в остальных методах
         _isLoading.value = true
         _error.value = null
 
@@ -47,6 +65,13 @@ class NoteListViewModel(
             try {
                 val notesList = getNotes(notebookPath)
                 _notes.value = notesList
+            } catch (e: IOException) {
+                if (e.message?.contains("доступ") == true) {
+                    _error.value = "Нет доступа к хранилищу. Проверьте разрешения."
+                } else {
+                    _error.value = "Ошибка загрузки заметок: ${e.message}"
+                }
+                _notes.value = emptyList()
             } catch (e: Exception) {
                 _error.value = "Ошибка загрузки заметок: ${e.message}"
                 _notes.value = emptyList()
