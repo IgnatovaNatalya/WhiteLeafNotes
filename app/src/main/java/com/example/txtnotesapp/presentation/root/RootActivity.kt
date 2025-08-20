@@ -8,10 +8,12 @@ import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
@@ -25,7 +27,6 @@ import com.example.txtnotesapp.R
 import com.example.txtnotesapp.databinding.ActivityRootBinding
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
 import com.example.txtnotesapp.utils.PermissionUtils
-//import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,6 +42,7 @@ class RootActivity  : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         // Проверка разрешений перед установкой контента
         if (!PermissionUtils.checkStoragePermission(this)) {
@@ -90,20 +92,55 @@ class RootActivity  : AppCompatActivity() {
         }
     }
     private fun initializeApp() {
+//        enableEdgeToEdge()
+//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
+//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+//            insets
+//        }
         // Установка темы перед setContentView
         setTheme(R.style.Theme_TxtNotesApp)
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //setupToolbar()
+        setupToolbar()
         setupNavigation()
         setupDrawer()
+        setupNavigationListener()
+    }
+
+    private fun setupNavigationListener() {
+        // Слушатель изменений навигации для управления кнопкой в AppBar
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.noteListFragment -> {
+                    // На главном экране показываем гамбургер
+                    supportActionBar?.setDisplayHomeAsUpEnabled(false)
+                    binding.toolbar.navigationIcon = ContextCompat.getDrawable(
+                        this,
+                        R.drawable.ic_menu
+                    )
+                }
+
+                R.id.noteEditFragment -> {
+                    // На экране редактирования показываем стрелку "назад"
+                    supportActionBar?.setDisplayHomeAsUpEnabled(true)
+                    binding.toolbar.navigationIcon = ContextCompat.getDrawable(
+                        this,
+                        R.drawable.ic_arrow_back
+                    )
+                }
+            }
+        }
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeButtonEnabled(true)
+//        supportActionBar?.apply {
+//            setDisplayHomeAsUpEnabled(true)
+//            setHomeButtonEnabled(true)
+//            setHomeAsUpIndicator(R.drawable.ic_menu)
+//        }
     }
 
     private fun setupNavigation() {
@@ -126,6 +163,32 @@ class RootActivity  : AppCompatActivity() {
     }
 
     private fun setupDrawer() {
+        // Настраиваем поведение DrawerLayout для перекрытия AppBar
+        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+//                // Анимация затемнения основного контента
+//                val scale = 1 - slideOffset * 0.1f
+//                binding.toolbar.alpha = 1 - slideOffset * 0.5f
+            }
+
+            override fun onDrawerOpened(drawerView: View) {
+                // Скрываем кнопки в AppBar при открытии меню
+                supportActionBar?.setDisplayShowHomeEnabled(false)
+                supportActionBar?.setDisplayHomeAsUpEnabled(false)
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                // Восстанавливаем кнопки в AppBar при закрытии меню
+                supportActionBar?.setDisplayShowHomeEnabled(true)
+                supportActionBar?.setDisplayHomeAsUpEnabled(true)
+                binding.toolbar.alpha = 1f
+            }
+
+            override fun onDrawerStateChanged(newState: Int) {
+                // Не используется
+            }
+        })
+
         // Обработка кликов по элементам бокового меню
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
@@ -138,6 +201,12 @@ class RootActivity  : AppCompatActivity() {
                     true
                 }
                 R.id.menu_create_notebook -> {
+                    // Создание новой записной книжки
+                    showCreateNotebookDialog()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                R.id.menu_create_other_notebook -> {
                     // Создание новой записной книжки
                     showCreateNotebookDialog()
                     drawerLayout.closeDrawer(GravityCompat.START)
@@ -157,7 +226,26 @@ class RootActivity  : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp()
+        //return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp()
+        return if (navController.currentDestination?.id == R.id.noteEditFragment) {
+            // На экране редактирования - навигация назад к списку заметок
+            // Закрываем боковое меню, если оно открыто
+//            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+//                drawerLayout.closeDrawer(GravityCompat.START)
+//            }
+            // Выполняем навигацию назад
+            //navController.navigateUp() || super.onSupportNavigateUp()
+            navController.navigate(R.id.noteListFragment) //todo все равно открвается меню
+            true
+        } else {
+            // На главном экране - открытие/закрытие Drawer
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START)
+            }
+            true
+        }
     }
 
     @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")

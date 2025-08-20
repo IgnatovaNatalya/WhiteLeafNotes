@@ -19,4 +19,8 @@
             </menu>
         </item>
     </group>
+    <item
+        android:id="@+id/menu_create_other_notebook"
+        android:icon="@drawable/ic_add"
+        android:title="@string/create_notebook" />
 </menu>

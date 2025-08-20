@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
 import kotlinx.datetime.Instant
@@ -89,12 +88,12 @@ class NoteEditFragment : Fragment() {
     }
 
     private fun setupToolbar() {
-        binding.noteEditToolbar.setNavigationOnClickListener {
-            findNavController().navigateUp()
-        }
+//        binding.noteEditToolbar.setNavigationOnClickListener {
+//            findNavController().navigateUp()
+//        }
 
-        binding.noteEditToolbar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
+//        binding.noteEditToolbar.setOnMenuItemClickListener { menuItem ->
+//            when (menuItem.itemId) {
 //                R.id.menu_undo -> {
 //                    // TODO: Реализовать отмену
 //                    true
@@ -107,9 +106,9 @@ class NoteEditFragment : Fragment() {
 //                    // TODO: Показать дополнительное меню
 //                    true
 //                }
-                else -> false
-            }
-        }
+//                else -> false
+//            }
+//        }
     }
 
     private fun setupEditText() {
