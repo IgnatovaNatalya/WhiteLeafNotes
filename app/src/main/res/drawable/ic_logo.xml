@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Небрежная линия, превращающаяся в аккуратную -->
+    <path
+        android:name="main_line"
+        android:pathData="M 24,60
+                         C 26,55 30,50 35,52
+                         C 40,54 38,60 40,62
+                         C 42,64 45,64 48,64
+                         C 51,64 70,64 72,64
+                         L 72,64
+                         L 80,64"
+        android:strokeWidth="4"
+        android:strokeColor="?attr/colorOnPrimary"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"/>
+</vector>

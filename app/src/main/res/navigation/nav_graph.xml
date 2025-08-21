@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/noteListFragment"
         android:name="com.example.txtnotesapp.presentation.note_list.NoteListFragment"
-        android:label="@string/all_notes"
+        android:label="@string/notes"
         tools:layout="@layout/fragment_note_list" >
         <argument
             android:name="notebookPath"
@@ -23,7 +23,7 @@
     <fragment
         android:id="@+id/noteEditFragment"
         android:name="com.example.txtnotesapp.presentation.note_edit.NoteEditFragment"
-        android:label="@string/note"
+        android:label=""
         tools:layout="@layout/fragment_note_edit" >
 
         <argument

@@ -9,12 +9,17 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -33,7 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class RootActivity  : AppCompatActivity() {
+class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -43,7 +48,6 @@ class RootActivity  : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         // Проверка разрешений перед установкой контента
         if (!PermissionUtils.checkStoragePermission(this)) {
             PermissionUtils.requestStoragePermission(this)
@@ -52,6 +56,7 @@ class RootActivity  : AppCompatActivity() {
             initializeApp()
         }
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -91,17 +96,28 @@ class RootActivity  : AppCompatActivity() {
             }
         }
     }
+
     private fun initializeApp() {
-//        enableEdgeToEdge()
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        }
+
+        enableEdgeToEdge()
+
         // Установка темы перед setContentView
-        setTheme(R.style.Theme_TxtNotesApp)
+        setTheme(R.style.Theme_WhiteList)
+
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+        window.apply {
+            clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            statusBarColor = android.graphics.Color.TRANSPARENT
+        }
 
         setupToolbar()
         setupNavigation()
@@ -200,18 +216,21 @@ class RootActivity  : AppCompatActivity() {
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
+
                 R.id.menu_create_notebook -> {
                     // Создание новой записной книжки
                     showCreateNotebookDialog()
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
+
                 R.id.menu_create_other_notebook -> {
                     // Создание новой записной книжки
                     showCreateNotebookDialog()
                     drawerLayout.closeDrawer(GravityCompat.START)
                     true
                 }
+
                 else -> {
                     // Для других элементов используем стандартное поведение
                     NavigationUI.onNavDestinationSelected(menuItem, navController)
@@ -264,7 +283,8 @@ class RootActivity  : AppCompatActivity() {
             try {
                 val notebooksDir = File(filesDir, "notes")
                 if (notebooksDir.exists() && notebooksDir.isDirectory) {
-                    val notebooks = notebooksDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
+                    val notebooks =
+                        notebooksDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
 
                     withContext(Dispatchers.Main) {
                         val menu = binding.navView.menu
@@ -382,7 +402,6 @@ class RootActivity  : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
 
 
 }

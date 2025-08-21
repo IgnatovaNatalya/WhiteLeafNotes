@@ -1,7 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.TxtNotesApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <!-- Базовая тема для темной темы -->
+    <style name="Base.Theme.WhiteList" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- Прозрачный статус-бар -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- Статус-бар со светлым контентом (для темной темы) -->
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Чтобы контент не заходил под статус-бар -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <!-- Фон окна будет виден через статус-бар -->
+        <item name="android:windowTranslucentStatus">true</item>
+
+        <!-- Цвета поверхностей -->
+        <item name="android:navigationBarColor">@color/background_dark</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Основные цвета (акценты остаются теми же) -->
+        <item name="colorPrimary">@color/accent_coral</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/accent_coral</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+
+        <item name="colorSecondary">@color/accent_blue</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/accent_blue</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
+
+        <!-- Colors for surfaces -->
+        <item name="colorSurface">@color/background_dark</item>
+        <item name="colorOnSurface">@color/text_primary_dark</item>
+
+        <!-- Устанавливаем фон окна через windowBackground -->
+        <item name="android:windowBackground">@color/background_dark</item>
+
+        <!-- Дополнительные атрибуты -->
+        <item name="cardViewStyle">@style/CardView.WhiteList.Dark</item>
+
+        <!-- Стиль для текста -->
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.WhiteList.BodyLarge.Dark
+        </item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.WhiteList.BodyMedium.Dark
+        </item>
+    </style>
+
+    <!-- Стиль для CardView в темной теме -->
+    <style name="CardView.WhiteList.Dark" parent="CardView">
+        <item name="cardBackgroundColor">@color/background_dark</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardForegroundColor">?attr/colorSurfaceVariant</item>
+    </style>
+
+    <!-- Текстовые стили для темной темы -->
+    <style name="TextAppearance.WhiteList.BodyLarge.Dark" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/text_primary_dark</item>
+        <item name="fontFamily">@font/nunito_bold</item>
+    </style>
+
+    <style name="TextAppearance.WhiteList.BodyMedium.Dark" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/text_secondary_dark</item>
+        <item name="fontFamily">@font/nunito_medium</item>
     </style>
 </resources>

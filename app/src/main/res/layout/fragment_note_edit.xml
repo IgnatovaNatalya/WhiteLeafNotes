@@ -51,7 +51,7 @@
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="140dp"
-        android:indeterminateTint="@color/black"
+        android:indeterminateTint="?attr/colorOnSurface"
         android:visibility="gone" />
 
 </LinearLayout>

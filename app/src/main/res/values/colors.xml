@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="gray">#FFc0c0c0</color>
-    <color name="white">#FFFFFFFF</color>
+<!-- Основные цвета -->
+<color name="white">#FFFFFF</color>
+<color name="background_light">#FAFAFA</color>
+<color name="text_primary_light">#333333</color>
+<color name="text_secondary_light">#888888</color>
+
+<!-- Акцентные цвета -->
+<color name="accent_coral">#FF9E80</color>
+<color name="accent_blue">#81D4FA</color>
+<color name="success_green">#A5D6A7</color>
+
+<!-- Для темной темы (также задаем здесь, но переопределим в values-night) -->
+<color name="background_dark">#121212</color>
+<color name="text_primary_dark">#E0E0E0</color>
+<color name="text_secondary_dark">#AAAAAA</color>
 </resources>
