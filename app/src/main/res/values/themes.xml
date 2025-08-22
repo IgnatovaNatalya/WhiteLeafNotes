@@ -2,12 +2,8 @@
     <!-- Базовая тема приложения -->
     <style name="Base.Theme.WhiteList" parent="Theme.Material3.DayNight.NoActionBar">
 
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-
         <!-- Цвета поверхностей -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@color/white</item>
+
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
 
@@ -36,7 +32,6 @@
         <item name="textAppearanceBodyLarge">@style/TextAppearance.WhiteList.BodyLarge</item>
         <item name="textAppearanceBodyMedium">@style/TextAppearance.WhiteList.BodyMedium</item>
 
-
     </style>
 
     <!-- Финальная тема -->
@@ -58,11 +53,6 @@
     <style name="TextAppearance.WhiteList.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">@color/text_secondary_light</item>
         <item name="fontFamily">@font/nunito_medium</item>
-    </style>
-
-    <style name="Theme.WhiteList.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
     </style>
 
 </resources>

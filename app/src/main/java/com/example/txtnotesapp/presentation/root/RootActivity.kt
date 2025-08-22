@@ -2,6 +2,7 @@ package com.example.txtnotesapp.presentation.root
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -9,9 +10,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.WindowManager
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -23,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
@@ -40,8 +40,9 @@ import java.io.File
 
 class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
-    private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
+
+    private lateinit var navController: NavController
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
 
@@ -102,22 +103,18 @@ class RootActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         // Установка темы перед setContentView
-        setTheme(R.style.Theme_WhiteList)
+        //setTheme(R.style.Theme_WhiteList)
 
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            //v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
             insets
         }
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-        window.apply {
-            clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            statusBarColor = android.graphics.Color.TRANSPARENT
-        }
+        //window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN //вообще убирает статус бар вместе с иконками
 
         setupToolbar()
         setupNavigation()
@@ -152,22 +149,22 @@ class RootActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-//        supportActionBar?.apply {
-//            setDisplayHomeAsUpEnabled(true)
-//            setHomeButtonEnabled(true)
-//            setHomeAsUpIndicator(R.drawable.ic_menu)
-//        }
     }
 
     private fun setupNavigation() {
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        navController = navHostFragment.navController
+
+        drawerLayout = binding.drawerLayout
+        navController = findNavController(R.id.nav_host_fragment)
+        val navView: NavigationView = binding.navView
+
+//        val navHostFragment = supportFragmentManager
+//            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+//        navController = navHostFragment.navController
 
         // Настройка AppBarConfiguration с верхними уровнями навигации
-        drawerLayout = binding.drawerLayout
+
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.noteListFragment), // Фрагменты верхнего уровня
+            setOf(R.id.noteListFragment),
             drawerLayout
         )
 
@@ -175,11 +172,23 @@ class RootActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         // Связывание NavController с NavigationView
-        binding.navView.setupWithNavController(navController)
+        navView.setupWithNavController(navController)
+    }
+
+    private fun hideSystemUI() {
+        //эта штупа скрывает статус бар вместе со значками
+        ViewCompat.getWindowInsetsController(window.decorView)
+            ?.hide(WindowInsetsCompat.Type.systemBars())
+    }
+
+    private fun showSystemUI() {
+        ViewCompat.getWindowInsetsController(window.decorView)
+            ?.show(WindowInsetsCompat.Type.systemBars())
     }
 
     private fun setupDrawer() {
         // Настраиваем поведение DrawerLayout для перекрытия AppBar
+        drawerLayout.setStatusBarBackgroundColor(Color.TRANSPARENT)
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
 //                // Анимация затемнения основного контента
@@ -191,6 +200,7 @@ class RootActivity : AppCompatActivity() {
                 // Скрываем кнопки в AppBar при открытии меню
                 supportActionBar?.setDisplayShowHomeEnabled(false)
                 supportActionBar?.setDisplayHomeAsUpEnabled(false)
+                //hideSystemUI()
             }
 
             override fun onDrawerClosed(drawerView: View) {
@@ -198,6 +208,7 @@ class RootActivity : AppCompatActivity() {
                 supportActionBar?.setDisplayShowHomeEnabled(true)
                 supportActionBar?.setDisplayHomeAsUpEnabled(true)
                 binding.toolbar.alpha = 1f
+                //showSystemUI()
             }
 
             override fun onDrawerStateChanged(newState: Int) {
@@ -246,25 +257,27 @@ class RootActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         //return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp()
-        return if (navController.currentDestination?.id == R.id.noteEditFragment) {
-            // На экране редактирования - навигация назад к списку заметок
-            // Закрываем боковое меню, если оно открыто
-//            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//                drawerLayout.closeDrawer(GravityCompat.START)
-//            }
-            // Выполняем навигацию назад
+
+        if (navController.currentDestination?.id == R.id.noteEditFragment) { // На экране редактирования
+
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            }
+
             //navController.navigateUp() || super.onSupportNavigateUp()
-            navController.navigate(R.id.noteListFragment) //todo все равно открвается меню
-            true
-        } else {
-            // На главном экране - открытие/закрытие Drawer
+            navController.navigate(R.id.noteListFragment) // все равно открвается меню
+            return true
+        }
+
+        if (navController.currentDestination?.id == R.id.noteListFragment) {// На главном экране
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START)
             } else {
                 drawerLayout.openDrawer(GravityCompat.START)
             }
-            true
+            return true
         }
+       return true
     }
 
     @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")

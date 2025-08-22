@@ -3,18 +3,6 @@
     <!-- Базовая тема для темной темы -->
     <style name="Base.Theme.WhiteList" parent="Theme.Material3.DayNight.NoActionBar">
 
-        <!-- Прозрачный статус-бар -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-
-        <!-- Статус-бар со светлым контентом (для темной темы) -->
-        <item name="android:windowLightStatusBar">false</item>
-
-        <!-- Чтобы контент не заходил под статус-бар -->
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-
-        <!-- Фон окна будет виден через статус-бар -->
-        <item name="android:windowTranslucentStatus">true</item>
-
         <!-- Цвета поверхностей -->
         <item name="android:navigationBarColor">@color/background_dark</item>
         <item name="android:windowLightNavigationBar">false</item>
