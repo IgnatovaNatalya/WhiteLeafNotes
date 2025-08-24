@@ -8,11 +8,15 @@ import com.example.txtnotesapp.data.local.FileNotebookDataSource
 import com.example.txtnotesapp.domain.repository.NoteRepository
 import com.example.txtnotesapp.domain.repository.NotebookRepository
 import com.example.txtnotesapp.domain.use_case.CreateNote
+import com.example.txtnotesapp.domain.use_case.CreateNotebook
 import com.example.txtnotesapp.domain.use_case.DeleteNote
+import com.example.txtnotesapp.domain.use_case.DeleteNotebook
 import com.example.txtnotesapp.domain.use_case.GetNote
+import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
 import com.example.txtnotesapp.domain.use_case.MoveNote
 import com.example.txtnotesapp.domain.use_case.RenameNote
+import com.example.txtnotesapp.domain.use_case.RenameNotebook
 import com.example.txtnotesapp.domain.use_case.SaveNote
 import com.example.txtnotesapp.domain.use_case.ShareNote
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
@@ -25,11 +29,11 @@ import org.koin.dsl.module
 val koinModule = module {
     // Data sources
     single { FileNoteDataSource(get()) }
-    single { FileNotebookDataSource() }
+    single { FileNotebookDataSource(get()) }
 
     // Repositories
     single<NoteRepository> { NoteRepositoryImpl(get(), get()) }
-    single<NotebookRepository> { NotebookRepositoryImpl() }
+    single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get()) }
 
     // Use cases
     factory { GetNotes(get()) }
@@ -41,6 +45,11 @@ val koinModule = module {
     factory { RenameNote(get()) }
     factory { ShareNote(get()) }
 
+    factory { GetNotebooks(get()) }
+    factory { CreateNotebook(get()) }
+    factory { DeleteNotebook(get()) }
+    factory { RenameNotebook(get()) }
+
     // ViewModels
     viewModel { (notebookPath: String?) ->
         NoteListViewModel(
@@ -48,7 +57,10 @@ val koinModule = module {
             deleteNote = get(),
             createNote = get(),
             moveNote = get(),
-            preferences = androidContext().getSharedPreferences("txt_notes_prefs", Context.MODE_PRIVATE),
+            preferences = androidContext().getSharedPreferences(
+                "txt_notes_prefs",
+                Context.MODE_PRIVATE
+            ),
             notebookPath = notebookPath,
         )
     }
@@ -63,6 +75,13 @@ val koinModule = module {
         )
     }
 
-    viewModel { NotebooksViewModel() }
+    viewModel {
+        NotebooksViewModel(
+            getNotebooks = get(),
+            createNotebook = get(),
+            deleteNotebook = get(),
+            renameNotebook = get()
+        )
+    }
 }
 
