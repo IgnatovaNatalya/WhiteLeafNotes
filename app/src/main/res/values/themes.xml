@@ -19,7 +19,7 @@
         <item name="colorOnSecondaryContainer">@color/white</item>
 
         <!-- Используем surface цвета вместо background -->
-        <item name="colorSurface">@color/white</item>
+        <item name="colorSurface">@color/divider_light</item>
         <item name="colorOnSurface">@color/text_primary_light</item>
 
         <!-- Устанавливаем фон окна через windowBackground -->

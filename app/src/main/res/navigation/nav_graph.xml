@@ -4,11 +4,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation_graph"
-    app:startDestination="@id/noteListFragment">
+    app:startDestination="@id/startFragment">
+
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.example.txtnotesapp.presentation.start.StartFragment"
+        android:label="@string/fragment_start_label"
+        tools:layout="@layout/fragment_start" >
+        <action
+            android:id="@+id/action_startFragment_to_noteListFragment"
+            app:destination="@id/noteListFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_noteEditFragment"
+            app:destination="@id/noteEditFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/noteListFragment"
         android:name="com.example.txtnotesapp.presentation.note_list.NoteListFragment"
-        android:label="@string/notes"
+        android:label="@string/fragment_note_list_label"
         tools:layout="@layout/fragment_note_list" >
         <argument
             android:name="notebookPath"
@@ -47,5 +61,6 @@
     <action
         android:id="@+id/action_global_noteEditFragment"
         app:destination="@id/noteEditFragment" />
+
 
 </navigation>

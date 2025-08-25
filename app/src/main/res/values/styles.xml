@@ -6,4 +6,29 @@
         <item name="fontFamily">@font/comfortaa_medium</item>
     </style>
 
+    <style name="StartScreenHeaderTitle">
+        <item name="android:textSize">22sp</item>
+        <item name="fontFamily">@font/comfortaa_bold</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:letterSpacing">0.1</item>
+    </style>
+
+    <style name="StartScreenItemTitle">
+        <item name="android:textSize">14sp</item>
+        <item name="fontFamily">@font/nunito_semibold</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="StartScreenItemNotebookCount">
+        <item name="android:textSize">9sp</item>
+        <item name="fontFamily">@font/nunito_medium</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="StartScreenItemAdd">
+        <item name="android:textSize">12sp</item>
+        <item name="fontFamily">@font/nunito_semibold</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
 </resources>

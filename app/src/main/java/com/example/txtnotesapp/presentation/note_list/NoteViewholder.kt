@@ -16,7 +16,7 @@ class NoteViewHolder(
 
     fun bind(note: Note) {
         binding.noteTitle.text = note.title
-        binding.noteDate.text = formatDate(note.createdAt)
+        //binding.noteDate.text = formatDate(note.createdAt)
 
         // Превью содержимого (первые 50 символов)
         val preview = if (note.content.length > 50) {
@@ -24,7 +24,7 @@ class NoteViewHolder(
         } else {
             note.content
         }
-        binding.notePreview.text = preview
+        //binding.notePreview.text = preview
 
         // Обработка кликов
         binding.root.setOnClickListener {
@@ -37,27 +37,27 @@ class NoteViewHolder(
         }
     }
 
-    private fun formatDate(timestamp: Long): String {
-        val date = Instant.fromEpochMilliseconds(timestamp)
-            .toLocalDateTime(TimeZone.currentSystemDefault())
+//    private fun formatDate(timestamp: Long): String {
+//        val date = Instant.fromEpochMilliseconds(timestamp)
+//            .toLocalDateTime(TimeZone.currentSystemDefault())
+//
+//        return "${date.dayOfMonth} ${getMonthName(date.month)} ${date.year}"
+//    }
 
-        return "${date.dayOfMonth} ${getMonthName(date.month)} ${date.year}"
-    }
-
-    private fun getMonthName(month: Month): String {
-        return when (month) {
-            Month.JANUARY -> "Января"
-            Month.FEBRUARY -> "Февраля"
-            Month.MARCH -> "Марта"
-            Month.APRIL -> "Апреля"
-            Month.MAY -> "Мая"
-            Month.JUNE -> "Июня"
-            Month.JULY -> "Июля"
-            Month.AUGUST -> "Августа"
-            Month.SEPTEMBER -> "Сентября"
-            Month.OCTOBER -> "Октября"
-            Month.NOVEMBER -> "Ноября"
-            Month.DECEMBER -> "Декабря"
-        }
-    }
+//    private fun getMonthName(month: Month): String { //todo переместить во фррагмент редактирования
+//        return when (month) {
+//            Month.JANUARY -> "Января"
+//            Month.FEBRUARY -> "Февраля"
+//            Month.MARCH -> "Марта"
+//            Month.APRIL -> "Апреля"
+//            Month.MAY -> "Мая"
+//            Month.JUNE -> "Июня"
+//            Month.JULY -> "Июля"
+//            Month.AUGUST -> "Августа"
+//            Month.SEPTEMBER -> "Сентября"
+//            Month.OCTOBER -> "Октября"
+//            Month.NOVEMBER -> "Ноября"
+//            Month.DECEMBER -> "Декабря"
+//        }
+//    }
 }

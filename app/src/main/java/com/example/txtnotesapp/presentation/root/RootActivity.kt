@@ -122,21 +122,43 @@ class RootActivity : AppCompatActivity() {
         setupNavigationListener()
     }
 
+    fun setDrawerEnabled(enabled: Boolean) {
+        if (enabled) {
+            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            binding.toolbar.navigationIcon = ContextCompat.getDrawable(this, R.drawable.ic_menu)
+        } else {
+            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+            supportActionBar?.setDisplayHomeAsUpEnabled(false)
+            binding.toolbar.navigationIcon = null
+        }
+    }
     private fun setupNavigationListener() {
         // Слушатель изменений навигации для управления кнопкой в AppBar
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
+                R.id.startFragment -> {
+                    // На стартовом экране скрываем Drawer
+                    setDrawerEnabled(false)
+                    supportActionBar?.title = "Мои заметки"
+                }
+
                 R.id.noteListFragment -> {
-                    // На главном экране показываем гамбургер
+                    // На главном экране показываем drawer ,  гамбургер и заголовок "Заметки"
+                    setDrawerEnabled(true)
+                    supportActionBar?.title = "Заметки"
                     supportActionBar?.setDisplayHomeAsUpEnabled(false)
                     binding.toolbar.navigationIcon = ContextCompat.getDrawable(
                         this,
                         R.drawable.ic_menu
                     )
+
                 }
 
                 R.id.noteEditFragment -> {
-                    // На экране редактирования показываем стрелку "назад"
+                    // На экране редактирования скрываем Drawer и показываем стрелку "назад"
+                    setDrawerEnabled(false)
+                    supportActionBar?.title = ""
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
                     binding.toolbar.navigationIcon = ContextCompat.getDrawable(
                         this,
@@ -175,16 +197,7 @@ class RootActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
     }
 
-    private fun hideSystemUI() {
-        //эта штупа скрывает статус бар вместе со значками
-        ViewCompat.getWindowInsetsController(window.decorView)
-            ?.hide(WindowInsetsCompat.Type.systemBars())
-    }
 
-    private fun showSystemUI() {
-        ViewCompat.getWindowInsetsController(window.decorView)
-            ?.show(WindowInsetsCompat.Type.systemBars())
-    }
 
     private fun setupDrawer() {
         // Настраиваем поведение DrawerLayout для перекрытия AppBar
@@ -415,6 +428,4 @@ class RootActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
-
 }

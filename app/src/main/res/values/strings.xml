@@ -17,5 +17,8 @@
     <string name="create_notebook">Создать записную книжку</string>
     <string name="enter_notebook_title">Введите название записной книжки</string>
     <string name="notebook_title">Название книжки</string>
-    <string name="notes">Листы</string>
+    <string name="fragment_note_list_label">Записная книжка</string>
+    <string name="fragment_start_label">Заметки и \nзаписные книжки</string>
+    <string name="add">Добавить</string>
+    <string name="empty_notebooks">Записных книжек пока нет</string>
 </resources>
