@@ -33,13 +33,13 @@ class StartFragment : Fragment() { //todo Сделать все фрагмент
         //setupObservers()
 
         // Скрываем кнопку гамбургера в MainActivity
-        (activity as RootActivity).setDrawerEnabled(false)
+        //(activity as RootActivity).setDrawerEnabled(false)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         // Восстанавливаем кнопку гамбургера при выходе
-        (activity as RootActivity).setDrawerEnabled(true)
+        //(activity as RootActivity).setDrawerEnabled(true)
     }
 
     private fun setupRecyclerView() {

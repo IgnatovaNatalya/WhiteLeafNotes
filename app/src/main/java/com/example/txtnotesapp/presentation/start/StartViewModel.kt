@@ -95,6 +95,8 @@ class StartViewModel(
         }
     }
 
+    //todo Добавить создание записной книжки
+
     fun clearError() {
         _error.value = null
     }
