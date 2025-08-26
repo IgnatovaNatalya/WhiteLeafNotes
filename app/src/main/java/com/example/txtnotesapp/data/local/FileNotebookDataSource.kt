@@ -13,7 +13,7 @@ class FileNotebookDataSource(private val context: Context) {
     val baseDir: File by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Для Android 10+ используем Scoped Storage в директории Documents
-            File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), DEFAULT_DIR).apply { //todo Директорию в переменную
+            File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), DEFAULT_DIR).apply {
                 if (!exists()) {
                     mkdirs()
                 }

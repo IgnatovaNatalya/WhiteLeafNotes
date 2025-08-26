@@ -29,6 +29,7 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.txtnotesapp.R
+import com.example.txtnotesapp.data.local.FileNoteDataSource.Companion.DEFAULT_DIR
 import com.example.txtnotesapp.databinding.ActivityRootBinding
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
 import com.example.txtnotesapp.utils.PermissionUtils
@@ -102,9 +103,6 @@ class RootActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
 
-        // Установка темы перед setContentView
-        //setTheme(R.style.Theme_WhiteList)
-
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -114,8 +112,6 @@ class RootActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
             insets
         }
-        //window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN //вообще убирает статус бар вместе с иконками
-
         setupToolbar()
         setupNavigation()
         setupDrawer()
@@ -138,14 +134,11 @@ class RootActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
                 R.id.startFragment -> {
-                    // На стартовом экране скрываем Drawer
-                    //setDrawerEnabled(false)
-                    //supportActionBar?.title = "Мои заметки"
-                    supportActionBar?.hide()
+                    setDrawerEnabled(false)
+                    supportActionBar?.title = "Заметки и записные книжки"
                 }
 
                 R.id.noteListFragment -> {
-                    // На главном экране показываем drawer ,  гамбургер и заголовок "Заметки"
                     setDrawerEnabled(true)
                     supportActionBar?.title = "Заметки"
                     supportActionBar?.setDisplayHomeAsUpEnabled(false)
@@ -156,7 +149,6 @@ class RootActivity : AppCompatActivity() {
                 }
 
                 R.id.noteEditFragment -> {
-                    // На экране редактирования скрываем Drawer и показываем стрелку "назад"
                     setDrawerEnabled(false)
                     supportActionBar?.title = ""
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -179,9 +171,9 @@ class RootActivity : AppCompatActivity() {
         navController = findNavController(R.id.nav_host_fragment)
         val navView: NavigationView = binding.navView
 
-//        val navHostFragment = supportFragmentManager
-//            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-//        navController = navHostFragment.navController
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
 
         // Настройка AppBarConfiguration с верхними уровнями навигации
 
@@ -198,22 +190,15 @@ class RootActivity : AppCompatActivity() {
     }
 
 
-
     private fun setupDrawer() {
-        // Настраиваем поведение DrawerLayout для перекрытия AppBar
-        drawerLayout.setStatusBarBackgroundColor(Color.TRANSPARENT)
+        //drawerLayout.setStatusBarBackgroundColor(Color.TRANSPARENT)
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
-            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
-//                // Анимация затемнения основного контента
-//                val scale = 1 - slideOffset * 0.1f
-//                binding.toolbar.alpha = 1 - slideOffset * 0.5f
-            }
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) { }
 
             override fun onDrawerOpened(drawerView: View) {
                 // Скрываем кнопки в AppBar при открытии меню
                 supportActionBar?.setDisplayShowHomeEnabled(false)
                 supportActionBar?.setDisplayHomeAsUpEnabled(false)
-                //hideSystemUI()
             }
 
             override fun onDrawerClosed(drawerView: View) {
@@ -221,12 +206,9 @@ class RootActivity : AppCompatActivity() {
                 supportActionBar?.setDisplayShowHomeEnabled(true)
                 supportActionBar?.setDisplayHomeAsUpEnabled(true)
                 binding.toolbar.alpha = 1f
-                //showSystemUI()
             }
 
-            override fun onDrawerStateChanged(newState: Int) {
-                // Не используется
-            }
+            override fun onDrawerStateChanged(newState: Int) {}
         })
 
         // Обработка кликов по элементам бокового меню
@@ -269,7 +251,6 @@ class RootActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        //return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp()
 
         if (navController.currentDestination?.id == R.id.noteEditFragment) { // На экране редактирования
 
@@ -307,7 +288,7 @@ class RootActivity : AppCompatActivity() {
         // todo  переделать с ViewModel
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val notebooksDir = File(filesDir, "notes")
+                val notebooksDir = File(filesDir, DEFAULT_DIR)
                 if (notebooksDir.exists() && notebooksDir.isDirectory) {
                     val notebooks =
                         notebooksDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
@@ -322,10 +303,10 @@ class RootActivity : AppCompatActivity() {
                                 R.id.menu_group_notebooks,
                                 Menu.NONE,
                                 Menu.NONE,
-                                notebook.name
+                                notebook.path
                             )?.setOnMenuItemClickListener {
                                 val action = NoteListFragmentDirections
-                                    .actionGlobalNoteListFragment(notebook.name)
+                                    .actionGlobalNoteListFragment(notebook.path)
                                 navController.navigate(action)
                                 drawerLayout.closeDrawer(GravityCompat.START)
                                 true

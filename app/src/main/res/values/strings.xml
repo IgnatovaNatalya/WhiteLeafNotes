@@ -2,7 +2,7 @@
     <string name="app_name">TxtNotesApp</string>
     <string name="new_note">+</string>
     <string name="sample_title">Title</string>
-    <string name="no_notebooks">Вы пока не создали\nни одной записной книжки</string>
+    <string name="no_notes">Вы пока не создали\nни одной заметки</string>
     <string name="create_note">Create note</string>
     <string name="open">Открыть</string>
     <string name="edit">Редактировать</string>
@@ -18,7 +18,7 @@
     <string name="enter_notebook_title">Введите название записной книжки</string>
     <string name="notebook_title">Название книжки</string>
     <string name="fragment_note_list_label">Записная книжка</string>
-    <string name="fragment_start_label">Заметки и \nзаписные книжки</string>
+    <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
     <string name="add">Добавить</string>
     <string name="empty_notebooks">Записных книжек пока нет</string>
 </resources>

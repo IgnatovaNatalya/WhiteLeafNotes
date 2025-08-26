@@ -3,32 +3,29 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="176dp"
-    android:background="?attr/colorPrimary"
+    android:layout_marginTop="0dp"
+    android:background="?attr/android:windowBackground"
+    android:fitsSystemWindows="false"
     android:gravity="bottom"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:layout_marginTop="0dp"
-    android:fitsSystemWindows="false">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="42dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/comfortaa_bold"
+        android:textSize="20sp"
+        android:text="@string/fragment_start_label" />
 
     <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/app_logo"
+        android:layout_width="72dp"
+        android:layout_height="9dp"
         android:contentDescription="@string/app_name"
-        android:paddingTop="8dp"
-        app:srcCompat="@mipmap/ic_launcher" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:text="@string/app_name"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Заметки и записные книжки" />
+        android:foregroundGravity="left"
+        android:layout_marginTop="4dp"
+        app:srcCompat="@drawable/app_logo_menu"
+        app:tint="@color/accent_blue" />
 
 </LinearLayout>

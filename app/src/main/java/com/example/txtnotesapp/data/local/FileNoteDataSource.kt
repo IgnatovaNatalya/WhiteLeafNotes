@@ -44,6 +44,6 @@ class FileNoteDataSource(private val context: Context) {
     }
 
     companion object {
-        const val DEFAULT_DIR = "TxtNotesApp" //todo сделать хранение в настройках
+        const val DEFAULT_DIR = "NewTxtNotesApp" //todo сделать хранение в настройках
     }
 }
