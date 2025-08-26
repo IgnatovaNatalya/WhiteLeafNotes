@@ -33,7 +33,7 @@ class StartFragment : Fragment() { //todo Сделать все фрагмент
         //setupObservers()
 
         // Скрываем кнопку гамбургера в MainActivity
-        //(activity as RootActivity).setDrawerEnabled(false)
+        (activity as RootActivity).setDrawerEnabled(false)
     }
 
     override fun onDestroyView() {
