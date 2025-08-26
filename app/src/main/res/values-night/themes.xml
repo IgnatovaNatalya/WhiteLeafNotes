@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Базовая тема для темной темы -->
     <style name="Base.Theme.WhiteList" parent="Theme.Material3.DayNight.NoActionBar">
 
@@ -18,9 +18,11 @@
         <item name="colorSecondaryContainer">@color/accent_blue</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
 
-        <!-- Colors for surfaces -->
         <item name="colorSurface">@color/divider_dark</item>
         <item name="colorOnSurface">@color/text_primary_dark</item>
+
+        <item name="android:textColorPrimary">@color/text_primary_dark</item>
+        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
 
         <!-- Устанавливаем фон окна через windowBackground -->
         <item name="android:windowBackground">@color/background_dark</item>

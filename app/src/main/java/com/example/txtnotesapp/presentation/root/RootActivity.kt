@@ -139,8 +139,9 @@ class RootActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.startFragment -> {
                     // На стартовом экране скрываем Drawer
-                    setDrawerEnabled(false)
-                    supportActionBar?.title = "Мои заметки"
+                    //setDrawerEnabled(false)
+                    //supportActionBar?.title = "Мои заметки"
+                    supportActionBar?.hide()
                 }
 
                 R.id.noteListFragment -> {
@@ -152,7 +153,6 @@ class RootActivity : AppCompatActivity() {
                         this,
                         R.drawable.ic_menu
                     )
-
                 }
 
                 R.id.noteEditFragment -> {

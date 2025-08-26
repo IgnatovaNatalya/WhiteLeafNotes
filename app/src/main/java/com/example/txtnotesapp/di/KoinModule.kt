@@ -57,7 +57,8 @@ val koinModule = module {
         StartViewModel(
             getNotebooks = get(),
             getNotes = get(),
-            createNote = get()
+            createNote = get(),
+            createNotebook = get()
         )
     }
 

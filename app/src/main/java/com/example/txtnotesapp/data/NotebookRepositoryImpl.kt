@@ -37,6 +37,7 @@ class NotebookRepositoryImpl(
     }
 
     override suspend fun createNotebook(name: String): Notebook {
+
         return withContext(Dispatchers.IO) {
             try {
                 // Проверяем валидность имени

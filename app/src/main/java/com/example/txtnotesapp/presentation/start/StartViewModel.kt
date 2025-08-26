@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.domain.use_case.CreateNote
+import com.example.txtnotesapp.domain.use_case.CreateNotebook
 import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
 import kotlinx.coroutines.launch
@@ -15,7 +16,8 @@ import kotlin.collections.forEach
 class StartViewModel(
     private val getNotebooks: GetNotebooks,
     private val getNotes: GetNotes,
-    private val createNote: CreateNote
+    private val createNote: CreateNote,
+    private val createNotebook: CreateNotebook
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -24,8 +26,8 @@ class StartViewModel(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _message = MutableLiveData<String?>()
+    val message: LiveData<String?> = _message
 
     init {
         loadData()
@@ -42,7 +44,7 @@ class StartViewModel(
                 val items = buildStartItems(notebooks, rootNotes)
                 _startItems.value = items
             } catch (e: Exception) {
-                _error.value = "Ошибка загрузки данных: ${e.message}"
+                _message.value = "Ошибка загрузки данных: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
@@ -90,14 +92,30 @@ class StartViewModel(
                 // или просто обновить список
                 loadData()
             } catch (e: Exception) {
-                _error.value = "Ошибка создания заметки: ${e.message}"
+                _message.value = "Ошибка создания заметки: ${e.message}"
             }
         }
     }
 
-    //todo Добавить создание записной книжки
+    fun createNewNotebook(name: String) {
+
+        _isLoading.value = true
+
+        viewModelScope.launch {
+            try {
+                val newNotebook = createNotebook(name) // Создаем записную книжку
+                loadData()
+                _message.value = "Записная книжка создана: ${newNotebook.name}"
+            } catch (e: Exception) {
+                _message.value = "Ошибка создания записной книжки: ${e.message}"
+            }
+            finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     fun clearError() {
-        _error.value = null
+        _message.value = null
     }
 }

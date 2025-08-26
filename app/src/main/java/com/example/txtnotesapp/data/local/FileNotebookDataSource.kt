@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import com.example.txtnotesapp.data.local.FileNoteDataSource.Companion.DEFAULT_DIR
 import java.io.File
 
 class FileNotebookDataSource(private val context: Context) {
@@ -12,14 +13,14 @@ class FileNotebookDataSource(private val context: Context) {
     val baseDir: File by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Для Android 10+ используем Scoped Storage в директории Documents
-            File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "NotesApp").apply {
+            File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), DEFAULT_DIR).apply { //todo Директорию в переменную
                 if (!exists()) {
                     mkdirs()
                 }
             }
         } else {
             // Для старых версий - прямое обращение к внешнему хранилищу
-            File(Environment.getExternalStorageDirectory(), "NotesApp").apply {
+            File(Environment.getExternalStorageDirectory(), DEFAULT_DIR).apply {
                 if (!exists()) {
                     mkdirs()
                 }
