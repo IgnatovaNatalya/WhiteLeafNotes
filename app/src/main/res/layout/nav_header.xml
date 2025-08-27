@@ -29,4 +29,12 @@
         app:srcCompat="@drawable/app_logo_menu"
         app:tint="@color/text_primary_light"/>
 
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/drawer_menu_recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="8dp" />
 </LinearLayout>
+

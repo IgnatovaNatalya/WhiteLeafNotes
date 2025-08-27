@@ -22,6 +22,7 @@ import com.example.txtnotesapp.domain.use_case.ShareNote
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
 import com.example.txtnotesapp.presentation.note_list.NoteListViewModel
 import com.example.txtnotesapp.presentation.notebooks.NotebooksViewModel
+import com.example.txtnotesapp.presentation.root.DrawerMenuViewModel
 import com.example.txtnotesapp.presentation.start.StartViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -59,6 +60,15 @@ val koinModule = module {
             getNotes = get(),
             createNote = get(),
             createNotebook = get()
+        )
+    }
+
+    viewModel {
+        DrawerMenuViewModel (
+            getNotebooks = get(),
+            getNotes = get(),
+            createNotebook = get(),
+            createNote = get()
         )
     }
 

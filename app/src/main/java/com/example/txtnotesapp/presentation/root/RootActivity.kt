@@ -2,14 +2,12 @@ package com.example.txtnotesapp.presentation.root
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -25,18 +23,24 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.data.local.FileNoteDataSource.Companion.DEFAULT_DIR
 import com.example.txtnotesapp.databinding.ActivityRootBinding
+import com.example.txtnotesapp.domain.model.Note
+import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
+import com.example.txtnotesapp.presentation.start.StartFragmentDirections
 import com.example.txtnotesapp.utils.PermissionUtils
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 
 class RootActivity : AppCompatActivity() {
@@ -46,6 +50,11 @@ class RootActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
+
+    private lateinit var drawerMenuAdapter: DrawerMenuAdapter
+
+    private val menuViewModel: DrawerMenuViewModel by viewModel()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -109,12 +118,12 @@ class RootActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             //v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            v.setPadding(systemBars.left, 0, systemBars.right,0)
+            v.setPadding(systemBars.left, 0, systemBars.right, 0)
             insets
         }
         setupToolbar()
         setupNavigation()
-        setupDrawer()
+        setupDrawerMenu()
         setupNavigationListener()
     }
 
@@ -129,6 +138,7 @@ class RootActivity : AppCompatActivity() {
             binding.toolbar.navigationIcon = null
         }
     }
+
     private fun setupNavigationListener() {
         // Слушатель изменений навигации для управления кнопкой в AppBar
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -166,22 +176,24 @@ class RootActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)//
+        supportActionBar?.setHomeButtonEnabled(true)//
     }
 
     private fun setupNavigation() {
 
-        drawerLayout = binding.drawerLayout
-        navController = findNavController(R.id.nav_host_fragment)
-        val navView: NavigationView = binding.navView
-
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+
         navController = navHostFragment.navController
+        drawerLayout = binding.drawerLayout
+        //navController = findNavController(R.id.nav_host_fragment)
 
-        // Настройка AppBarConfiguration с верхними уровнями навигации
 
+        // Настройка AppBarConfiguration
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.noteListFragment),
+            setOf(R.id.startFragment),
             drawerLayout
         )
 
@@ -189,69 +201,113 @@ class RootActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         // Связывание NavController с NavigationView
-        navView.setupWithNavController(navController)
+    // val navView: NavigationView = binding.navView
+        binding.navView.setupWithNavController(navController)
     }
 
-
-    private fun setupDrawer() {
-        //drawerLayout.setStatusBarBackgroundColor(Color.TRANSPARENT)
-        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
-            override fun onDrawerSlide(drawerView: View, slideOffset: Float) { }
-
-            override fun onDrawerOpened(drawerView: View) {
-                // Скрываем кнопки в AppBar при открытии меню
-                supportActionBar?.setDisplayShowHomeEnabled(false)
-                supportActionBar?.setDisplayHomeAsUpEnabled(false)
+    private fun setupDrawerMenu() {
+        // Инициализация адаптера для меню
+        drawerMenuAdapter = DrawerMenuAdapter(
+            onNotebookClicked = { notebook ->
+                navigateToNotebook(notebook)
+                drawerLayout.closeDrawer(GravityCompat.START)
+            },
+            onNoteClicked = { note ->
+                navigateToNote(note)
+                drawerLayout.closeDrawer(GravityCompat.START)
+            },
+            onCreateNotebook = {
+                showCreateNotebookDialog()
+            },
+            onCreateNote = {
+                menuViewModel.createNewNote()
             }
+        )
 
-            override fun onDrawerClosed(drawerView: View) {
-                // Восстанавливаем кнопки в AppBar при закрытии меню
-                supportActionBar?.setDisplayShowHomeEnabled(true)
-                supportActionBar?.setDisplayHomeAsUpEnabled(true)
-                binding.toolbar.alpha = 1f
-            }
-
-            override fun onDrawerStateChanged(newState: Int) {}
-        })
-
-        // Обработка кликов по элементам бокового меню
-        binding.navView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.menu_all_notes -> {
-                    // Переход к списку всех заметок (корневая папка)
-                    val action = NoteListFragmentDirections
-                        .actionGlobalNoteListFragment(null)
-                    navController.navigate(action)
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                    true
-                }
-
-                R.id.menu_create_notebook -> {
-                    // Создание новой записной книжки
-                    showCreateNotebookDialog()
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                    true
-                }
-
-                R.id.menu_create_other_notebook -> {
-                    // Создание новой записной книжки
-                    showCreateNotebookDialog()
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                    true
-                }
-
-                else -> {
-                    // Для других элементов используем стандартное поведение
-                    NavigationUI.onNavDestinationSelected(menuItem, navController)
-                    drawerLayout.closeDrawer(GravityCompat.START)
-                    true
-                }
-            }
+        // Настройка RecyclerView для меню
+        binding.navView.getHeaderView(0).findViewById<RecyclerView>(R.id.drawer_menu_recyclerView).apply {
+            adapter = drawerMenuAdapter
+            layoutManager = LinearLayoutManager(this@RootActivity)
+            addItemDecoration(DividerItemDecoration(this@RootActivity, DividerItemDecoration.VERTICAL))
         }
 
-        // Загрузка списка записных книжек в меню
-        loadNotebooksIntoMenu()
+        // Загрузка данных для меню
+        menuViewModel.loadMenuData()
     }
+
+    private fun navigateToNotebook(notebook: Notebook) {
+        val action = StartFragmentDirections.actionStartFragmentToNoteListFragment(notebook.path)
+        navController.navigate(action)
+    }
+
+    private fun navigateToNote(note: Note) {
+        val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
+            noteTitle = note.title,
+            notebookPath = null
+        )
+        navController.navigate(action)
+    }
+
+//    private fun setupDrawer() {
+//        //drawerLayout.setStatusBarBackgroundColor(Color.TRANSPARENT)
+//        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
+//            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
+//
+//            override fun onDrawerOpened(drawerView: View) {
+//                // Скрываем кнопки в AppBar при открытии меню
+//                supportActionBar?.setDisplayShowHomeEnabled(false)
+//                supportActionBar?.setDisplayHomeAsUpEnabled(false)
+//            }
+//
+//            override fun onDrawerClosed(drawerView: View) {
+//                // Восстанавливаем кнопки в AppBar при закрытии меню
+//                supportActionBar?.setDisplayShowHomeEnabled(true)
+//                supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//                binding.toolbar.alpha = 1f
+//            }
+//
+//            override fun onDrawerStateChanged(newState: Int) {}
+//        })
+
+
+        // Обработка кликов по элементам бокового меню
+//        binding.navView.setNavigationItemSelectedListener { menuItem ->
+//            when (menuItem.itemId) {
+//                R.id.menu_all_notes -> {
+//                    // Переход к списку всех заметок (корневая папка)
+//                    val action = NoteListFragmentDirections
+//                        .actionGlobalNoteListFragment(null)
+//                    navController.navigate(action)
+//                    drawerLayout.closeDrawer(GravityCompat.START)
+//                    true
+//                }
+//
+//                R.id.menu_create_notebook -> {
+//                    // Создание новой записной книжки
+//                    showCreateNotebookDialog()
+//                    drawerLayout.closeDrawer(GravityCompat.START)
+//                    true
+//                }
+//
+//                R.id.menu_create_other_notebook -> {
+//                    // Создание новой записной книжки
+//                    showCreateNotebookDialog()
+//                    drawerLayout.closeDrawer(GravityCompat.START)
+//                    true
+//                }
+//
+//                else -> {
+//                    // Для других элементов используем стандартное поведение
+//                    NavigationUI.onNavDestinationSelected(menuItem, navController)
+//                    drawerLayout.closeDrawer(GravityCompat.START)
+//                    true
+//                }
+//            }
+//        }
+//
+//        // Загрузка списка записных книжек в меню
+//        loadNotebooksIntoMenu()
+//    }
 
     override fun onSupportNavigateUp(): Boolean {
 
@@ -274,10 +330,10 @@ class RootActivity : AppCompatActivity() {
             }
             return true
         }
-       return true
+        return true
     }
 
-    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
+    @Deprecated("This method has been deprecated in favor of using the\n{@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
@@ -288,7 +344,6 @@ class RootActivity : AppCompatActivity() {
 
     private fun loadNotebooksIntoMenu() {
         // Загрузка списка записных книжек в боковое меню
-        // todo  переделать с ViewModel
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val notebooksDir = File(filesDir, DEFAULT_DIR)

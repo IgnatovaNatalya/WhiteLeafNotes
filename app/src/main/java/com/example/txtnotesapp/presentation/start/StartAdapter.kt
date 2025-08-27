@@ -73,7 +73,7 @@ class StartAdapter(
 
             TYPE_DIVIDER -> DividerViewHolder(
                 LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_start_divider, parent, false)
+                    .inflate(R.layout.item_divider, parent, false)
             )
 
             TYPE_EMPTY -> EmptyListViewHolder(
