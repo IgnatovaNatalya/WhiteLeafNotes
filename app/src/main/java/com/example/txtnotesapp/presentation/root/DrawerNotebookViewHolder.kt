@@ -11,9 +11,8 @@ class DrawerNotebookViewHolder (
     private val onNotebookClicked: (Notebook) -> Unit
 ) : RecyclerView.ViewHolder(view) {
     fun bind(notebook: Notebook) {
-        val title: TextView = itemView.findViewById<TextView>(R.id.drawer_note_title)
-        title.text = notebook.name
-        // Настройка view элемента записной книжки
+        val title: TextView = itemView.findViewById<TextView>(R.id.drawer_notebook_title)
+        title.text = notebook.path
         itemView.setOnClickListener { onNotebookClicked(notebook) }
     }
 }

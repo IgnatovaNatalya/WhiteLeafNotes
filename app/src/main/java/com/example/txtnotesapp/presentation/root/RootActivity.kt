@@ -5,7 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
@@ -18,43 +18,29 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
-import com.example.txtnotesapp.data.local.FileNoteDataSource.Companion.DEFAULT_DIR
 import com.example.txtnotesapp.databinding.ActivityRootBinding
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
-import com.example.txtnotesapp.presentation.start.StartFragmentDirections
 import com.example.txtnotesapp.utils.PermissionUtils
-import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.io.File
 
 class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
     private lateinit var appBarConfiguration: AppBarConfiguration
-
     private lateinit var navController: NavController
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var navigationView: NavigationView
-
     private lateinit var drawerMenuAdapter: DrawerMenuAdapter
 
     private val menuViewModel: DrawerMenuViewModel by viewModel()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +110,7 @@ class RootActivity : AppCompatActivity() {
         setupToolbar()
         setupNavigation()
         setupDrawerMenu()
+        setupObservers()
         setupNavigationListener()
     }
 
@@ -176,7 +163,6 @@ class RootActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-
         supportActionBar?.setDisplayHomeAsUpEnabled(true)//
         supportActionBar?.setHomeButtonEnabled(true)//
     }
@@ -188,25 +174,16 @@ class RootActivity : AppCompatActivity() {
 
         navController = navHostFragment.navController
         drawerLayout = binding.drawerLayout
-        //navController = findNavController(R.id.nav_host_fragment)
 
-
-        // Настройка AppBarConfiguration
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.startFragment),
             drawerLayout
         )
 
-        // Связывание NavController с AppBar
         setupActionBarWithNavController(navController, appBarConfiguration)
-
-        // Связывание NavController с NavigationView
-    // val navView: NavigationView = binding.navView
-        binding.navView.setupWithNavController(navController)
     }
 
     private fun setupDrawerMenu() {
-        // Инициализация адаптера для меню
         drawerMenuAdapter = DrawerMenuAdapter(
             onNotebookClicked = { notebook ->
                 navigateToNotebook(notebook)
@@ -224,113 +201,75 @@ class RootActivity : AppCompatActivity() {
             }
         )
 
-        // Настройка RecyclerView для меню
-        binding.navView.getHeaderView(0).findViewById<RecyclerView>(R.id.drawer_menu_recyclerView).apply {
-            adapter = drawerMenuAdapter
-            layoutManager = LinearLayoutManager(this@RootActivity)
-            addItemDecoration(DividerItemDecoration(this@RootActivity, DividerItemDecoration.VERTICAL))
-        }
+        binding.navView.getHeaderView(0).findViewById<RecyclerView>(R.id.drawer_menu_recyclerView)
+            .apply {
+                adapter = drawerMenuAdapter
+                layoutManager = LinearLayoutManager(this@RootActivity)
+                addItemDecoration(
+                    DividerItemDecoration(
+                        this@RootActivity,
+                        DividerItemDecoration.VERTICAL
+                    )
+                )
+            }
 
         // Загрузка данных для меню
         menuViewModel.loadMenuData()
     }
 
+    private fun setupObservers() {
+        menuViewModel.menuItems.observe(this) { items ->
+            drawerMenuAdapter.submitList(items)
+        }
+
+        menuViewModel.error.observe(this) { error ->
+            error?.let {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+                menuViewModel.clearError()
+            }
+        }
+
+        menuViewModel.isLoading.observe(this) { isLoading ->
+            if (isLoading) {
+                // Показать индикатор загрузки, если нужно
+            }
+        }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.noteListFragment, R.id.noteEditFragment -> {
+                    menuViewModel.loadMenuData()
+                }
+            }
+        }
+    }
+
     private fun navigateToNotebook(notebook: Notebook) {
-        val action = StartFragmentDirections.actionStartFragmentToNoteListFragment(notebook.path)
+        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(notebook.path)
         navController.navigate(action)
     }
 
     private fun navigateToNote(note: Note) {
-        val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
+        val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
             noteTitle = note.title,
             notebookPath = null
         )
         navController.navigate(action)
     }
 
-//    private fun setupDrawer() {
-//        //drawerLayout.setStatusBarBackgroundColor(Color.TRANSPARENT)
-//        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
-//            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
-//
-//            override fun onDrawerOpened(drawerView: View) {
-//                // Скрываем кнопки в AppBar при открытии меню
-//                supportActionBar?.setDisplayShowHomeEnabled(false)
-//                supportActionBar?.setDisplayHomeAsUpEnabled(false)
-//            }
-//
-//            override fun onDrawerClosed(drawerView: View) {
-//                // Восстанавливаем кнопки в AppBar при закрытии меню
-//                supportActionBar?.setDisplayShowHomeEnabled(true)
-//                supportActionBar?.setDisplayHomeAsUpEnabled(true)
-//                binding.toolbar.alpha = 1f
-//            }
-//
-//            override fun onDrawerStateChanged(newState: Int) {}
-//        })
-
-
-        // Обработка кликов по элементам бокового меню
-//        binding.navView.setNavigationItemSelectedListener { menuItem ->
-//            when (menuItem.itemId) {
-//                R.id.menu_all_notes -> {
-//                    // Переход к списку всех заметок (корневая папка)
-//                    val action = NoteListFragmentDirections
-//                        .actionGlobalNoteListFragment(null)
-//                    navController.navigate(action)
-//                    drawerLayout.closeDrawer(GravityCompat.START)
-//                    true
-//                }
-//
-//                R.id.menu_create_notebook -> {
-//                    // Создание новой записной книжки
-//                    showCreateNotebookDialog()
-//                    drawerLayout.closeDrawer(GravityCompat.START)
-//                    true
-//                }
-//
-//                R.id.menu_create_other_notebook -> {
-//                    // Создание новой записной книжки
-//                    showCreateNotebookDialog()
-//                    drawerLayout.closeDrawer(GravityCompat.START)
-//                    true
-//                }
-//
-//                else -> {
-//                    // Для других элементов используем стандартное поведение
-//                    NavigationUI.onNavDestinationSelected(menuItem, navController)
-//                    drawerLayout.closeDrawer(GravityCompat.START)
-//                    true
-//                }
-//            }
-//        }
-//
-//        // Загрузка списка записных книжек в меню
-//        loadNotebooksIntoMenu()
-//    }
-
     override fun onSupportNavigateUp(): Boolean {
-
-        if (navController.currentDestination?.id == R.id.noteEditFragment) { // На экране редактирования
-
-            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START)
-            }
-
-            //navController.navigateUp() || super.onSupportNavigateUp()
-            navController.navigate(R.id.noteListFragment) // все равно открвается меню
-            return true
-        }
-
-        if (navController.currentDestination?.id == R.id.noteListFragment) {// На главном экране
+        return if (navController.currentDestination?.id == R.id.startFragment) {
+            // На стартовом экране - открытие/закрытие Drawer
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START)
             } else {
                 drawerLayout.openDrawer(GravityCompat.START)
             }
-            return true
+            true
+        } else {
+            // На других экранах - навигация назад
+            navController.navigateUp() || super.onSupportNavigateUp()
         }
-        return true
     }
 
     @Deprecated("This method has been deprecated in favor of using the\n{@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
@@ -342,55 +281,8 @@ class RootActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadNotebooksIntoMenu() {
-        // Загрузка списка записных книжек в боковое меню
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val notebooksDir = File(filesDir, DEFAULT_DIR)
-                if (notebooksDir.exists() && notebooksDir.isDirectory) {
-                    val notebooks =
-                        notebooksDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
-
-                    withContext(Dispatchers.Main) {
-                        val menu = binding.navView.menu
-                        val notebooksMenu = menu.findItem(R.id.menu_notebooks).subMenu
-                        notebooksMenu?.clear()
-
-                        notebooks.sortedByDescending { it.lastModified() }.forEach { notebook ->
-                            notebooksMenu?.add(
-                                R.id.menu_group_notebooks,
-                                Menu.NONE,
-                                Menu.NONE,
-                                notebook.path
-                            )?.setOnMenuItemClickListener {
-                                val action = NoteListFragmentDirections
-                                    .actionGlobalNoteListFragment(notebook.path)
-                                navController.navigate(action)
-                                drawerLayout.closeDrawer(GravityCompat.START)
-                                true
-                            }
-                        }
-
-                        // Если записных книжек нет, показываем соответствующий текст
-                        if (notebooks.isEmpty()) {
-                            val noNotebooksItem = notebooksMenu?.add(
-                                R.id.menu_group_notebooks,
-                                Menu.NONE,
-                                Menu.NONE,
-                                "Записных книжек пока нет"
-                            )
-                            noNotebooksItem?.isEnabled = false
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("RootActivity", "Ошибка загрузки записных книжек", e)
-            }
-        }
-    }
-
     private fun showCreateNotebookDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_create_notebook, null)
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_create_notebook, null)
         val editText = dialogView.findViewById<EditText>(R.id.notebook_name)
 
         AlertDialog.Builder(this)
@@ -399,54 +291,13 @@ class RootActivity : AppCompatActivity() {
             .setPositiveButton("Создать") { dialog, _ ->
                 val name = editText.text.toString().trim()
                 if (name.isNotEmpty()) {
-                    createNotebook(name)
+                    menuViewModel.createNewNotebook(name)
                 } else {
                     Toast.makeText(this, "Введите название книжки", Toast.LENGTH_SHORT).show()
                 }
-                dialog.dismiss()
             }
-            .setNegativeButton("Отмена") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setNegativeButton("Отмена", null)
             .show()
-    }
-
-    private fun createNotebook(name: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val notebooksDir = File(filesDir, "notes")
-                val newNotebookDir = File(notebooksDir, name)
-                if (!newNotebookDir.exists()) {
-                    newNotebookDir.mkdirs()
-
-                    // Обновляем меню
-                    withContext(Dispatchers.Main) {
-                        loadNotebooksIntoMenu()
-                        Toast.makeText(
-                            this@RootActivity,
-                            "Записная книжка создана",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@RootActivity,
-                            "Записная книжка с таким именем уже существует",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@RootActivity,
-                        "Ошибка создания записной книжки",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

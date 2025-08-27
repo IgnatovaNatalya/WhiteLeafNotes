@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="38dp"
@@ -9,17 +8,9 @@
     android:orientation="horizontal"
     android:paddingHorizontal="16dp">
 
-    <ImageView
-        android:layout_width="8dp"
-        android:layout_height="10dp"
-        android:layout_marginEnd="8dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_add"
-        app:tint="?attr/android:textColorPrimary" />
-
     <TextView
-        android:id="@+id/drawer_create_button"
-        style="@style/DrawerNotebookTitle"
+        android:id="@+id/drawer_note_title"
+        style="@style/DrawerNoteTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -27,6 +18,6 @@
         android:maxLines="1"
         android:textColor="?attr/android:textColorPrimary"
         android:text=""
-        tools:text="Записная книжка" />
+        tools:text="Заметка" />
 
 </LinearLayout>

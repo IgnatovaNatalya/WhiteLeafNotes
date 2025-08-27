@@ -65,16 +65,12 @@ class DrawerMenuViewModel(
             }
         }
 
-        // Кнопка создания записной книжки
         items.add(DrawerMenuItem.CreateNotebook)
-
-        // Разделитель
         items.add(DrawerMenuItem.Divider)
 
         // Заголовок для заметок
         //items.add(DrawerMenuItem.Header("ЗАМЕТКИ"))
 
-        // Элементы заметок
         if (rootNotes.isEmpty()) {
             //items.add(DrawerMenuItem.EmptyNotes)
         } else {
@@ -82,10 +78,7 @@ class DrawerMenuViewModel(
                 items.add(DrawerMenuItem.NoteItem(note))
             }
         }
-
-        // Кнопка создания заметки
         items.add(DrawerMenuItem.CreateNote)
-
         return items
     }
 
