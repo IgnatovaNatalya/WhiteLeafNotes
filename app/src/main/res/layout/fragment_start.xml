@@ -3,20 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/colorPrimary">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:id="@+id/start_header"
         android:layout_width="match_parent"
         android:layout_height="208dp"
-        android:background="?attr/colorPrimary"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
         android:paddingTop="92dp"
         android:gravity="top"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="?attr/android:windowBackground">
 
         <TextView
             android:id="@+id/title"
@@ -26,14 +25,14 @@
             android:gravity="center_vertical"
             android:text="@string/fragment_start_label"
             android:textAppearance="@style/StartScreenHeaderTitle"
-            android:textColor="?attr/colorOnPrimary" />
+            android:textColor="?attr/android:textColorPrimary" />
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="Options"
             android:src="@drawable/ic_options"
-            app:tint="?attr/colorOnPrimary"
+            app:tint="?attr/android:textColorPrimary"
             tools:ignore="HardcodedText" />
     </LinearLayout>
 
@@ -47,7 +46,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/start_header"
         tools:itemCount="3"
-        android:background="?attr/android:windowBackground"
+        android:background="?attr/colorContainer"
         tools:listitem="@layout/item_start_header" />
 
     <ProgressBar

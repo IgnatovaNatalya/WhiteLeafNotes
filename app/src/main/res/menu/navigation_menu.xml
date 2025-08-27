@@ -13,6 +13,10 @@
             android:title="@string/notebooks">
             <menu>
                 <item
+                    android:id="@+id/menu_one_notebook"
+                    android:icon="@drawable/ic_book"
+                    android:title="Зап книжка" />
+                <item
                     android:id="@+id/menu_create_notebook"
                     android:icon="@drawable/ic_add"
                     android:title="@string/create_notebook" />

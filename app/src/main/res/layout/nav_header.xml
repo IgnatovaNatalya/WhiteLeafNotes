@@ -9,6 +9,7 @@
     android:gravity="bottom"
     android:orientation="vertical"
     android:paddingHorizontal="16dp"
+    android:backgroundTint="@color/accent_coral"
     android:paddingVertical="42dp">
 
     <TextView
@@ -26,6 +27,6 @@
         android:foregroundGravity="left"
         android:layout_marginTop="4dp"
         app:srcCompat="@drawable/app_logo_menu"
-        app:tint="@color/accent_blue" />
+        app:tint="@color/text_primary_light"/>
 
 </LinearLayout>

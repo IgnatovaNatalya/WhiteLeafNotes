@@ -2,21 +2,21 @@
     <!-- Базовая тема приложения -->
     <style name="Base.Theme.WhiteList" parent="Theme.Material3.DayNight.NoActionBar">
 
-        <!-- Цвета поверхностей -->
-
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
 
         <!-- Основные цвета -->
         <item name="colorPrimary">@color/accent_coral</item>
-        <item name="colorOnPrimary">@color/background_light</item>
+        <item name="colorOnPrimary">@color/container_light</item>
         <item name="colorPrimaryContainer">@color/accent_coral</item>
-        <item name="colorOnPrimaryContainer">@color/background_light</item>
+        <item name="colorOnPrimaryContainer">@color/container_light</item>
 
         <item name="colorSecondary">@color/accent_blue</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/accent_blue</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
+
+        <item name="colorContainer">@color/container_light</item>
 
         <item name="colorSurface">@color/divider_light</item>
         <item name="colorOnSurface">@color/text_primary_light</item>
@@ -25,7 +25,8 @@
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
 
         <!-- Устанавливаем фон окна через windowBackground -->
-        <item name="android:windowBackground">@color/background_light</item>
+        <item name="android:windowBackground">@color/white</item>
+        <!--item name="android:windowBackground">@color/background_light</item-->
 
         <!-- Дополнительные атрибуты -->
         <item name="cardViewStyle">@style/CardView.WhiteList</item>

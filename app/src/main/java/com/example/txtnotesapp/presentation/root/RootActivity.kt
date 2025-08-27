@@ -109,7 +109,7 @@ class RootActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             //v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, 0, systemBars.right,0)
             insets
         }
         setupToolbar()
@@ -135,7 +135,8 @@ class RootActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.startFragment -> {
                     setDrawerEnabled(false)
-                    supportActionBar?.title = "Заметки и записные книжки"
+                    //supportActionBar?.title = "Заметки и записные книжки"
+                    supportActionBar?.hide()
                 }
 
                 R.id.noteListFragment -> {
@@ -146,6 +147,7 @@ class RootActivity : AppCompatActivity() {
                         this,
                         R.drawable.ic_menu
                     )
+                    supportActionBar?.show()
                 }
 
                 R.id.noteEditFragment -> {
@@ -156,6 +158,7 @@ class RootActivity : AppCompatActivity() {
                         this,
                         R.drawable.ic_arrow_back
                     )
+                    supportActionBar?.show()
                 }
             }
         }

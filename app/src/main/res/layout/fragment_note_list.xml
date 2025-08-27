@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:itemCount="3"
-        tools:listitem="item_notebook" />
+        tools:listitem="item_note" />
 
     <TextView
         android:id="@+id/empty_list"
