@@ -41,4 +41,20 @@
         <item name="fontFamily">@font/nunito_semibold</item>
         <item name="textAllCaps">false</item>
     </style>
+
+    <style name="NoteEditTitle">
+        <item name="android:textSize">22sp</item>
+        <item name="fontFamily">@font/comfortaa_bold</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="NoteEditDate">
+        <item name="android:textSize">12sp</item>
+        <item name="fontFamily">@font/nunito_medium</item>
+    </style>
+
+    <style name="NoteEditText">
+        <item name="android:textSize">14sp</item>
+        <item name="fontFamily">@font/nunito_medium</item>
+    </style>
 </resources>

@@ -5,46 +5,50 @@
     android:id="@+id/note_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginHorizontal="16dp"
     android:orientation="vertical"
     tools:context=".presentation.note_edit.NoteEditFragment">
 
-    <!--com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/note_edit_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        app:contentInsetStart="0dp"
-        app:contentInsetStartWithNavigation="0dp"
-        app:navigationIcon="@drawable/arrow_back"
-        app:titleMarginStart="8dp"
-        app:title="@string/note"/-->
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/note_title"
+        style="@style/NoteEditTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="@string/sample_title"
         android:importantForAutofill="no"
         android:inputType="textCapSentences|textAutoComplete|textAutoCorrect"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:textColor="?attr/android:textColorPrimary"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Название" />
 
     <TextView
         android:id="@+id/note_date"
+        style="@style/NoteEditDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginHorizontal="4dp"
+        android:textColor="?attr/android:textColorSecondary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/note_title"
         tools:text="31 мая 2025 г." />
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/note_text"
+        android:layout_marginHorizontal="2dp"
+        style="@style/NoteEditText"
         android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="32dp"
         android:layout_weight="1"
         android:gravity="start|top"
-        android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
         android:importantForAutofill="no"
+        android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
         android:scrollbars="vertical"
-        tools:text="Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки"
-        android:layout_height="0dp"/>
+        android:textColor="?attr/android:textColorPrimary"
+        tools:text="Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки" />
 
     <ProgressBar
         android:id="@+id/progress_bar"
