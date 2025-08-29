@@ -33,15 +33,10 @@ class StartFragment : Fragment() { //todo Сделать все фрагмент
 
         setupRecyclerView()
         setupObservers()
-
-        // Скрываем кнопку гамбургера в MainActivity
-        //(activity as RootActivity).setDrawerEnabled(false)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Восстанавливаем кнопку гамбургера при выходе
-        //(activity as RootActivity).setDrawerEnabled(true)
     }
 
     private fun setupRecyclerView() {
@@ -114,7 +109,6 @@ class StartFragment : Fragment() { //todo Сделать все фрагмент
             .setNegativeButton("Отмена", null)
             .show()
     }
-
 
     private fun createNewNote() {
         viewModel.createNewNote()

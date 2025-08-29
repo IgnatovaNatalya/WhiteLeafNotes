@@ -48,7 +48,6 @@ class NoteEditFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupObservers()
-        setupToolbar()
         setupEditText()
     }
 
@@ -85,30 +84,6 @@ class NoteEditFragment : Fragment() {
 //                }, 1000)
             }
         }
-    }
-
-    private fun setupToolbar() {
-//        binding.noteEditToolbar.setNavigationOnClickListener {
-//            findNavController().navigateUp()
-//        }
-
-//        binding.noteEditToolbar.setOnMenuItemClickListener { menuItem ->
-//            when (menuItem.itemId) {
-//                R.id.menu_undo -> {
-//                    // TODO: Реализовать отмену
-//                    true
-//                }
-//                R.id.menu_redo -> {
-//                    // TODO: Реализовать повтор
-//                    true
-//                }
-//                R.id.menu_more -> {
-//                    // TODO: Показать дополнительное меню
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
     }
 
     private fun setupEditText() {

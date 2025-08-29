@@ -35,7 +35,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navController: NavController
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var drawerMenuAdapter: DrawerMenuAdapter
@@ -95,15 +94,12 @@ class RootActivity : AppCompatActivity() {
     }
 
     private fun initializeApp() {
-
         enableEdgeToEdge()
-
         binding = ActivityRootBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            //v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             v.setPadding(systemBars.left, 0, systemBars.right, 0)
             insets
         }
@@ -114,32 +110,14 @@ class RootActivity : AppCompatActivity() {
         setupNavigationListener()
     }
 
-    fun setDrawerEnabled(enabled: Boolean) {
-        if (enabled) {
-            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-            supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            binding.toolbar.navigationIcon = ContextCompat.getDrawable(this, R.drawable.ic_menu)
-        } else {
-            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-            supportActionBar?.setDisplayHomeAsUpEnabled(false)
-            binding.toolbar.navigationIcon = null
-        }
-    }
-
     private fun setupNavigationListener() {
         // Слушатель изменений навигации для управления кнопкой в AppBar
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.startFragment -> {
-                    setDrawerEnabled(false)
-                    //supportActionBar?.title = "Заметки и записные книжки"
-                    supportActionBar?.hide()
-                }
+                R.id.startFragment -> supportActionBar?.hide()
 
                 R.id.noteListFragment -> {
-                    setDrawerEnabled(true)
-                    supportActionBar?.title = "Заметки"
-                    supportActionBar?.setDisplayHomeAsUpEnabled(false)
+                    supportActionBar?.setDisplayHomeAsUpEnabled(true)
                     binding.toolbar.navigationIcon = ContextCompat.getDrawable(
                         this,
                         R.drawable.ic_menu
@@ -148,38 +126,27 @@ class RootActivity : AppCompatActivity() {
                 }
 
                 R.id.noteEditFragment -> {
-                    setDrawerEnabled(false)
-                    supportActionBar?.title = ""
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
-                    binding.toolbar.navigationIcon = ContextCompat.getDrawable(
-                        this,
-                        R.drawable.ic_arrow_back
-                    )
                     supportActionBar?.show()
                 }
             }
         }
     }
 
-    private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)//
-        supportActionBar?.setHomeButtonEnabled(true)//
-    }
+    private fun setupToolbar() = setSupportActionBar(binding.toolbar)
 
     private fun setupNavigation() {
-
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
 
         navController = navHostFragment.navController
         drawerLayout = binding.drawerLayout
 
-        appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.startFragment),
+       val  appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.noteListFragment),
             drawerLayout
         )
-
+       // val appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
     }
 
@@ -200,20 +167,12 @@ class RootActivity : AppCompatActivity() {
                 menuViewModel.createNewNote()
             }
         )
-
         binding.navView.getHeaderView(0).findViewById<RecyclerView>(R.id.drawer_menu_recyclerView)
             .apply {
                 adapter = drawerMenuAdapter
                 layoutManager = LinearLayoutManager(this@RootActivity)
-                addItemDecoration(
-                    DividerItemDecoration(
-                        this@RootActivity,
-                        DividerItemDecoration.VERTICAL
-                    )
-                )
+//              addItemDecoration( DividerItemDecoration(this@RootActivity, DividerItemDecoration.VERTICAL))
             }
-
-        // Загрузка данных для меню
         menuViewModel.loadMenuData()
     }
 
@@ -236,11 +195,8 @@ class RootActivity : AppCompatActivity() {
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.noteListFragment, R.id.noteEditFragment -> {
-                    menuViewModel.loadMenuData()
-                }
-            }
+            menuViewModel.loadMenuData()
+            //when (destination.id) { R.id.noteListFragment -> {}
         }
     }
 
@@ -255,21 +211,6 @@ class RootActivity : AppCompatActivity() {
             notebookPath = null
         )
         navController.navigate(action)
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        return if (navController.currentDestination?.id == R.id.startFragment) {
-            // На стартовом экране - открытие/закрытие Drawer
-            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START)
-            } else {
-                drawerLayout.openDrawer(GravityCompat.START)
-            }
-            true
-        } else {
-            // На других экранах - навигация назад
-            navController.navigateUp() || super.onSupportNavigateUp()
-        }
     }
 
     @Deprecated("This method has been deprecated in favor of using the\n{@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
