@@ -3,6 +3,7 @@
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/title"
+    style="@style/StartScreenItemHeader"
     android:layout_width="match_parent"
     android:layout_height="40dp"
     android:gravity="center_vertical"

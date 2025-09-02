@@ -59,14 +59,14 @@ class StartAdapter(
 
             TYPE_ADD_NOTEBOOK -> AddButtonViewHolder(
                 LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_start_add_button, parent, false),
+                    .inflate(R.layout.item_start_create_button, parent, false),
                 onAddNotebookClicked,
                 "Создать записную книжку"
             )
 
             TYPE_ADD_NOTE -> AddButtonViewHolder(
                 LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_start_add_button, parent, false),
+                    .inflate(R.layout.item_start_create_button, parent, false),
                 onAddNoteClicked,
                 "Создать заметку"
             )

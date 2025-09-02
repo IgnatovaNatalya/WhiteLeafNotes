@@ -1,41 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginTop="0dp"
     android:background="?attr/android:windowBackground"
     android:fitsSystemWindows="false"
     android:orientation="vertical"
     android:paddingHorizontal="16dp"
-    android:paddingVertical="42dp">
+    android:paddingVertical="64dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/comfortaa_bold"
-        android:textSize="20sp"
-        android:text="@string/fragment_start_label" />
+        android:text="@string/fragment_start_label"
+        android:textSize="24sp" />
 
     <ImageView
         android:id="@+id/app_logo"
         android:layout_width="72dp"
         android:layout_height="9dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="20dp"
         android:contentDescription="@string/app_name"
         android:foregroundGravity="left"
-        android:layout_marginTop="4dp"
         app:srcCompat="@drawable/app_logo_menu"
-        app:tint="@color/text_primary_light"/>
+        app:tint="@color/accent_blue" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/drawer_menu_recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:padding="8dp"
         android:orientation="vertical"
-        tools:listitem="@layout/item_drawer_notebook"/>
+        android:padding="8dp"
+        android:layout_marginTop="32dp"
+        tools:listitem="@layout/item_drawer_notebook" />
 </LinearLayout>
 

@@ -4,11 +4,12 @@
     android:layout_height="104dp"
     android:gravity="center">
 
-  <TextView
-      android:id="@+id/start_empty_list"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/empty_notebooks"
-      android:textColor="?attr/android:textColorSecondary"/>
+    <TextView
+        android:id="@+id/start_empty_list"
+        style="@style/StartScreenItemEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/empty_notebooks"
+        android:textColor="?attr/android:textColorSecondary" />
 
 </LinearLayout>

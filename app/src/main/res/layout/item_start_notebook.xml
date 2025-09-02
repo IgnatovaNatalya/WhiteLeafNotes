@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textAppearance="@style/StartScreenItemTitle"
+            style="@style/StartScreenItemTitle"
             android:textColor="?android:attr/textColorPrimary"
             tools:text="Работа над ошибками" />
 
@@ -41,7 +41,7 @@
             android:id="@+id/noteCount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/StartScreenItemNotebookCount"
+            style="@style/StartScreenItemNotebookCount"
             android:textColor="?android:attr/textColorSecondary"
             tools:text="12 заметок" />
     </LinearLayout>
