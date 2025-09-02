@@ -10,6 +10,10 @@
 
 ## Скриншоты
 
+<img width="190" height="418" alt="Первый экран" src="https://github.com/user-attachments/assets/d3f04644-444b-4de8-8f67-b956be87ba56" />
+<img width="190" height="418" alt="Список заметок в книжке" src="https://github.com/user-attachments/assets/5564c817-cc6c-42c7-83b8-32279b7c8f8f" />
+<img width="190" height="418" alt="Боковое меню в списке заметок" src="https://github.com/user-attachments/assets/f4901eff-e10e-4165-a711-b3c9820ba1be" />
+<img width="190" height="418" alt="Редактирование заметки" src="https://github.com/user-attachments/assets/4af70bd2-10c0-42cb-8254-c27dc828b76d" />
 
 
 ## Технологии
