@@ -34,7 +34,7 @@ class StartAdapter(
             is StartListItem.AddNotebookButton -> TYPE_ADD_NOTEBOOK
             is StartListItem.AddNoteButton -> TYPE_ADD_NOTE
             is StartListItem.Divider -> TYPE_DIVIDER
-            is StartListItem.EmptyNotebooks, is StartListItem.EmptyNotes -> TYPE_EMPTY
+            is StartListItem.EmptyNotebooks, is StartListItem.EmptyNotes, is StartListItem.Spacing -> TYPE_EMPTY
         }
     }
 
@@ -94,6 +94,7 @@ class StartAdapter(
             is StartListItem.AddNoteButton -> (holder as AddButtonViewHolder).bind()
             is StartListItem.EmptyNotebooks -> (holder as EmptyListViewHolder).bind("Записных книжек пока нет")
             is StartListItem.EmptyNotes -> (holder as EmptyListViewHolder).bind("Заметок пока нет")
+            is StartListItem.Spacing ->  (holder as EmptyListViewHolder).bind("") //Пустое место после кнопки в конце списка
             is StartListItem.Divider -> {} // Ничего не делаем для разделителя
         }
     }

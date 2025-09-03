@@ -5,7 +5,7 @@
     android:id="@+id/title"
     style="@style/StartScreenItemHeader"
     android:layout_width="match_parent"
-    android:layout_height="40dp"
+    android:layout_height="48dp"
     android:gravity="center_vertical"
     android:textAllCaps="true"
     tools:text="Заметки"

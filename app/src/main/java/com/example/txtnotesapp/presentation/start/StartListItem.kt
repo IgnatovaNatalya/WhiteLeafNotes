@@ -12,6 +12,7 @@ sealed class StartListItem {
     object Divider : StartListItem()
     object EmptyNotebooks : StartListItem()
     object EmptyNotes : StartListItem()
+    object Spacing : StartListItem()
 
     // Для DiffUtil
     override fun equals(other: Any?): Boolean {
@@ -27,6 +28,7 @@ sealed class StartListItem {
             Divider -> other is Divider
             EmptyNotebooks -> other is EmptyNotebooks
             EmptyNotes -> other is EmptyNotes
+            Spacing -> other is Spacing
         }
     }
 

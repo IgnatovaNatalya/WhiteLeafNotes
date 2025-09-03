@@ -80,6 +80,7 @@ class StartViewModel(
         }
 
         items.add(StartListItem.AddNoteButton)
+        items.add(StartListItem.Spacing)
 
         return items
     }
