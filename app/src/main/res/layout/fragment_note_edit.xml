@@ -5,7 +5,6 @@
     android:id="@+id/note_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginHorizontal="16dp"
     android:orientation="vertical"
     tools:context=".presentation.note_edit.NoteEditFragment">
 
@@ -15,21 +14,32 @@
         style="@style/NoteEditTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/marginHorizontal"
         android:layout_marginTop="8dp"
+        android:background="@null"
         android:hint="@string/sample_title"
         android:importantForAutofill="no"
-        android:inputType="textCapSentences|textAutoComplete|textAutoCorrect"
+        android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
+        android:maxLines="3"
+        android:ellipsize="end"
         android:textColor="?attr/android:textColorPrimary"
         app:layout_constraintStart_toStartOf="parent"
-        tools:text="Название" />
+        tools:text="Название две строки три строки три строки три строки три строки" />
+
+    <!--View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/android:textColorSecondary"
+        android:layout_marginHorizontal="4dp"
+        /-->
 
     <TextView
         android:id="@+id/note_date"
         style="@style/NoteEditDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/marginHorizontal"
         android:layout_marginTop="8dp"
-        android:layout_marginHorizontal="4dp"
         android:textColor="?attr/android:textColorSecondary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/note_title"
@@ -37,10 +47,10 @@
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/note_text"
-        android:layout_marginHorizontal="2dp"
         style="@style/NoteEditText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/marginHorizontal"
         android:layout_marginTop="32dp"
         android:layout_weight="1"
         android:gravity="start|top"
@@ -48,7 +58,7 @@
         android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
         android:scrollbars="vertical"
         android:textColor="?attr/android:textColorPrimary"
-        tools:text="Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки" />
+        tools:text="Текст заметки \nТекст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки" />
 
     <ProgressBar
         android:id="@+id/progress_bar"

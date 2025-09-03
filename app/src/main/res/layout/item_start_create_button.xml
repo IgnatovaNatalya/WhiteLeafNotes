@@ -9,7 +9,7 @@
     <Button
         android:id="@+id/addButton"
         style="@style/StartScreenItemAdd"
-        android:layout_width="208dp"
+        android:layout_width="240dp"
         android:layout_height="32dp"
         android:padding="0dp"
         android:background="@drawable/bg_button_round"

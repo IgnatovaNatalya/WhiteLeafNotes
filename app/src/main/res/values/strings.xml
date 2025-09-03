@@ -21,4 +21,6 @@
     <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
     <string name="add">Добавить</string>
     <string name="empty_notebooks">Записных книжек пока нет</string>
+    <string name="undo">Отменить</string>
+    <string name="redo">Вернуть</string>
 </resources>

@@ -58,6 +58,8 @@
 
     <style name="NoteEditTitle">
         <item name="android:textSize">24sp</item>
+
+        <item name="android:lineSpacingMultiplier">1.15</item>
         <item name="fontFamily">@font/comfortaa_bold</item>
         <item name="textAllCaps">false</item>
     </style>
@@ -69,6 +71,7 @@
 
     <style name="NoteEditText">
         <item name="android:textSize">14sp</item>
+        <item name="android:lineSpacingMultiplier">1.15</item>
         <item name="fontFamily">@font/nunito_medium</item>
     </style>
 
