@@ -110,6 +110,7 @@ class RootActivity : AppCompatActivity() {
             },
             onCreateNote = {
                 menuViewModel.createNewNote()
+                drawerLayout.closeDrawer(GravityCompat.START)
             }
         )
         binding.navView.getHeaderView(0).findViewById<RecyclerView>(R.id.drawer_menu_recyclerView)
@@ -137,6 +138,13 @@ class RootActivity : AppCompatActivity() {
                 // todo индикатор загрузки
             }
         }
+
+        menuViewModel.navigateToNote.observe(this) { noteId ->
+            noteId?.let {
+                navigateToNote(noteId)
+                menuViewModel.onNoteNavigated()
+            }
+        }
     }
 
     private fun navigateToNotebook(notebook: Notebook) {
@@ -150,6 +158,7 @@ class RootActivity : AppCompatActivity() {
             notebookPath = null
         )
         navController.navigate(action)
+
     }
 
     override fun onSupportNavigateUp(): Boolean {

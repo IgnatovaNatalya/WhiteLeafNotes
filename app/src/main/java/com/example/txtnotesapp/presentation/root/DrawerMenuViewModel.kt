@@ -22,6 +22,9 @@ class DrawerMenuViewModel(
     private val _menuItems = MutableLiveData<List<DrawerMenuItem>>()
     val menuItems: LiveData<List<DrawerMenuItem>> = _menuItems
 
+    private val _navigateToNote = MutableLiveData<Note>()
+    val navigateToNote: LiveData<Note> = _navigateToNote
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
@@ -94,14 +97,26 @@ class DrawerMenuViewModel(
     }
 
     fun createNewNote() {
+//        viewModelScope.launch {
+//            try {
+//                createNote(null)
+//                loadMenuData()
+//            } catch (e: Exception) {
+//                _error.value = "Ошибка создания заметки: ${e.message}"
+//            }
+//        }
         viewModelScope.launch {
             try {
-                createNote(null)
-                loadMenuData() // Перезагружаем данные после создания
+                val newNote = createNote(null)
+                _navigateToNote.value = newNote
             } catch (e: Exception) {
                 _error.value = "Ошибка создания заметки: ${e.message}"
             }
         }
+    }
+
+    fun onNoteNavigated() {
+        _navigateToNote.value = null
     }
 
     fun clearError() {
