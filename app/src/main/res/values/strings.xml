@@ -6,6 +6,7 @@
     <string name="create_note">Create note</string>
     <string name="open">Открыть</string>
     <string name="edit">Редактировать</string>
+    <string name="rename">Переименовать</string>
     <string name="move">Переместить</string>
     <string name="share">Поделиться</string>
     <string name="delete">Удалить</string>
@@ -16,7 +17,9 @@
     <string name="notebooks">Записные книжки</string>
     <string name="create_notebook">Создать записную книжку</string>
     <string name="enter_notebook_title">Введите название записной книжки</string>
+    <string name="rename_note">Введите новое название</string>
     <string name="notebook_title">Название книжки</string>
+    <string name="note_title">Название заметки</string>
     <string name="fragment_note_list_label">Записная книжка</string>
     <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
     <string name="add">Добавить</string>

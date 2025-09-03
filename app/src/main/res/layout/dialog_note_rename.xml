@@ -8,16 +8,17 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/enter_notebook_title"
+        android:text="@string/rename_note"
         android:textAppearance="@style/NoteEditTitle" />
 
     <EditText
-        android:id="@+id/notebook_name"
+        android:id="@+id/new_note_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="@string/notebook_title"
+        android:hint="@string/note_title"
         android:background="@null"
+        android:importantForAutofill="no"
         android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
         android:textAppearance="@style/NoteEditText" />
 

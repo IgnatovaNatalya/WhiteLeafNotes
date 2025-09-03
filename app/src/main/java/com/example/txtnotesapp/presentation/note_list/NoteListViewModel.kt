@@ -11,6 +11,7 @@ import com.example.txtnotesapp.domain.use_case.CreateNote
 import com.example.txtnotesapp.domain.use_case.DeleteNote
 import com.example.txtnotesapp.domain.use_case.GetNotes
 import com.example.txtnotesapp.domain.use_case.MoveNote
+import com.example.txtnotesapp.domain.use_case.RenameNote
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -19,6 +20,7 @@ class NoteListViewModel(
     private val deleteNote: DeleteNote,
     private val createNote: CreateNote,
     private val moveNote: MoveNote,
+    private val renameNote: RenameNote,
     private val preferences: SharedPreferences,
     private val notebookPath: String?
 ) : ViewModel() {
@@ -29,8 +31,8 @@ class NoteListViewModel(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _message = MutableLiveData<String?>()
+    val message: LiveData<String?> = _message
 
     private val _navigateToNote = MutableLiveData<String?>()
     val navigateToNote: LiveData<String?> = _navigateToNote
@@ -43,26 +45,9 @@ class NoteListViewModel(
         saveLastOpenNotebook()
     }
 
-    //    старый метод
-//    fun loadNotes() {
-//        _isLoading.value = true
-//        _error.value = null
-//
-//        viewModelScope.launch {
-//            try {
-//                val notesList = getNotes(notebookPath)
-//                _notes.value = notesList
-//            } catch (e: Exception) {
-//                _error.value = "Ошибка загрузки заметок: ${e.message}"
-//                _notes.value = emptyList()
-//            } finally {
-//                _isLoading.value = false
-//            }
-//        }
-//    }
     fun loadNotes() { //todo нужна аналогичная проверка в остальных методах
         _isLoading.value = true
-        _error.value = null
+        _message.value = null
 
         viewModelScope.launch {
             try {
@@ -70,13 +55,13 @@ class NoteListViewModel(
                 _notes.value = notesList
             } catch (e: IOException) {
                 if (e.message?.contains("доступ") == true) {
-                    _error.value = "Нет доступа к хранилищу. Проверьте разрешения."
+                    _message.value = "Нет доступа к хранилищу. Проверьте разрешения."
                 } else {
-                    _error.value = "Ошибка загрузки заметок: ${e.message}"
+                    _message.value = "Ошибка загрузки заметок: ${e.message}"
                 }
                 _notes.value = emptyList()
             } catch (e: Exception) {
-                _error.value = "Ошибка загрузки заметок: ${e.message}"
+                _message.value = "Ошибка загрузки заметок: ${e.message}"
                 _notes.value = emptyList()
             } finally {
                 _isLoading.value = false
@@ -90,7 +75,7 @@ class NoteListViewModel(
                 val newNote = createNote(notebookPath)
                 _navigateToCreatedNote.value = newNote.title
             } catch (e: Exception) {
-                _error.value = "Ошибка создания заметки: ${e.message}"
+                _message.value = "Ошибка создания заметки: ${e.message}"
             }
         }
     }
@@ -102,7 +87,7 @@ class NoteListViewModel(
                 // Обновляем список после удаления
                 loadNotes()
             } catch (e: Exception) {
-                _error.value = "Ошибка удаления заметки: ${e.message}"
+                _message.value = "Ошибка удаления заметки: ${e.message}"
             }
         }
     }
@@ -114,7 +99,25 @@ class NoteListViewModel(
                 // Обновляем список после перемещения
                 loadNotes()
             } catch (e: Exception) {
-                _error.value = "Ошибка перемещения заметки: ${e.message}"
+                _message.value = "Ошибка перемещения заметки: ${e.message}"
+            }
+        }
+    }
+
+    fun updateNoteTitle(note:Note, newTitle: String) {
+        val currentNote = note
+
+        viewModelScope.launch {
+            try {
+                // Переименовываем заметку
+                if (newTitle != note.title) {
+                    renameNote(note, newTitle)
+                    loadNotes()
+                    _message.postValue("Название заметки изменено")
+                }
+            } catch (e: Exception) {
+                _message.postValue("Ошибка переименования: ${e.message}")
+
             }
         }
     }
@@ -132,7 +135,7 @@ class NoteListViewModel(
     }
 
     fun clearError() {
-        _error.value = null
+        _message.value = null
     }
 
     private fun saveLastOpenNotebook() {

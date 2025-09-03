@@ -1,12 +1,13 @@
 package com.example.txtnotesapp.presentation.note_list
 
-import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -19,6 +20,7 @@ import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.utils.PermissionUtils
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+
 
 class NoteListFragment : Fragment() {
     private lateinit var binding: FragmentNoteListBinding
@@ -45,7 +47,7 @@ class NoteListFragment : Fragment() {
 
     private fun setupObservers() {
 
-        viewModel.error.observe(viewLifecycleOwner) { error ->
+        viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
                 if (it.contains("доступ")) {
                     // Показываем кнопку для запроса разрешений
@@ -66,7 +68,7 @@ class NoteListFragment : Fragment() {
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        viewModel.error.observe(viewLifecycleOwner) { error ->
+        viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
                 viewModel.clearError()
@@ -106,8 +108,8 @@ class NoteListFragment : Fragment() {
             onNoteClicked = { note ->
                 viewModel.onNoteClicked(note.title)
             },
-            onNoteLongClicked = { note ->
-                showContextMenu(note)
+            onNoteLongClicked = { view, note ->
+                showContextMenu(view, note)
             }
         )
 
@@ -142,28 +144,41 @@ class NoteListFragment : Fragment() {
         findNavController().navigate(action)
     }
 
-    private fun showContextMenu(note: Note) {
-        val popup = PopupMenu(requireContext(), binding.root)
+    private fun showContextMenu(anchorView: View, note: Note) {
+        val popup = PopupMenu(requireContext(), anchorView)
         popup.menuInflater.inflate(R.menu.note_context_menu, popup.menu)
+
+        // Настройка меню для отображения всех пунктов
+        try {
+            val field = popup::class.java.getDeclaredField("mPopup")
+            field.isAccessible = true
+            //val menuPopupHelper = field.get(popup) as MenuPopupHelper
+            //menuPopupHelper.setForceShowIcon(true) // Показывать иконки если есть
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.menu_delete -> {
-                    showDeleteConfirmationDialog(note)
+                R.id.note_menu_rename -> {
+                    showRenameNoteDialog(note)
                     true
                 }
-                R.id.menu_move -> {
+                R.id.note_menu_move -> {
                     showMoveNoteDialog(note)
                     true
                 }
-                R.id.menu_share -> {
+                R.id.note_menu_share -> {
                     shareNote(note)
+                    true
+                }
+                R.id.note_menu_delete -> {
+                    showDeleteConfirmationDialog(note)
                     true
                 }
                 else -> false
             }
         }
-
         popup.show()
     }
 
@@ -181,6 +196,20 @@ class NoteListFragment : Fragment() {
     private fun showMoveNoteDialog(note: Note) {
         // TODO: Реализовать диалог выбора целевой записной книжки
         Toast.makeText(requireContext(), "Функция перемещения в разработке", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showRenameNoteDialog(note: Note) {
+        val alertDialogBuilder = AlertDialog.Builder(requireContext())
+        val renameDialogView: View = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_note_rename, null)
+        alertDialogBuilder.setView(renameDialogView)
+        val newTitle = renameDialogView.findViewById<EditText>(R.id.new_note_title)
+
+        alertDialogBuilder
+            .setPositiveButton("Переименовать") { _, _ ->
+                viewModel.updateNoteTitle(note,newTitle.text.toString() )
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
 
     private fun shareNote(note: Note) {

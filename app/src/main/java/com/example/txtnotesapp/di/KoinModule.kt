@@ -78,6 +78,7 @@ val koinModule = module {
             deleteNote = get(),
             createNote = get(),
             moveNote = get(),
+            renameNote = get(),
             preferences = androidContext().getSharedPreferences(
                 "txt_notes_prefs",
                 Context.MODE_PRIVATE

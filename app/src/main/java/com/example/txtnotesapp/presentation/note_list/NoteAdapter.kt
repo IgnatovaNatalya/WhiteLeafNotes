@@ -1,6 +1,7 @@
 package com.example.txtnotesapp.presentation.note_list
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -9,7 +10,7 @@ import com.example.txtnotesapp.domain.model.Note
 
 class NoteAdapter(
     private val onNoteClicked: (Note) -> Unit,
-    private val onNoteLongClicked: (Note) -> Unit
+    private val onNoteLongClicked: (View, Note) -> Unit
 ) : ListAdapter<Note, NoteViewHolder>(NoteDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
