@@ -35,6 +35,9 @@ class NoteListViewModel(
     private val _navigateToNote = MutableLiveData<String?>()
     val navigateToNote: LiveData<String?> = _navigateToNote
 
+    private val _navigateToCreatedNote = MutableLiveData<String?>()
+    val navigateToCreatedNote: LiveData<String?> = _navigateToCreatedNote
+
     init {
         loadNotes()
         saveLastOpenNotebook()
@@ -85,7 +88,7 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 val newNote = createNote(notebookPath)
-                _navigateToNote.value = newNote.title
+                _navigateToCreatedNote.value = newNote.title
             } catch (e: Exception) {
                 _error.value = "Ошибка создания заметки: ${e.message}"
             }
@@ -122,6 +125,10 @@ class NoteListViewModel(
 
     fun onNoteNavigated() {
         _navigateToNote.value = null
+    }
+
+    fun onNoteCreatedNavigated() {
+        _navigateToCreatedNote.value = null
     }
 
     fun clearError() {

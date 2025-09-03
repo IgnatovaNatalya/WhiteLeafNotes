@@ -77,6 +77,13 @@ class NoteListFragment : Fragment() {
                 viewModel.onNoteNavigated()
             }
         }
+
+        viewModel.navigateToCreatedNote.observe(viewLifecycleOwner) { noteId ->
+            noteId?.let {
+                navigateToNoteCreated(noteId)
+                viewModel.onNoteCreatedNavigated()
+            }
+        }
     }
 
     private fun showStoragePermissionError(message: String) {
@@ -119,6 +126,14 @@ class NoteListFragment : Fragment() {
 
     private fun navigateToNoteEdit(noteTitle: String) {
         val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
+            noteTitle = noteTitle,
+            notebookPath = args.notebookPath
+        )
+        findNavController().navigate(action)
+    }
+
+    private fun navigateToNoteCreated(noteTitle: String) {
+        val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
             noteTitle = noteTitle,
             notebookPath = args.notebookPath
         )

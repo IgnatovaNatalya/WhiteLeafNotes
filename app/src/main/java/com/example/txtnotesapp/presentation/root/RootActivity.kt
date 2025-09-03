@@ -139,9 +139,9 @@ class RootActivity : AppCompatActivity() {
             }
         }
 
-        menuViewModel.navigateToNote.observe(this) { noteId ->
-            noteId?.let {
-                navigateToNote(noteId)
+        menuViewModel.navigateToCreatedNote.observe(this) { noteTitle ->
+            noteTitle?.let {
+                navigateToCreatedNote(noteTitle)
                 menuViewModel.onNoteNavigated()
             }
         }
@@ -153,12 +153,18 @@ class RootActivity : AppCompatActivity() {
     }
 
     private fun navigateToNote(note: Note) {
-        val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
+        val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
             noteTitle = note.title,
             notebookPath = null
         )
         navController.navigate(action)
+    }
 
+    fun navigateToCreatedNote(note: Note) {
+        val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
+            noteTitle = note.title,
+            notebookPath = null)
+        navController.navigate(action)
     }
 
     override fun onSupportNavigateUp(): Boolean {
