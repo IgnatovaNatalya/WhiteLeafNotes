@@ -8,12 +8,12 @@
     <LinearLayout
         android:id="@+id/start_header"
         android:layout_width="match_parent"
-        android:layout_height="208dp"
+        android:layout_height="140dp"
         android:background="?attr/android:windowBackground"
-        android:gravity="top"
+        android:gravity="bottom"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:paddingTop="92dp"
+        android:paddingBottom="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 

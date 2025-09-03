@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -21,7 +22,6 @@ import org.koin.core.parameter.parametersOf
 
 class NoteListFragment : Fragment() {
     private lateinit var binding: FragmentNoteListBinding
-
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
 
@@ -35,6 +35,8 @@ class NoteListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
 
         setupObservers()
         setupRecyclerView()

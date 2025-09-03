@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/marginHorizontal"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:background="@null"
         android:hint="@string/sample_title"
         android:importantForAutofill="no"

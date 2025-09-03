@@ -21,10 +21,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:title="Белый лист"
-            app:titleTextColor="?attr/colorOnSurface"
+            app:subtitle="Записная книжка"
             app:navigationIconTint="?attr/colorOnSurface"
             app:navigationIcon="@drawable/ic_menu"
-            app:titleTextAppearance="@style/toolbarTextStyle"
+            app:titleTextAppearance="@style/toolbarTitleStyle"
+            app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
             android:fitsSystemWindows="false"
             />
 

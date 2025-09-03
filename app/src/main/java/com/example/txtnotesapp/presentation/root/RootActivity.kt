@@ -150,6 +150,7 @@ class RootActivity : AppCompatActivity() {
     private fun navigateToNotebook(notebook: Notebook) {
         val action = NoteListFragmentDirections.actionGlobalNoteListFragment(notebook.path)
         navController.navigate(action)
+       // binding.toolbar.title = notebook.path
     }
 
     private fun navigateToNote(note: Note) {
