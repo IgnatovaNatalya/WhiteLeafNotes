@@ -7,6 +7,7 @@ import android.view.MenuInflater
 import android.view.View
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.ListPopupWindow
+import androidx.core.content.ContextCompat
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.domain.model.ContextMenuItem
 
@@ -24,10 +25,10 @@ object ContextMenuHelper {
 
             this.anchorView = anchorView
             setDropDownGravity(Gravity.START)
-            width = 500
-            setBackgroundDrawable(R.drawable.popup_background)
+            width = 140.dpToPx(context)
+            setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.popup_background))
             verticalOffset = -anchorView.height
-            horizontalOffset = 24
+            horizontalOffset = 16.dpToPx(context)
 
 
             setOnItemClickListener { parent, view, position, id ->
@@ -48,29 +49,7 @@ object ContextMenuHelper {
             createMenuItem(context, R.id.note_menu_delete)
         )
     }
-//        return listOf(
-//            ContextMenuItem(
-//                id = R.id.note_menu_rename,
-//                title = "Переименовать",
-//                //iconRes = R.drawable.ic_edit
-//            ),
-//            ContextMenuItem(
-//                id = R.id.note_menu_move,
-//                title = "Переместить",
-//                //iconRes = R.drawable.ic_move
-//            ),
-//            ContextMenuItem(
-//                id = R.id.note_menu_share,
-//                title = "Поделиться",
-//                //iconRes = R.drawable.ic_share
-//            ),
-//            ContextMenuItem(
-//                id = R.id.note_menu_delete,
-//                title = "Удалить",
-//                iconRes = R.drawable.ic_delete
-//            ),
-//        )
-//    }
+
 
     @SuppressLint("RestrictedApi")
     private fun createMenuItem(context: Context, menuItemId: Int): ContextMenuItem {
@@ -84,4 +63,9 @@ object ContextMenuHelper {
             isEnabled = item.isEnabled
         )
     }
+
+    fun Int.dpToPx(context: Context): Int {
+        return (this * context.resources.displayMetrics.density).toInt()
+    }
+
 }
