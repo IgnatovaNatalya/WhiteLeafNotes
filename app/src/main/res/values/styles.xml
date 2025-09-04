@@ -80,5 +80,19 @@
     </style>
 
 
+    <style name="PopupMenu" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:popupBackground">?attr/colorContainer</item>
+        <item name="android:textColor">?attr/android:textColorPrimary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/nunito_medium</item>
+    </style>
+
+    <style name="PopupItem" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:textColor">?attr/android:textColorPrimary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/nunito_medium</item>
+        <item name="android:background">@drawable/popup_menu_item_background</item>
+    </style>
+
 
 </resources>

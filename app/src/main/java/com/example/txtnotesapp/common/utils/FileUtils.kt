@@ -1,4 +1,4 @@
-package com.example.txtnotesapp.utils
+package com.example.txtnotesapp.common.utils
 
 import java.text.SimpleDateFormat
 import java.util.Date

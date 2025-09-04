@@ -29,7 +29,7 @@ import com.example.txtnotesapp.databinding.ActivityRootBinding
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
-import com.example.txtnotesapp.utils.PermissionUtils
+import com.example.txtnotesapp.common.utils.PermissionUtils
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class RootActivity : AppCompatActivity() {

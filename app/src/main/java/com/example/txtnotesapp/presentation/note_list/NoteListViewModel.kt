@@ -96,7 +96,6 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 moveNote(note, targetNotebookPath)
-                // Обновляем список после перемещения
                 loadNotes()
             } catch (e: Exception) {
                 _message.value = "Ошибка перемещения заметки: ${e.message}"
@@ -104,12 +103,9 @@ class NoteListViewModel(
         }
     }
 
-    fun updateNoteTitle(note:Note, newTitle: String) {
-        val currentNote = note
-
+    fun updateNoteTitle(note: Note, newTitle: String) {
         viewModelScope.launch {
             try {
-                // Переименовываем заметку
                 if (newTitle != note.title) {
                     renameNote(note, newTitle)
                     loadNotes()
@@ -117,7 +113,6 @@ class NoteListViewModel(
                 }
             } catch (e: Exception) {
                 _message.postValue("Ошибка переименования: ${e.message}")
-
             }
         }
     }

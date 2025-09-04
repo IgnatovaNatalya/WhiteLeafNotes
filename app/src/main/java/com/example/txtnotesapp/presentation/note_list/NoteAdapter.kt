@@ -5,12 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
+import com.example.txtnotesapp.common.interfaces.NoteActionHandler
 import com.example.txtnotesapp.databinding.ItemNoteBinding
 import com.example.txtnotesapp.domain.model.Note
 
 class NoteAdapter(
     private val onNoteClicked: (Note) -> Unit,
-    private val onNoteLongClicked: (View, Note) -> Unit
+    private val noteActionHandler: NoteActionHandler
 ) : ListAdapter<Note, NoteViewHolder>(NoteDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
@@ -19,7 +20,7 @@ class NoteAdapter(
             parent,
             false
         )
-        return NoteViewHolder(binding, onNoteClicked, onNoteLongClicked)
+        return NoteViewHolder(binding, onNoteClicked, noteActionHandler)
     }
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {

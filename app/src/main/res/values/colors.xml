@@ -6,6 +6,7 @@
     <color name="text_primary_light">#333333</color>
     <color name="text_secondary_light">#888888</color>
     <color name="divider_light">#C0FFFFFF</color>
+    <color name="item_pressed">#E0E0E0</color>
 
     <!-- Акцентные цвета -->
     <color name="accent_coral">#FF9E80</color>
@@ -18,5 +19,6 @@
     <color name="text_primary_dark">#E0E0E0</color>
     <color name="text_secondary_dark">#AAAAAA</color>
     <color name="divider_dark">#1aFFFFFF</color>
+    <color name="item_pressed_dark">#666666</color>
 
 </resources>

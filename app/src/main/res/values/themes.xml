@@ -17,6 +17,7 @@
         <item name="colorOnSecondaryContainer">@color/white</item>
 
         <item name="colorContainer">@color/container_light</item>
+        <item name="android:colorPressedHighlight">@color/item_pressed</item>
 
         <item name="colorSurface">@color/divider_light</item>
         <item name="colorOnSurface">@color/text_primary_light</item>
