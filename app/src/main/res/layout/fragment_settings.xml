@@ -18,6 +18,7 @@
         android:text="@string/base_folder" />
 
     <LinearLayout
+        android:id="@+id/settings_folder"
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:orientation="horizontal"
@@ -33,6 +34,7 @@
             android:src="@drawable/ic_folder"/>
 
         <TextView
+            android:id="@+id/folder_path"
             style="@style/NoteEditText"
             android:layout_width="0dp"
             android:layout_weight="1"

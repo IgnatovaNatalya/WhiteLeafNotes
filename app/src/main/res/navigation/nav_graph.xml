@@ -25,6 +25,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"/>
+        <action
+            android:id="@+id/action_startFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
@@ -82,5 +85,11 @@
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
         app:popExitAnim="@anim/slide_out_right"/>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.txtnotesapp.presentation.settings.SettingsFragment"
+        android:label="Настройки"
+        tools:layout="@layout/fragment_settings" />
 
 </navigation>
