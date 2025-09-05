@@ -6,26 +6,44 @@ import com.example.txtnotesapp.data.local.FileNoteDataSource
 import com.example.txtnotesapp.data.local.FileNotebookDataSource
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.domain.repository.NotebookRepository
+import com.example.txtnotesapp.domain.use_case.GetNotesDirectoryUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 class NotebookRepositoryImpl(
     private val context: Context,
     private val notebookDataSource: FileNotebookDataSource,
-    private val noteDataSource: FileNoteDataSource
+    private val noteDataSource: FileNoteDataSource,
+    private val getNotesDirectoryUseCase: GetNotesDirectoryUseCase
 ) : NotebookRepository {
+
+    private suspend fun getNotesDirectory(): File {
+        val customPath = getNotesDirectoryUseCase()
+
+        return if (!customPath.isNullOrEmpty()) {
+            File(customPath)
+        } else {
+            // Папка по умолчанию
+            File(context.getExternalFilesDir(null), "txtNotes")
+        }.apply {
+            if (!exists()) mkdirs()
+        }
+    }
 
     override suspend fun getNotebooks(): List<Notebook> {
         return withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
+
             try {
-                notebookDataSource.getAllNotebooks()
+                notebookDataSource.getAllNotebooks(baseDir)
                     .map { dir ->
                         Notebook(
                             path = dir.name,
                             //name = dir.name,
                             createdAt = dir.lastModified(),
-                            noteCount = notebookDataSource.getNoteCount(dir)
+                            noteCount = notebookDataSource.getNoteCount(baseDir,dir)
                         )
                     }
                     .sortedByDescending { it.createdAt }
@@ -39,6 +57,7 @@ class NotebookRepositoryImpl(
     override suspend fun createNotebook(name: String): Notebook {
 
         return withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
             try {
                 // Проверяем валидность имени
                 if (name.isBlank() || name.contains("/") || name.contains("\\")) {
@@ -46,13 +65,13 @@ class NotebookRepositoryImpl(
                 }
 
                 // Проверяем, не существует ли уже папка с таким именем
-                val existingNotebooks = notebookDataSource.getAllNotebooks()
+                val existingNotebooks = notebookDataSource.getAllNotebooks(baseDir)
                 if (existingNotebooks.any { it.name == name }) {
                     throw IOException("Записная книжка с таким именем уже существует")
                 }
 
                 // Создаем папку
-                val notebookDir = notebookDataSource.getNotebookDir(name)
+                val notebookDir = notebookDataSource.getNotebookDir(baseDir, name)
 
                 Notebook(
                     path = name,
@@ -69,9 +88,11 @@ class NotebookRepositoryImpl(
 
     override suspend fun deleteNotebook(notebook: Notebook) {
         withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
+
             try {
-                val notebookDir = notebookDataSource.getNotebookDir(notebook.name)
-                if (!notebookDataSource.deleteNotebook(notebookDir)) {
+                val notebookDir = notebookDataSource.getNotebookDir(baseDir,notebook.name)
+                if (!notebookDataSource.deleteNotebook(baseDir,notebookDir)) {
                     throw IOException("Не удалось удалить записную книжку")
                 }
             } catch (e: Exception) {
@@ -83,14 +104,15 @@ class NotebookRepositoryImpl(
 
     override suspend fun renameNotebook(notebook: Notebook, newName: String) {
         withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
             try {
                 // Проверяем валидность нового имени
                 if (newName.isBlank() || newName.contains("/") || newName.contains("\\")) {
                     throw IllegalArgumentException("Некорректное новое имя")
                 }
 
-                val oldDir = notebookDataSource.getNotebookDir(notebook.name)
-                if (!notebookDataSource.renameNotebook(oldDir, newName)) {
+                val oldDir = notebookDataSource.getNotebookDir(baseDir,notebook.name)
+                if (!notebookDataSource.renameNotebook(baseDir,oldDir, newName)) {
                     throw IOException("Не удалось переименовать записную книжку")
                 }
             } catch (e: Exception) {
@@ -102,14 +124,16 @@ class NotebookRepositoryImpl(
 
     override suspend fun getNotebookByPath(path: String): Notebook? {
         return withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
+
             try {
-                val notebookDir = notebookDataSource.getNotebookDir(path)
+                val notebookDir = notebookDataSource.getNotebookDir(baseDir, path)
                 if (notebookDir.exists() && notebookDir.isDirectory) {
                     Notebook(
                         path = path,
                         //name = path,
                         createdAt = notebookDir.lastModified(),
-                        noteCount = notebookDataSource.getNoteCount(notebookDir)
+                        noteCount = notebookDataSource.getNoteCount(baseDir, notebookDir)
                     )
                 } else {
                     null

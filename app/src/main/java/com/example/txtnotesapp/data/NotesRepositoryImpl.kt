@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider
 import com.example.txtnotesapp.data.local.FileNoteDataSource
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.repository.NoteRepository
+import com.example.txtnotesapp.domain.use_case.GetNotesDirectoryUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -14,11 +15,29 @@ import java.io.IOException
 
 class NoteRepositoryImpl(
     private val context: Context,
-    private val noteDataSource: FileNoteDataSource
+    private val noteDataSource: FileNoteDataSource,
+    private val getNotesDirectoryUseCase: GetNotesDirectoryUseCase
 ) : NoteRepository {
+
+
+    private suspend fun getNotesDirectory(): File {
+        val customPath = getNotesDirectoryUseCase()
+
+        return if (!customPath.isNullOrEmpty()) {
+            File(customPath)
+        } else {
+            // Папка по умолчанию
+            File(context.getExternalFilesDir(null), "txtNotes")
+        }.apply {
+            if (!exists()) mkdirs()
+        }
+    }
 
     override suspend fun getNotes(notebookPath: String?): List<Note> {
         return withContext(Dispatchers.IO) {
+
+            val baseDir = getNotesDirectory()
+
             try {
                 // Проверяем доступность хранилища для чтения
                 if (!noteDataSource.isExternalStorageReadable()) {
@@ -26,9 +45,9 @@ class NoteRepositoryImpl(
                 }
 
                 val notesDir = if (notebookPath != null) {
-                    File(noteDataSource.baseDir, notebookPath)
+                    File(baseDir, notebookPath)
                 } else {
-                    noteDataSource.baseDir
+                    baseDir
                 }
 
                 if (!notesDir.exists() || !notesDir.isDirectory) {
@@ -60,13 +79,16 @@ class NoteRepositoryImpl(
 
     override suspend fun saveNote(note: Note) {
         withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
+
             try {
                 // Проверяем доступность хранилища для записи
                 if (!noteDataSource.isExternalStorageWritable()) {
                     throw IOException("Внешнее хранилище недоступно для записи")
                 }
 
-                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
+                val noteFile =
+                    noteDataSource.getNoteFile(baseDir, note.notebookPath ?: "", note.title)
                 noteFile.writeText(note.content)
 
                 // Обновляем время последнего изменения
@@ -84,13 +106,16 @@ class NoteRepositoryImpl(
 
     override suspend fun getNoteByTitle(noteTitle: String, notebookPath: String?): Note? {
         return withContext(Dispatchers.IO) {
+
+            val baseDir = getNotesDirectory()
+
             try {
 
                 if (!noteDataSource.isExternalStorageReadable()) {
                     throw IOException("Внешнее хранилище недоступно для чтения")
                 }
 
-                val noteFile = noteDataSource.getNoteFile(notebookPath ?: "", noteTitle)
+                val noteFile = noteDataSource.getNoteFile(baseDir, notebookPath ?: "", noteTitle)
                 if (!noteFile.exists()) {
                     return@withContext null
                 }
@@ -110,31 +135,18 @@ class NoteRepositoryImpl(
         }
     }
 
-     suspend fun saveNote1(note: Note) {
-        withContext(Dispatchers.IO) {
-            try {
-                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
-                noteFile.writeText(note.content)
-
-                // Обновляем время последнего изменения
-                if (note.createdAt > 0) {
-                    noteFile.setLastModified(note.createdAt)
-                }
-            } catch (e: Exception) {
-                throw IOException("Ошибка сохранения заметки: ${e.message}")
-            }
-        }
-    }
-
     override suspend fun deleteNote(note: Note) {
         withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
+
             try {
 
                 if (!noteDataSource.isExternalStorageWritable()) {
                     throw IOException("Внешнее хранилище недоступно для записи")
                 }
 
-                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
+                val noteFile =
+                    noteDataSource.getNoteFile(baseDir, note.notebookPath ?: "", note.title)
                 if (noteFile.exists()) {
                     noteFile.delete()
                 }
@@ -147,15 +159,18 @@ class NoteRepositoryImpl(
 
     override suspend fun moveNote(note: Note, targetNotebookPath: String?) {
         withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
+
             try {
                 if (!noteDataSource.isExternalStorageWritable()) {
                     throw IOException("Внешнее хранилище недоступно для записи")
                 }
-                val sourceFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
+                val sourceFile =
+                    noteDataSource.getNoteFile(baseDir, note.notebookPath ?: "", note.title)
                 val targetDir = if (targetNotebookPath != null) {
-                    File(noteDataSource.baseDir, targetNotebookPath).apply { mkdirs() }
+                    File(baseDir, targetNotebookPath).apply { mkdirs() }
                 } else {
-                    noteDataSource.baseDir
+                    baseDir
                 }
 
                 val targetFile = File(targetDir, "${note.title}.txt")
@@ -180,13 +195,16 @@ class NoteRepositoryImpl(
 
     override suspend fun renameNote(note: Note, newName: String) {
         withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
+
             try {
                 if (!noteDataSource.isExternalStorageWritable()) {
                     throw IOException("Внешнее хранилище недоступно для записи")
                 }
 
-                val oldFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
-                val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newName)
+                val oldFile =
+                    noteDataSource.getNoteFile(baseDir, note.notebookPath ?: "", note.title)
+                val newFile = noteDataSource.getNoteFile(baseDir, note.notebookPath ?: "", newName)
 
                 if (newFile.exists()) {
                     throw IOException("Файл с таким именем уже существует")
@@ -208,12 +226,14 @@ class NoteRepositoryImpl(
 
     override suspend fun shareNote(note: Note): Uri? {
         return withContext(Dispatchers.IO) {
+            val baseDir = getNotesDirectory()
             try {
                 if (!noteDataSource.isExternalStorageReadable()) {
                     throw IOException("Внешнее хранилище недоступно для чтения")
                 }
 
-                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
+                val noteFile =
+                    noteDataSource.getNoteFile(baseDir, note.notebookPath ?: "", note.title)
                 if (!noteFile.exists()) {
                     return@withContext null
                 }

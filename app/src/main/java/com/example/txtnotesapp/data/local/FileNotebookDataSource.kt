@@ -4,35 +4,34 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.util.Log
-import com.example.txtnotesapp.data.local.FileNoteDataSource.Companion.DEFAULT_DIR
 import java.io.File
 
 class FileNotebookDataSource(private val context: Context) {
 
     // Базовая директория для всех записных книжек
-    val baseDir: File by lazy {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Для Android 10+ используем Scoped Storage в директории Documents
-            File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), DEFAULT_DIR).apply {
-                if (!exists()) {
-                    mkdirs()
-                }
-            }
-        } else {
-            // Для старых версий - прямое обращение к внешнему хранилищу
-            File(Environment.getExternalStorageDirectory(), DEFAULT_DIR).apply {
-                if (!exists()) {
-                    mkdirs()
-                }
-            }
-        }
-    }
+//    val baseDir: File by lazy {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            // Для Android 10+ используем Scoped Storage в директории Documents
+//            File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), DEFAULT_DIR).apply {
+//                if (!exists()) {
+//                    mkdirs()
+//                }
+//            }
+//        } else {
+//            // Для старых версий - прямое обращение к внешнему хранилищу
+//            File(Environment.getExternalStorageDirectory(), DEFAULT_DIR).apply {
+//                if (!exists()) {
+//                    mkdirs()
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Получает директорию записной книжки по имени
      * Если директория не существует - создает ее
      */
-    fun getNotebookDir(name: String): File {
+    fun getNotebookDir(baseDir: File, name: String): File {
         return File(baseDir, name).apply {
             if (!exists()) {
                 mkdirs()
@@ -43,7 +42,7 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Получает все существующие записные книжки (папки)
      */
-    fun getAllNotebooks(): List<File> {
+    fun getAllNotebooks(baseDir: File): List<File> {
         return try {
             baseDir.listFiles()?.filter { file ->
                 file.isDirectory && !file.isHidden && file.name != ".trashed"
@@ -57,7 +56,7 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Подсчитывает количество заметок в записной книжке
      */
-    fun getNoteCount(notebookDir: File): Int {
+    fun getNoteCount(baseDir: File, notebookDir: File): Int { //todo склеить пути тут
         return try {
             notebookDir.listFiles()?.count { file ->
                 file.isFile && file.name.endsWith(".txt") && !file.isHidden
@@ -71,7 +70,7 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Получает общий размер всех заметок в записной книжке (в байтах)
      */
-    fun getNotebookSize(notebookDir: File): Long {
+    fun getNotebookSize(baseDir: File, notebookDir: File): Long { //todo склеить пути тут
         return try {
             notebookDir.listFiles()?.filter { file ->
                 file.isFile && file.name.endsWith(".txt")
@@ -85,7 +84,7 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Удаляет записную книжку со всеми заметками внутри
      */
-    fun deleteNotebook(notebookDir: File): Boolean {
+    fun deleteNotebook(baseDir: File, notebookDir: File): Boolean { //todo склеить пути тут
         return try {
             if (notebookDir.exists() && notebookDir.isDirectory) {
                 // Сначала удаляем все файлы в папке
@@ -108,7 +107,7 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Переименовывает записную книжку
      */
-    fun renameNotebook(oldDir: File, newName: String): Boolean {
+    fun renameNotebook(baseDir: File, oldDir: File, newName: String): Boolean {
         return try {
             // Проверяем, что новое имя не пустое и не содержит запрещенных символов
             if (newName.isBlank() || newName.contains("/") || newName.contains("\\")) {
@@ -133,7 +132,7 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Проверяет, существует ли записная книжка с указанным именем
      */
-    fun notebookExists(name: String): Boolean {
+    fun notebookExists(baseDir: File, name: String): Boolean {
         return try {
             val dir = File(baseDir, name)
             dir.exists() && dir.isDirectory
@@ -147,7 +146,7 @@ class FileNotebookDataSource(private val context: Context) {
      * Получает дату последнего изменения записной книжки
      * (дата изменения последней заметки в книжке)
      */
-    fun getLastModifiedDate(notebookDir: File): Long {
+    fun getLastModifiedDate(baseDir: File, notebookDir: File): Long { //todo склеить пути тут
         return try {
             notebookDir.listFiles()?.filter { file ->
                 file.isFile && file.name.endsWith(".txt")
@@ -161,7 +160,7 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Создает временную резервную копию записной книжки
      */
-    fun createBackup(notebookDir: File): File? {
+    fun createBackup(baseDir: File, notebookDir: File): File? { //todo склеить пути тут
         return try {
             val backupDir = File(context.cacheDir, "backups").apply { mkdirs() }
             val backupFile = File(backupDir, "${notebookDir.name}_backup_${System.currentTimeMillis()}.zip")
@@ -203,11 +202,11 @@ class FileNotebookDataSource(private val context: Context) {
     /**
      * Получает статистику по использованию хранилища
      */
-    fun getStorageStats(): Map<String, Any> {
+    fun getStorageStats(baseDir: File): Map<String, Any> {
         return try {
-            val notebooks = getAllNotebooks()
-            val totalNotes = notebooks.sumOf { getNoteCount(it) }
-            val totalSize = notebooks.sumOf { getNotebookSize(it) }
+            val notebooks = getAllNotebooks(baseDir)
+            val totalNotes = notebooks.sumOf { getNoteCount(baseDir,it) }
+            val totalSize = notebooks.sumOf { getNotebookSize(baseDir,it) }
 
             mapOf(
                 "totalNotebooks" to notebooks.size,

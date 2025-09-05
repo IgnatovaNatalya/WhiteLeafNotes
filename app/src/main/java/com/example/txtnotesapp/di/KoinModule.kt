@@ -3,10 +3,12 @@ package com.example.txtnotesapp.di
 import android.content.Context
 import com.example.txtnotesapp.data.NoteRepositoryImpl
 import com.example.txtnotesapp.data.NotebookRepositoryImpl
+import com.example.txtnotesapp.data.PreferencesRepositoryImpl
 import com.example.txtnotesapp.data.local.FileNoteDataSource
 import com.example.txtnotesapp.data.local.FileNotebookDataSource
 import com.example.txtnotesapp.domain.repository.NoteRepository
 import com.example.txtnotesapp.domain.repository.NotebookRepository
+import com.example.txtnotesapp.domain.repository.PreferencesRepository
 import com.example.txtnotesapp.domain.use_case.CreateNote
 import com.example.txtnotesapp.domain.use_case.CreateNotebook
 import com.example.txtnotesapp.domain.use_case.DeleteNote
@@ -14,10 +16,12 @@ import com.example.txtnotesapp.domain.use_case.DeleteNotebook
 import com.example.txtnotesapp.domain.use_case.GetNote
 import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
+import com.example.txtnotesapp.domain.use_case.GetNotesDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNote
 import com.example.txtnotesapp.domain.use_case.RenameNote
 import com.example.txtnotesapp.domain.use_case.RenameNotebook
 import com.example.txtnotesapp.domain.use_case.SaveNote
+import com.example.txtnotesapp.domain.use_case.SaveNotesDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.ShareNote
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
 import com.example.txtnotesapp.presentation.note_list.NoteListViewModel
@@ -34,8 +38,9 @@ val koinModule = module {
     single { FileNotebookDataSource(get()) }
 
     // Repositories
-    single<NoteRepository> { NoteRepositoryImpl(get(), get()) }
-    single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get()) }
+    single<NoteRepository> { NoteRepositoryImpl(get(), get(), get()) }
+    single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get(), get()) }
+    single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
 
     // Use cases
     factory { GetNotes(get()) }
@@ -52,6 +57,9 @@ val koinModule = module {
     factory { DeleteNotebook(get()) }
     factory { RenameNotebook(get()) }
 
+    factory { GetNotesDirectoryUseCase(get()) }
+    factory { SaveNotesDirectoryUseCase(get()) }
+
     // ViewModels
 
     viewModel {
@@ -64,7 +72,7 @@ val koinModule = module {
     }
 
     viewModel {
-        DrawerMenuViewModel (
+        DrawerMenuViewModel(
             getNotebooks = get(),
             getNotes = get(),
             createNotebook = get(),

@@ -12,8 +12,8 @@ class PreferencesRepositoryImpl(
 ) : PreferencesRepository {
 
     companion object {
-        private const val PREFS_NAME = "notes_app_prefs"
-        private const val KEY_NOTES_DIRECTORY = "notes_directory"
+        private const val PREFS_NAME = "txt_notes_app_prefs"
+        private const val KEY_NOTES_DIRECTORY = "txt_notes_directory"
     }
 
     private val prefs: SharedPreferences by lazy {
