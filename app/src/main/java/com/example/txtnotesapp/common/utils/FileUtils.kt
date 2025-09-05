@@ -1,5 +1,9 @@
 package com.example.txtnotesapp.common.utils
 
+import android.content.Context
+import android.net.Uri
+import android.os.Environment
+import android.provider.DocumentsContract
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -44,5 +48,24 @@ object FileUtils {
     fun generateUniqueFileName(baseName: String, extension: String = ".txt"): String {
         val timestamp = System.currentTimeMillis()
         return "${baseName}_${timestamp}$extension"
+    }
+
+    // Утилита для получения реального пути из URI
+    fun getPathFromUri(context: Context, uri: Uri): String? {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
+            if (isExternalStorageDocument(uri)) {
+                val docId = DocumentsContract.getDocumentId(uri)
+                val split = docId.split(":").toTypedArray()
+                val type = split[0]
+                if ("primary".equals(type, ignoreCase = true)) {
+                    return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                }
+            }
+        }
+        return null
+    }
+
+    private fun isExternalStorageDocument(uri: Uri): Boolean {
+        return "com.android.externalstorage.documents" == uri.authority
     }
 }

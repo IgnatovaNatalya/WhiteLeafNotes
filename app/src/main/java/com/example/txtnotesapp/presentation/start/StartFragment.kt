@@ -32,6 +32,11 @@ class StartFragment : BindingFragment<FragmentStartBinding>() {
 
         setupRecyclerView()
         setupObservers()
+
+        binding.buttonSettings.setOnClickListener {
+            val action = StartFragmentDirections.actionStartFragmentToSettingsFragment()
+            findNavController().navigate(action)
+        }
     }
 
     override fun onDestroyView() {

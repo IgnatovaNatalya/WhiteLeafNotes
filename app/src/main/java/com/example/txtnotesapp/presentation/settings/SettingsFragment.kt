@@ -31,6 +31,10 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         binding.settingsFolder.setOnClickListener {
             openDirectoryPicker()
         }
+
+        binding.resetFolderButton.setOnClickListener {
+            viewModel.resetToDefault()
+        }
     }
 
     private fun openDirectoryPicker() {
@@ -54,6 +58,7 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
                 viewModel.saveCustomDirectory(uri.toString())
+                viewModel.saveCustomDirectory("notes2")
             }
         }
     }
