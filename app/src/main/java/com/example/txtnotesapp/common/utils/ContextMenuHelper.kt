@@ -50,7 +50,6 @@ object ContextMenuHelper {
         )
     }
 
-
     @SuppressLint("RestrictedApi")
     private fun createMenuItem(context: Context, menuItemId: Int): ContextMenuItem {
         val menu = MenuBuilder(context)

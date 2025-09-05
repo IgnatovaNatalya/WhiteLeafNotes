@@ -26,4 +26,8 @@
     <string name="empty_notebooks">Записных книжек пока нет</string>
     <string name="undo">Отменить</string>
     <string name="redo">Вернуть</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="base_folder">Корневая папка для заметок</string>
+    <string name="reset_folder">Сбросить папку</string>
 </resources>
