@@ -7,26 +7,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.R
+import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.databinding.FragmentStartBinding
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class StartFragment : Fragment() { //todo Сделать все фрагменты через BindingFragment
-    private lateinit var binding: FragmentStartBinding
-    private val viewModel: StartViewModel by viewModel()
+class StartFragment : BindingFragment<FragmentStartBinding>() {
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentStartBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun createBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentStartBinding {
+        return FragmentStartBinding.inflate(inflater, container, false)
     }
+
+    private val viewModel: StartViewModel by viewModel()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

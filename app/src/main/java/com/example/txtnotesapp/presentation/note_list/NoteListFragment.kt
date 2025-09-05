@@ -8,14 +8,12 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.ListPopupWindow
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.R
+import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.common.interfaces.NoteActionHandler
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
 import com.example.txtnotesapp.domain.model.Note
@@ -24,17 +22,16 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
 
-class NoteListFragment : Fragment(), NoteActionHandler {
-    private lateinit var binding: FragmentNoteListBinding
+class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionHandler {
+
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentNoteListBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun createBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentNoteListBinding {
+        return FragmentNoteListBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -124,7 +121,6 @@ class NoteListFragment : Fragment(), NoteActionHandler {
     override fun onDeleteNote(note: Note) = showDeleteConfirmationDialog(note)
     override fun onShareNote(note: Note) = shareNote(note)
 
-
     private fun showRenameNoteDialog(note: Note) {
         val alertDialogBuilder = AlertDialog.Builder(requireContext())
         val renameDialogView: View =
@@ -143,7 +139,7 @@ class NoteListFragment : Fragment(), NoteActionHandler {
     private fun showMoveNoteDialog(note: Note) {
         AlertDialog.Builder(requireContext())
             .setTitle("Перемещение заметки")
-            .setPositiveButton("Переместить") { _, _ -> viewModel.moveNote(note,"") }
+            .setPositiveButton("Переместить") { _, _ -> viewModel.moveNote(note, "") }
             .setNegativeButton("Отмена", null)
             .show()
     }
@@ -194,6 +190,4 @@ class NoteListFragment : Fragment(), NoteActionHandler {
             binding.recyclerView.visibility = View.VISIBLE
         }
     }
-
-
 }

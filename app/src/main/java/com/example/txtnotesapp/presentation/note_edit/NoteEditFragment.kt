@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.navArgs
+import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
 import kotlinx.datetime.Instant
 import kotlinx.datetime.Month
@@ -18,15 +18,13 @@ import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
-class NoteEditFragment : Fragment() {
-    private lateinit var binding: FragmentNoteEditBinding
+class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private val viewModel: NoteEditViewModel by viewModel {
         parametersOf(args.noteTitle, args.notebookPath)
     }
 
     private val args: NoteEditFragmentArgs by navArgs()
-
     private var isEditing = false
 
     private val textWatcher = object : TextWatcher {
@@ -39,12 +37,11 @@ class NoteEditFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentNoteEditBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun createBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentNoteEditBinding {
+        return FragmentNoteEditBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
