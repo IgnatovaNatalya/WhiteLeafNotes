@@ -8,6 +8,7 @@ import android.os.Environment
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -88,6 +89,15 @@ class RootActivity : AppCompatActivity() {
         navController = navHostFragment.navController
         drawerLayout = binding.drawerLayout
 
+        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
+            override fun onDrawerOpened(drawerView: View) =
+                menuViewModel.loadMenuData()
+
+            override fun onDrawerClosed(drawerView: View) {}
+            override fun onDrawerStateChanged(newState: Int) {}
+        })
+
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.noteListFragment),
             drawerLayout
@@ -163,7 +173,8 @@ class RootActivity : AppCompatActivity() {
     fun navigateToCreatedNote(note: Note) {
         val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
             noteTitle = note.title,
-            notebookPath = null)
+            notebookPath = null
+        )
         navController.navigate(action)
     }
 
@@ -207,9 +218,9 @@ class RootActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {}
-            R.id.menu_search -> Toast.makeText(this,"Поиск", Toast.LENGTH_SHORT).show()
-            R.id.menu_undo -> Toast.makeText(this,"Отмена", Toast.LENGTH_SHORT).show()
-            R.id.menu_redo -> Toast.makeText(this,"Вернуть", Toast.LENGTH_SHORT).show()
+            R.id.menu_search -> Toast.makeText(this, "Поиск", Toast.LENGTH_SHORT).show()
+            R.id.menu_undo -> Toast.makeText(this, "Отмена", Toast.LENGTH_SHORT).show()
+            R.id.menu_redo -> Toast.makeText(this, "Вернуть", Toast.LENGTH_SHORT).show()
         }
         return super.onOptionsItemSelected(item)
     }
