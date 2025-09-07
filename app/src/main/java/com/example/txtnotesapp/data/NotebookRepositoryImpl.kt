@@ -1,49 +1,27 @@
 package com.example.txtnotesapp.data
 
-import android.content.Context
 import android.util.Log
-import com.example.txtnotesapp.data.local.FileNoteDataSource
 import com.example.txtnotesapp.data.local.FileNotebookDataSource
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.domain.repository.NotebookRepository
-import com.example.txtnotesapp.domain.use_case.GetNotesDirectoryUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.IOException
 
 class NotebookRepositoryImpl(
-    private val context: Context,
-    private val notebookDataSource: FileNotebookDataSource,
-    private val noteDataSource: FileNoteDataSource,
-    private val getNotesDirectoryUseCase: GetNotesDirectoryUseCase
+    private val notebookDataSource: FileNotebookDataSource
 ) : NotebookRepository {
 
-    private suspend fun getNotesDirectory(): File {
-        val customPath = getNotesDirectoryUseCase()
-
-        return if (!customPath.isNullOrEmpty()) {
-            File(customPath)
-        } else {
-            // Папка по умолчанию
-            File(context.getExternalFilesDir(null), "txtNotes")
-        }.apply {
-            if (!exists()) mkdirs()
-        }
-    }
 
     override suspend fun getNotebooks(): List<Notebook> {
         return withContext(Dispatchers.IO) {
-            val baseDir = getNotesDirectory()
-
             try {
-                notebookDataSource.getAllNotebooks(baseDir)
+                notebookDataSource.getAllNotebooks()
                     .map { dir ->
                         Notebook(
                             path = dir.name,
-                            //name = dir.name,
                             createdAt = dir.lastModified(),
-                            noteCount = notebookDataSource.getNoteCount(baseDir,dir)
+                            noteCount = notebookDataSource.getNoteCount(dir)
                         )
                     }
                     .sortedByDescending { it.createdAt }
@@ -54,10 +32,9 @@ class NotebookRepositoryImpl(
         }
     }
 
-    override suspend fun createNotebook(name: String): Notebook {
 
+    override suspend fun createNotebook(name: String): Notebook {
         return withContext(Dispatchers.IO) {
-            val baseDir = getNotesDirectory()
             try {
                 // Проверяем валидность имени
                 if (name.isBlank() || name.contains("/") || name.contains("\\")) {
@@ -65,17 +42,15 @@ class NotebookRepositoryImpl(
                 }
 
                 // Проверяем, не существует ли уже папка с таким именем
-                val existingNotebooks = notebookDataSource.getAllNotebooks(baseDir)
-                if (existingNotebooks.any { it.name == name }) {
+                if (notebookDataSource.notebookExists(name)) {
                     throw IOException("Записная книжка с таким именем уже существует")
                 }
 
                 // Создаем папку
-                val notebookDir = notebookDataSource.getNotebookDir(baseDir, name)
+                val notebookDir = notebookDataSource.getNotebookDir(name)
 
                 Notebook(
                     path = name,
-                    //name = name,
                     createdAt = System.currentTimeMillis(),
                     noteCount = 0
                 )
@@ -88,11 +63,9 @@ class NotebookRepositoryImpl(
 
     override suspend fun deleteNotebook(notebook: Notebook) {
         withContext(Dispatchers.IO) {
-            val baseDir = getNotesDirectory()
-
             try {
-                val notebookDir = notebookDataSource.getNotebookDir(baseDir,notebook.name)
-                if (!notebookDataSource.deleteNotebook(baseDir,notebookDir)) {
+                val notebookDir = notebookDataSource.getNotebookDir(notebook.path)
+                if (!notebookDataSource.deleteNotebook(notebookDir)) {
                     throw IOException("Не удалось удалить записную книжку")
                 }
             } catch (e: Exception) {
@@ -104,15 +77,14 @@ class NotebookRepositoryImpl(
 
     override suspend fun renameNotebook(notebook: Notebook, newName: String) {
         withContext(Dispatchers.IO) {
-            val baseDir = getNotesDirectory()
             try {
                 // Проверяем валидность нового имени
                 if (newName.isBlank() || newName.contains("/") || newName.contains("\\")) {
                     throw IllegalArgumentException("Некорректное новое имя")
                 }
 
-                val oldDir = notebookDataSource.getNotebookDir(baseDir,notebook.name)
-                if (!notebookDataSource.renameNotebook(baseDir,oldDir, newName)) {
+                val oldDir = notebookDataSource.getNotebookDir(notebook.path)
+                if (!notebookDataSource.renameNotebook(oldDir, newName)) {
                     throw IOException("Не удалось переименовать записную книжку")
                 }
             } catch (e: Exception) {
@@ -124,16 +96,13 @@ class NotebookRepositoryImpl(
 
     override suspend fun getNotebookByPath(path: String): Notebook? {
         return withContext(Dispatchers.IO) {
-            val baseDir = getNotesDirectory()
-
             try {
-                val notebookDir = notebookDataSource.getNotebookDir(baseDir, path)
+                val notebookDir = notebookDataSource.getNotebookDir(path)
                 if (notebookDir.exists() && notebookDir.isDirectory) {
                     Notebook(
                         path = path,
-                        //name = path,
                         createdAt = notebookDir.lastModified(),
-                        noteCount = notebookDataSource.getNoteCount(baseDir, notebookDir)
+                        noteCount = notebookDataSource.getNoteCount(notebookDir)
                     )
                 } else {
                     null
@@ -159,6 +128,24 @@ class NotebookRepositoryImpl(
                 )
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка получения статистики: ${e.message}")
+                emptyMap()
+            }
+        }
+    }
+
+    //override suspend fun getNotebookStats(): Map<String, Any> {
+    suspend fun getNotebookStats(): Map<String, Any> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val stats = notebookDataSource.getStorageStats()
+                mapOf(
+                    "totalNotebooks" to (stats["totalNotebooks"] as? Int ?: 0),
+                    "totalNotes" to (stats["totalNotes"] as? Int ?: 0),
+                    "totalSizeBytes" to (stats["totalSizeBytes"] as? Long ?: 0L),
+                    "totalSizeMB" to (stats["totalSizeMB"] as? Long ?: 0L)
+                )
+            } catch (e: Exception) {
+                Log.e("NotebookRepository", "Ошибка получения статистики хранилища: ${e.message}")
                 emptyMap()
             }
         }

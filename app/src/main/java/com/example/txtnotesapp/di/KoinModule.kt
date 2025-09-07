@@ -39,8 +39,8 @@ val koinModule = module {
     single { FileNotebookDataSource(get()) }
 
     // Repositories
-    single<NoteRepository> { NoteRepositoryImpl(get(), get(), get()) }
-    single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get(), get()) }
+    single<NoteRepository> { NoteRepositoryImpl(get(), get()) }
+    single<NotebookRepository> { NotebookRepositoryImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
 
     // Use cases
