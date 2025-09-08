@@ -1,18 +1,21 @@
 package com.example.txtnotesapp.di
 
 import android.content.Context
-import com.example.txtnotesapp.data.NoteRepositoryImpl
-import com.example.txtnotesapp.data.NotebookRepositoryImpl
-import com.example.txtnotesapp.data.PreferencesRepositoryImpl
-import com.example.txtnotesapp.data.local.FileNoteDataSource
-import com.example.txtnotesapp.data.local.FileNotebookDataSource
-import com.example.txtnotesapp.domain.repository.NoteRepository
+import com.example.txtnotesapp.data.repository.NoteRepositoryImpl
+import com.example.txtnotesapp.data.repository.NotebookRepositoryImpl
+import com.example.txtnotesapp.data.repository.PreferencesRepositoryImpl
+import com.example.txtnotesapp.data.repository.ExternalDataSourceImpl
+import com.example.txtnotesapp.data.datasource.FileNoteDataSource
+import com.example.txtnotesapp.data.datasource.FileNotebookDataSource
+import com.example.txtnotesapp.domain.repository.ExternalRepository
+import com.example.txtnotesapp.domain.repository.NotesRepository
 import com.example.txtnotesapp.domain.repository.NotebookRepository
 import com.example.txtnotesapp.domain.repository.PreferencesRepository
 import com.example.txtnotesapp.domain.use_case.CreateNote
 import com.example.txtnotesapp.domain.use_case.CreateNotebook
 import com.example.txtnotesapp.domain.use_case.DeleteNote
 import com.example.txtnotesapp.domain.use_case.DeleteNotebook
+import com.example.txtnotesapp.domain.use_case.ExportNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetNote
 import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
@@ -37,9 +40,10 @@ val koinModule = module {
     // Data sources
     single { FileNoteDataSource(get()) }
     single { FileNotebookDataSource(get()) }
+    single<ExternalRepository> { ExternalDataSourceImpl(get(), get()) }
 
     // Repositories
-    single<NoteRepository> { NoteRepositoryImpl(get(), get()) }
+    single<NotesRepository> { NoteRepositoryImpl(get(), get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
 
@@ -60,6 +64,7 @@ val koinModule = module {
 
     factory { GetExportDirectoryUseCase(get()) }
     factory { SaveExportDirectoryUseCase(get()) }
+    factory { ExportNotesUseCase(get(), get()) }
 
     // ViewModels
 
@@ -117,8 +122,9 @@ val koinModule = module {
 
     viewModel {
         SettingsViewModel(
-            getNotesDirectoryUseCase = get(),
-            saveNotesDirectoryUseCase = get()
+            getExportDirectoryUseCase = get(),
+            saveExportDirectoryUseCase = get(),
+            exportNotesUseCase = get()
         )
     }
 }

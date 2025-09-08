@@ -2,10 +2,12 @@ package com.example.txtnotesapp.presentation.settings
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.databinding.FragmentSettingsBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -24,17 +26,75 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.currentPath.observe(viewLifecycleOwner) { path ->
-            binding.folderPath.text = path ?: "Папка по умолчанию"
+        setupUI()
+        setupObservers()
+    }
+
+    private fun setupUI() {
+        binding.usePassword.setOnCheckedChangeListener { _, isChecked ->
+            binding.exportPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
 
-        binding.settingsFolder.setOnClickListener {
-            openDirectoryPicker()
+        binding.exportButton.setOnClickListener {
+            val password = if (binding.usePassword.isChecked) {
+                binding.exportPassword.text.toString().takeIf { it.isNotBlank() }
+            } else {
+                null
+            }
+
+            viewModel.exportNotes(password)
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.exportPath.observe(viewLifecycleOwner) { path ->
+            binding.folderPath.text = path
         }
 
-        binding.resetFolderButton.setOnClickListener {
-            viewModel.resetToDefault()
+        viewModel.exportState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is ExportState.Idle -> {
+                    hideProgress()
+                    binding.exportStatus.text = ""
+                }
+
+                is ExportState.Loading -> {
+                    showProgress()
+                    binding.exportStatus.text = "Создание архива..."
+                }
+
+                is ExportState.Success -> {
+                    hideProgress()
+                    binding.exportStatus.text = "Экспорт завершен успешно"
+                    shareExportFile(state.fileUri)
+                }
+
+                is ExportState.Error -> {
+                    hideProgress()
+                    binding.exportStatus.text = "Ошибка: ${state.message}"
+                    Toast.makeText(requireContext(), "Ошибка экспорта", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
+    }
+
+    private fun showProgress() {
+        binding.exportStatus.text = "Загрузка"
+        binding.exportButton.isEnabled = false
+    }
+
+    private fun hideProgress() {
+        binding.exportStatus.text = ""
+        binding.exportButton.isEnabled = true
+    }
+
+    private fun shareExportFile(uri: Uri?) {
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, uri)
+            type = "application/zip"
+        }
+        startActivity(Intent.createChooser(shareIntent, "Поделиться архивом"))
     }
 
     private fun openDirectoryPicker() {
@@ -57,8 +117,8 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
-                viewModel.saveCustomDirectory(uri.toString())
-                viewModel.saveCustomDirectory("notes2")
+                viewModel.saveExportDirectory(uri.toString())
+                viewModel.saveExportDirectory("notes2")
             }
         }
     }

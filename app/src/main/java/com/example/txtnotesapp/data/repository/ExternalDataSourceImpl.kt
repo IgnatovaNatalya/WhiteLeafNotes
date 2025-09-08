@@ -1,28 +1,29 @@
-package com.example.txtnotesapp.data
+package com.example.txtnotesapp.data.repository
 
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
-import com.example.txtnotesapp.data.local.FileNoteDataSource
+import com.example.txtnotesapp.data.datasource.FileNoteDataSource
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
-import com.example.txtnotesapp.domain.repository.ExportDataSource
+import com.example.txtnotesapp.domain.repository.ExternalRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-class ExportDataSourceImpl(
+class ExternalDataSourceImpl(
     private val context: Context,
     private val fileNoteDataSource: FileNoteDataSource
-) : ExportDataSource {
+) : ExternalRepository {
 
     override suspend fun createExportZip(
         notes: List<Note>,
@@ -46,7 +47,7 @@ class ExportDataSourceImpl(
                 saveToExternalStorage(zipFile)
             } finally {
                 // Очищаем временные файлы
-                tempDir.deleteRecursively()
+                //tempDir.deleteRecursively()
             }
         }
     }
@@ -55,6 +56,7 @@ class ExportDataSourceImpl(
         // Создаем папки для записных книжек
         notebooks.forEach { notebook ->
             val notebookDir = File(tempDir, notebook.path).apply { mkdirs() }
+
         }
 
         // Копируем все заметки
@@ -74,29 +76,26 @@ class ExportDataSourceImpl(
         }
     }
 
-    private fun createZipFile(tempDir: File, password: String?): File {
+    private fun createZipFile(
+        tempDir: File,
+        password: String? = null  //todo сделать с паролем
+    ): File {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val zipFile = File(context.cacheDir, "notes_export_$timestamp.zip")
+        val zipFile = File(context.cacheDir, "txtnotes_export_$timestamp.zip")
 
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
-            if (password != null) {
-                zipOut.setPassword(password.toCharArray())
-            }
-
             tempDir.walk().forEach { file ->
                 if (file.isFile) {
                     val relativePath = file.relativeTo(tempDir).path
                     val zipEntry = ZipEntry(relativePath).apply {
                         time = file.lastModified()
                     }
-
                     zipOut.putNextEntry(zipEntry)
                     file.inputStream().use { it.copyTo(zipOut) }
                     zipOut.closeEntry()
                 }
             }
         }
-
         return zipFile
     }
 
@@ -118,7 +117,7 @@ class ExportDataSourceImpl(
         }
 
         // Удаляем временный zip файл
-        zipFile.delete()
+        //zipFile.delete()
 
         return uri
     }
