@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import com.example.txtnotesapp.data.local.FileNoteDataSource
 import com.example.txtnotesapp.domain.model.Note
+import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.domain.repository.NoteRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -172,4 +173,14 @@ class NoteRepositoryImpl(
             }
         }
     }
+    override suspend fun exportToZip(
+        notes: List<Note>,
+        notebooks: List<Notebook>,
+        password: String?
+    ): Uri {
+        return withContext(Dispatchers.IO) {
+            exportDataSource.createExportZip(notes, notebooks, password)
+        }
+    }
+
 }
