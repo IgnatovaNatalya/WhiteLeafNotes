@@ -20,13 +20,13 @@ class PreferencesRepositoryImpl(
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    override suspend fun getNotesDirectoryPath(): String? {
+    override suspend fun getExportDirectoryPath(): String? {
         return withContext(Dispatchers.IO) {
             prefs.getString(KEY_NOTES_DIRECTORY, null)
         }
     }
 
-    override suspend fun saveNotesDirectoryPath(path: String) {
+    override suspend fun saveExportDirectoryPath(path: String) {
         withContext(Dispatchers.IO) {
             prefs.edit { putString(KEY_NOTES_DIRECTORY, path) }
         }

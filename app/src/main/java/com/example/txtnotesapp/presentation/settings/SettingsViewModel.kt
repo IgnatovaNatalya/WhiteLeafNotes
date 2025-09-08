@@ -4,13 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.txtnotesapp.domain.use_case.GetNotesDirectoryUseCase
-import com.example.txtnotesapp.domain.use_case.SaveNotesDirectoryUseCase
+import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
+import com.example.txtnotesapp.domain.use_case.SaveExportDirectoryUseCase
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
-    private val getNotesDirectoryUseCase: GetNotesDirectoryUseCase,
-    private val saveNotesDirectoryUseCase: SaveNotesDirectoryUseCase
+    private val getNotesDirectoryUseCase: GetExportDirectoryUseCase,
+    private val saveNotesDirectoryUseCase: SaveExportDirectoryUseCase
 ) : ViewModel() {
 
     private val _currentPath = MutableLiveData<String?>(null)

@@ -16,12 +16,12 @@ import com.example.txtnotesapp.domain.use_case.DeleteNotebook
 import com.example.txtnotesapp.domain.use_case.GetNote
 import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
-import com.example.txtnotesapp.domain.use_case.GetNotesDirectoryUseCase
+import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNote
 import com.example.txtnotesapp.domain.use_case.RenameNote
 import com.example.txtnotesapp.domain.use_case.RenameNotebook
 import com.example.txtnotesapp.domain.use_case.SaveNote
-import com.example.txtnotesapp.domain.use_case.SaveNotesDirectoryUseCase
+import com.example.txtnotesapp.domain.use_case.SaveExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.ShareNote
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
 import com.example.txtnotesapp.presentation.note_list.NoteListViewModel
@@ -58,8 +58,8 @@ val koinModule = module {
     factory { DeleteNotebook(get()) }
     factory { RenameNotebook(get()) }
 
-    factory { GetNotesDirectoryUseCase(get()) }
-    factory { SaveNotesDirectoryUseCase(get()) }
+    factory { GetExportDirectoryUseCase(get()) }
+    factory { SaveExportDirectoryUseCase(get()) }
 
     // ViewModels
 
