@@ -1,11 +1,11 @@
-package com.example.txtnotesapp.data
+package com.example.txtnotesapp.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.example.txtnotesapp.domain.repository.PreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.core.content.edit
 
 class PreferencesRepositoryImpl(
     private val context: Context,

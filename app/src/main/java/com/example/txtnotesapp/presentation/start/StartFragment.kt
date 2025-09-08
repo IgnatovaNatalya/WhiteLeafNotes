@@ -39,10 +39,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-    }
-
     private fun setupRecyclerView() {
         val adapter = StartAdapter(
             onNotebookClicked = { notebook ->

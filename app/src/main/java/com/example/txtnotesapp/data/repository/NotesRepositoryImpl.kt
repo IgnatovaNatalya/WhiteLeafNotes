@@ -1,13 +1,15 @@
-package com.example.txtnotesapp.data
+package com.example.txtnotesapp.data.repository
 
 import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
-import com.example.txtnotesapp.data.local.FileNoteDataSource
+import com.example.txtnotesapp.data.datasource.FileNoteDataSource
+import com.example.txtnotesapp.data.datasource.FileNotebookDataSource
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
-import com.example.txtnotesapp.domain.repository.NoteRepository
+import com.example.txtnotesapp.domain.repository.ExternalRepository
+import com.example.txtnotesapp.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -15,12 +17,14 @@ import java.io.IOException
 
 class NoteRepositoryImpl(
     private val context: Context,
-    private val noteDataSource: FileNoteDataSource
-) : NoteRepository {
+    private val noteDataSource: FileNoteDataSource,
+    private val externalRepository: ExternalRepository
+) : NotesRepository {
 
     override suspend fun getNotes(notebookPath: String?): List<Note> {
         return withContext(Dispatchers.IO) {
-            val dir = notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
+            val dir =
+                notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
             dir.listFiles()?.filter { it.isFile && it.name.endsWith(".txt") }
                 ?.mapNotNull { file ->
                     try {
@@ -173,13 +177,27 @@ class NoteRepositoryImpl(
             }
         }
     }
-    override suspend fun exportToZip(
+
+
+
+    override suspend fun getAllNotes(notebooks:List<Notebook>): List<Note> {
+
+        val allNotes = mutableListOf<Note>()
+
+        allNotes.addAll(getNotes(null))
+        notebooks.forEach {
+            notebook -> allNotes.addAll(getNotes(notebook.path))
+        }
+        return allNotes
+    }
+
+    override suspend fun exportToZip( //todo перенести в отдельный репозиторий экспорта/импорта
         notes: List<Note>,
         notebooks: List<Notebook>,
         password: String?
     ): Uri {
         return withContext(Dispatchers.IO) {
-            exportDataSource.createExportZip(notes, notebooks, password)
+            externalRepository.createExportZip(notes, notebooks, password)
         }
     }
 

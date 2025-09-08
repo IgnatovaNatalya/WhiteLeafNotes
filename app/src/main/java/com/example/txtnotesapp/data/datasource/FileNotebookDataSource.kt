@@ -1,4 +1,4 @@
-package com.example.txtnotesapp.data.local
+package com.example.txtnotesapp.data.datasource
 
 import android.content.Context
 import android.os.Build

@@ -1,7 +1,7 @@
-package com.example.txtnotesapp.data.local
+package com.example.txtnotesapp.data.datasource
 
 import android.content.Context
-import com.example.txtnotesapp.data.local.FileNotebookDataSource.Companion.DEFAULT_DIR
+import com.example.txtnotesapp.data.datasource.FileNotebookDataSource.Companion.DEFAULT_DIR
 import java.io.File
 
 

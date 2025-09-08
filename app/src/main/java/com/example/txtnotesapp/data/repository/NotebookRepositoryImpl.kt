@@ -1,7 +1,7 @@
-package com.example.txtnotesapp.data
+package com.example.txtnotesapp.data.repository
 
 import android.util.Log
-import com.example.txtnotesapp.data.local.FileNotebookDataSource
+import com.example.txtnotesapp.data.datasource.FileNotebookDataSource
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.domain.repository.NotebookRepository
 import kotlinx.coroutines.Dispatchers
