@@ -47,6 +47,7 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
     }
 
     private fun setupObservers() {
+
         viewModel.exportPath.observe(viewLifecycleOwner) { path ->
             binding.folderPath.text = path
         }

@@ -1,5 +1,6 @@
 package com.example.txtnotesapp.presentation.settings
 
+import android.os.Environment
 import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -26,7 +27,7 @@ class SettingsViewModel(
 //        viewModelScope.launch {
 //            _exportPath.value = getExportDirectoryUseCase()
 //        }
-        _exportPath.postValue(MediaStore.Downloads.DISPLAY_NAME)
+        _exportPath.postValue(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name)
     }
 
     fun saveExportDirectory(path: String) {

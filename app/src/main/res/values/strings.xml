@@ -27,8 +27,11 @@
     <string name="undo">Отменить</string>
     <string name="redo">Вернуть</string>
 
-    <string name="export_folder">Экспорт заметок</string>
+    <string name="export_notes">Экспорт заметок</string>
+    <string name="import_notes">Импорт заметок</string>
     <string name="do_export">Выполнить экспорт</string>
     <string name="use_password">Использовать пароль</string>
     <string name="export_zip_password">Введите пароль</string>
+
+    <string name="select_import_folder">Выбрать папку</string>
 </resources>
