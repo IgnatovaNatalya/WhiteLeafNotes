@@ -46,21 +46,21 @@ class NoteListViewModel(
     }
 
     fun loadNotes() {
-        _isLoading.value = true
-        _message.value = null
+        _isLoading.postValue(true)
+        _message.postValue(null)
 
         viewModelScope.launch {
             try {
                 val notesList = getNotes(notebookPath)
                 _notes.value = notesList
             } catch (e: IOException) {
-                _message.value = "Ошибка загрузки заметок: ${e.message}"
-                _notes.value = emptyList()
+                _message.postValue("Ошибка загрузки заметок: ${e.message}")
+                _notes.postValue(emptyList())
             } catch (e: Exception) {
-                _message.value = "Неизвестная ошибка: ${e.message}"
-                _notes.value = emptyList()
+                _message.postValue("Неизвестная ошибка: ${e.message}")
+                _notes.postValue(emptyList())
             } finally {
-                _isLoading.value = false
+                _isLoading.postValue(false)
             }
         }
     }
@@ -70,9 +70,9 @@ class NoteListViewModel(
             try {
                 val newNote = createNote(notebookPath)
                 loadNotes()
-                _navigateToCreatedNote.value = newNote.title
+                _navigateToCreatedNote.postValue(newNote.title)
             } catch (e: Exception) {
-                _message.value = "Ошибка создания заметки: ${e.message}"
+                _message.postValue("Ошибка создания заметки: ${e.message}")
             }
         }
     }
@@ -81,10 +81,9 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 deleteNoteUseCase(note)
-                // Обновляем список после удаления
                 loadNotes()
             } catch (e: Exception) {
-                _message.value = "Ошибка удаления заметки: ${e.message}"
+                _message.postValue("Ошибка удаления заметки: ${e.message}")
             }
         }
     }
@@ -95,7 +94,7 @@ class NoteListViewModel(
                 moveNoteUseCase(note, targetNotebookPath)
                 loadNotes()
             } catch (e: Exception) {
-                _message.value = "Ошибка перемещения заметки: ${e.message}"
+                _message.postValue("Ошибка перемещения заметки: ${e.message}")
             }
         }
     }
@@ -114,13 +113,13 @@ class NoteListViewModel(
         }
     }
 
-    fun onNoteClicked(noteId: String) = _navigateToNote.postValue( noteId)
+    fun onNoteClicked(noteId: String) = _navigateToNote.postValue(noteId)
 
     fun onNoteNavigated() = _navigateToNote.postValue(null)
 
-    fun onNoteCreatedNavigated() =_navigateToCreatedNote.postValue(null)
+    fun onNoteCreatedNavigated() = _navigateToCreatedNote.postValue(null)
 
-    fun clearError() =  _message.postValue(null)
+    fun clearError() = _message.postValue(null)
 
     private fun saveLastOpenNotebook() {
         preferences.edit {

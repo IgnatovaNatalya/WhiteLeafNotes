@@ -48,12 +48,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
 
         viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
-                if (it.contains("доступ")) {
-                    // Показываем кнопку для запроса разрешений todo проврку перенести на стартовый экран
-                    showStoragePermissionError(it)
-                } else {
-                    Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                }
+                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
                 viewModel.clearError()
             }
         }
@@ -87,19 +82,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
                 viewModel.onNoteCreatedNavigated()
             }
         }
-    }
-
-    private fun showStoragePermissionError(message: String) {
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("Ошибка доступа")
-            .setMessage(message)
-            .setPositiveButton("Запросить разрешение") { _, _ ->
-                PermissionUtils.requestStoragePermission(requireActivity())
-            }
-            .setNegativeButton("Отмена", null)
-            .create()
-
-        dialog.show()
     }
 
     private fun setupRecyclerView() {
