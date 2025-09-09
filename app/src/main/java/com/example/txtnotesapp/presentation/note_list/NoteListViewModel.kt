@@ -45,7 +45,7 @@ class NoteListViewModel(
         saveLastOpenNotebook()
     }
 
-    fun loadNotes() { //todo нужна аналогичная проверка в остальных методах
+    fun loadNotes() {
         _isLoading.value = true
         _message.value = null
 
@@ -54,14 +54,10 @@ class NoteListViewModel(
                 val notesList = getNotes(notebookPath)
                 _notes.value = notesList
             } catch (e: IOException) {
-                if (e.message?.contains("доступ") == true) {
-                    _message.value = "Нет доступа к хранилищу. Проверьте разрешения."
-                } else {
-                    _message.value = "Ошибка загрузки заметок: ${e.message}"
-                }
+                _message.value = "Ошибка загрузки заметок: ${e.message}"
                 _notes.value = emptyList()
             } catch (e: Exception) {
-                _message.value = "Ошибка загрузки заметок: ${e.message}"
+                _message.value = "Неизвестная ошибка: ${e.message}"
                 _notes.value = emptyList()
             } finally {
                 _isLoading.value = false
@@ -73,6 +69,7 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 val newNote = createNote(notebookPath)
+                loadNotes()
                 _navigateToCreatedNote.value = newNote.title
             } catch (e: Exception) {
                 _message.value = "Ошибка создания заметки: ${e.message}"
@@ -117,21 +114,14 @@ class NoteListViewModel(
         }
     }
 
-    fun onNoteClicked(noteId: String) {
-        _navigateToNote.value = noteId
-    }
+    fun onNoteClicked(noteId: String) = _navigateToNote.postValue( noteId)
 
-    fun onNoteNavigated() {
-        _navigateToNote.value = null
-    }
+    fun onNoteNavigated() = _navigateToNote.postValue(null)
 
-    fun onNoteCreatedNavigated() {
-        _navigateToCreatedNote.value = null
-    }
+    fun onNoteCreatedNavigated() =_navigateToCreatedNote.postValue(null)
 
-    fun clearError() {
-        _message.value = null
-    }
+    fun clearError() =  _message.postValue(null)
+
 
     private fun saveLastOpenNotebook() {
         preferences.edit {
