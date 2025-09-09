@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">TxtNotesApp</string>
     <string name="new_note">+</string>
-    <string name="sample_title">Title</string>
     <string name="no_notes">Вы пока не создали\nни одной заметки</string>
     <string name="create_note">Create note</string>
     <string name="open">Открыть</string>

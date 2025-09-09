@@ -45,13 +45,14 @@ class RootActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Проверка разрешений перед установкой контента
-        if (!PermissionUtils.checkStoragePermission(this)) {
-            PermissionUtils.requestStoragePermission(this)
-            // Можно показать загрузочный экран или сообщение
-        } else {
-            initializeApp()
-        }
+//        if (!PermissionUtils.checkStoragePermission(this)) {
+//            PermissionUtils.requestStoragePermission(this)
+//        } else {
+//            initializeApp()
+//        }
+
+        initializeApp()
+
     }
 
     private fun initializeApp() {
@@ -75,7 +76,15 @@ class RootActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
                 R.id.startFragment -> supportActionBar?.hide()
-                else -> supportActionBar?.show()
+
+                R.id.noteListFragment , R.id.noteEditFragment -> {
+                    supportActionBar?.show()
+                    supportActionBar?.subtitle = "Записная книжка"
+                }
+                R.id.settingsFragment -> {
+                    supportActionBar?.show()
+                    supportActionBar?.subtitle = null
+                }
             }
         }
     }

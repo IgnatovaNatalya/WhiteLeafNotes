@@ -16,7 +16,6 @@
         android:layout_marginHorizontal="@dimen/marginHorizontal"
         android:layout_marginTop="16dp"
         android:background="@null"
-        android:hint="@string/sample_title"
         android:importantForAutofill="no"
         android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
         android:maxLines="3"
