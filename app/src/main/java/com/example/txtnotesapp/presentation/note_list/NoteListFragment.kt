@@ -1,11 +1,9 @@
 package com.example.txtnotesapp.presentation.note_list
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -13,9 +11,10 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.common.interfaces.NoteActionHandler
+import com.example.txtnotesapp.common.utils.DialogHelper
+import com.example.txtnotesapp.common.utils.DialogHelper.ShareHelper
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.common.utils.PermissionUtils
@@ -117,58 +116,31 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
         )
     }
 
-    override fun onRenameNote(note: Note) = showRenameNoteDialog(note)
-    override fun onMoveNote(note: Note) = showMoveNoteDialog(note)
-    override fun onDeleteNote(note: Note) = showDeleteConfirmationDialog(note)
-    override fun onShareNote(note: Note) = shareNote(note)
-
-    private fun showRenameNoteDialog(note: Note) {
-        val alertDialogBuilder = AlertDialog.Builder(requireContext())
-        val renameDialogView: View =
-            LayoutInflater.from(requireContext()).inflate(R.layout.dialog_note_rename, null)
-        alertDialogBuilder.setView(renameDialogView)
-        val newTitle = renameDialogView.findViewById<EditText>(R.id.new_note_title)
-
-        alertDialogBuilder
-            .setPositiveButton("Переименовать") { _, _ ->
-                viewModel.updateNoteTitle(note, newTitle.text.toString())
-            }
-            .setNegativeButton("Отмена", null)
+    override fun onRenameNote(note: Note) {
+        DialogHelper.createRenameNoteDialog(
+            requireContext(), note.title,
+            { newTitle -> viewModel.updateNoteTitle(note, newTitle) })
             .show()
     }
 
-    private fun showMoveNoteDialog(note: Note) {
-        val alertDialogBuilder = AlertDialog.Builder(requireContext())
-        val moveDialogView: View =
-            LayoutInflater.from(requireContext()).inflate(R.layout.dialog_note_move, null)
-        alertDialogBuilder.setView(moveDialogView)
-        val newNotebook = moveDialogView.findViewById<EditText>(R.id.new_note_notebook) //потом сделать выбор из списка
-
-        alertDialogBuilder
-            .setPositiveButton("Переместить") { _, _ ->
-                viewModel.moveNote(note, newNotebook.text.toString())
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
-    private fun showDeleteConfirmationDialog(note: Note) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Удаление заметки")
-            .setMessage("Вы уверены, что хотите удалить заметку \"${note.title}\"?")
-            .setPositiveButton("Удалить") { _, _ -> viewModel.deleteNote(note) }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
-    private fun shareNote(note: Note) {
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "${note.title} \n\n${note.content} ")
-            type = "text/plain"
+    override fun onMoveNote(note: Note) {
+        val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+            viewModel.moveNote(note, newNotebookName)
         }
-        startActivity(Intent.createChooser(shareIntent, "Поделиться заметкой"))
+        dialog.show()
     }
+
+    override fun onDeleteNote(note: Note) {
+        val dialog = DialogHelper.createDeleteConfirmationDialog(
+            context = requireContext(),
+            noteTitle = note.title,
+            onDeleteConfirmed = { viewModel.deleteNote(note) }
+        )
+        dialog.show()
+    }
+
+    override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
+
 
     private fun setupFab() {
         binding.createNote.setOnClickListener {
