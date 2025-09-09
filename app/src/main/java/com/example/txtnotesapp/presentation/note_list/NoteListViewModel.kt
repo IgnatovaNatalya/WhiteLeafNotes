@@ -11,7 +11,7 @@ import com.example.txtnotesapp.domain.use_case.CreateNote
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotes
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
-import com.example.txtnotesapp.domain.use_case.RenameNote
+import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -20,7 +20,7 @@ class NoteListViewModel(
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val createNote: CreateNote,
     private val moveNoteUseCase: MoveNoteUseCase,
-    private val renameNote: RenameNote,
+    private val renameNoteUseCase: RenameNoteUseCase,
     private val preferences: SharedPreferences,
     private val notebookPath: String?
 ) : ViewModel() {
@@ -103,7 +103,7 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 if (newTitle != note.title) {
-                    renameNote(note, newTitle)
+                    renameNoteUseCase(note, newTitle)
                     loadNotes()
                     _message.postValue("Название заметки изменено")
                 }

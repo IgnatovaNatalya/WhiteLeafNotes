@@ -8,8 +8,11 @@ import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.domain.use_case.CreateNote
 import com.example.txtnotesapp.domain.use_case.CreateNotebook
+import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
+import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
+import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import kotlinx.coroutines.launch
 import kotlin.collections.forEach
 
@@ -17,7 +20,10 @@ class StartViewModel(
     private val getNotebooks: GetNotebooks,
     private val getNotes: GetNotes,
     private val createNote: CreateNote,
-    private val createNotebook: CreateNotebook
+    private val createNotebook: CreateNotebook,
+    private val moveNoteUseCase: MoveNoteUseCase,
+    private val renameNoteUseCase: RenameNoteUseCase,
+    private val deleteNoteUseCase: DeleteNoteUseCase,
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -116,6 +122,40 @@ class StartViewModel(
         }
     }
 
+    fun updateNoteTitle(note: Note, newTitle: String) {
+        viewModelScope.launch {
+            try {
+                if (newTitle != note.title) {
+                    renameNoteUseCase(note, newTitle)
+                    loadData()
+                    _message.postValue("Название заметки изменено")
+                }
+            } catch (e: Exception) {
+                _message.postValue("Ошибка переименования: ${e.message}")
+            }
+        }
+    }
+
+    fun moveNote(note: Note, targetNotebookPath: String?) {
+        viewModelScope.launch {
+            try {
+                moveNoteUseCase(note, targetNotebookPath)
+                loadData()
+            } catch (e: Exception) {
+                _message.postValue("Ошибка перемещения заметки: ${e.message}")
+            }
+        }
+    }
+    fun deleteNote(note: Note) {
+        viewModelScope.launch {
+            try {
+                deleteNoteUseCase(note)
+                loadData()
+            } catch (e: Exception) {
+                _message.postValue("Ошибка удаления заметки: ${e.message}")
+            }
+        }
+    }
     fun clearError() {
         _message.value = null
     }

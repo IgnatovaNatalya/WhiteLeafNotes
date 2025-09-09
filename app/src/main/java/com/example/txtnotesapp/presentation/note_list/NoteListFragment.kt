@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -17,7 +16,6 @@ import com.example.txtnotesapp.common.utils.DialogHelper
 import com.example.txtnotesapp.common.utils.DialogHelper.ShareHelper
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
 import com.example.txtnotesapp.domain.model.Note
-import com.example.txtnotesapp.common.utils.PermissionUtils
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 

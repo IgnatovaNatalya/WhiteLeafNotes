@@ -11,12 +11,15 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
+import com.example.txtnotesapp.common.interfaces.NoteActionHandler
+import com.example.txtnotesapp.common.utils.DialogHelper
+import com.example.txtnotesapp.common.utils.DialogHelper.ShareHelper
 import com.example.txtnotesapp.databinding.FragmentStartBinding
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class StartFragment : BindingFragment<FragmentStartBinding>() {
+class StartFragment : BindingFragment<FragmentStartBinding>(), NoteActionHandler {
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -41,18 +44,11 @@ class StartFragment : BindingFragment<FragmentStartBinding>() {
 
     private fun setupRecyclerView() {
         val adapter = StartAdapter(
-            onNotebookClicked = { notebook ->
-                navigateToNotebook(notebook)
-            },
-            onNoteClicked = { note ->
-                navigateToNote(note)
-            },
-            onAddNotebookClicked = {
-                showCreateNotebookDialog()
-            },
-            onAddNoteClicked = {
-                createNewNote()
-            }
+            onNotebookClicked = { notebook -> navigateToNotebook(notebook) },
+            onNoteClicked = { note -> navigateToNote(note) },
+            onAddNotebookClicked = { showCreateNotebookDialog() },
+            onAddNoteClicked = { createNewNote() },
+            noteActionHandler = this
         )
 
         binding.startRecyclerView.adapter = adapter
@@ -113,4 +109,31 @@ class StartFragment : BindingFragment<FragmentStartBinding>() {
     private fun createNewNote() {
         viewModel.createNewNote()
     }
+
+    override fun onRenameNote(note: Note) {
+        DialogHelper.createRenameNoteDialog(
+            requireContext(), note.title,
+            { newTitle -> viewModel.updateNoteTitle(note, newTitle) })
+            .show()
+    }
+
+    override fun onMoveNote(note: Note) {
+        val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+            viewModel.moveNote(note, newNotebookName)
+        }
+        dialog.show()
+    }
+
+    override fun onDeleteNote(note: Note) {
+        val dialog = DialogHelper.createDeleteConfirmationDialog(
+            context = requireContext(),
+            noteTitle = note.title,
+            onDeleteConfirmed = { viewModel.deleteNote(note) }
+        )
+        dialog.show()
+    }
+
+    override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
+
+
 }

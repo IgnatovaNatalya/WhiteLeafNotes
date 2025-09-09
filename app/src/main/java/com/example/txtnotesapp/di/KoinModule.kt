@@ -21,7 +21,7 @@ import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
 import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
-import com.example.txtnotesapp.domain.use_case.RenameNote
+import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNotebook
 import com.example.txtnotesapp.domain.use_case.SaveNote
 import com.example.txtnotesapp.domain.use_case.SaveExportDirectoryUseCase
@@ -54,7 +54,7 @@ val koinModule = module {
     factory { CreateNote(get()) }
     factory { DeleteNoteUseCase(get()) }
     factory { MoveNoteUseCase(get()) }
-    factory { RenameNote(get()) }
+    factory { RenameNoteUseCase(get()) }
     factory { ShareNote(get()) }
 
     factory { GetNotebooks(get()) }
@@ -73,7 +73,10 @@ val koinModule = module {
             getNotebooks = get(),
             getNotes = get(),
             createNote = get(),
-            createNotebook = get()
+            createNotebook = get(),
+            moveNoteUseCase = get(),
+            renameNoteUseCase = get(),
+            deleteNoteUseCase = get(),
         )
     }
 
@@ -92,7 +95,7 @@ val koinModule = module {
             deleteNoteUseCase = get(),
             createNote = get(),
             moveNoteUseCase = get(),
-            renameNote = get(),
+            renameNoteUseCase = get(),
             preferences = androidContext().getSharedPreferences(
                 "txt_notes_prefs",
                 Context.MODE_PRIVATE
