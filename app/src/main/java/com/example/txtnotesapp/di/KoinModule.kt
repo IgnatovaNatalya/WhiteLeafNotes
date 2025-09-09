@@ -13,14 +13,14 @@ import com.example.txtnotesapp.domain.repository.NotebookRepository
 import com.example.txtnotesapp.domain.repository.PreferencesRepository
 import com.example.txtnotesapp.domain.use_case.CreateNote
 import com.example.txtnotesapp.domain.use_case.CreateNotebook
-import com.example.txtnotesapp.domain.use_case.DeleteNote
+import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNotebook
 import com.example.txtnotesapp.domain.use_case.ExportNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetNote
 import com.example.txtnotesapp.domain.use_case.GetNotebooks
 import com.example.txtnotesapp.domain.use_case.GetNotes
 import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
-import com.example.txtnotesapp.domain.use_case.MoveNote
+import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNote
 import com.example.txtnotesapp.domain.use_case.RenameNotebook
 import com.example.txtnotesapp.domain.use_case.SaveNote
@@ -52,8 +52,8 @@ val koinModule = module {
     factory { GetNote(get()) }
     factory { SaveNote(get()) }
     factory { CreateNote(get()) }
-    factory { DeleteNote(get()) }
-    factory { MoveNote(get()) }
+    factory { DeleteNoteUseCase(get()) }
+    factory { MoveNoteUseCase(get()) }
     factory { RenameNote(get()) }
     factory { ShareNote(get()) }
 
@@ -89,9 +89,9 @@ val koinModule = module {
     viewModel { (notebookPath: String?) ->
         NoteListViewModel(
             getNotes = get(),
-            deleteNote = get(),
+            deleteNoteUseCase = get(),
             createNote = get(),
-            moveNote = get(),
+            moveNoteUseCase = get(),
             renameNote = get(),
             preferences = androidContext().getSharedPreferences(
                 "txt_notes_prefs",

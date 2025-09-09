@@ -1,5 +1,6 @@
 package com.example.txtnotesapp.presentation.note_list
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -137,9 +138,16 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
     }
 
     private fun showMoveNoteDialog(note: Note) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Перемещение заметки")
-            .setPositiveButton("Переместить") { _, _ -> viewModel.moveNote(note, "") }
+        val alertDialogBuilder = AlertDialog.Builder(requireContext())
+        val moveDialogView: View =
+            LayoutInflater.from(requireContext()).inflate(R.layout.dialog_note_move, null)
+        alertDialogBuilder.setView(moveDialogView)
+        val newNotebook = moveDialogView.findViewById<EditText>(R.id.new_note_notebook) //потом сделать выбор из списка
+
+        alertDialogBuilder
+            .setPositiveButton("Переместить") { _, _ ->
+                viewModel.moveNote(note, newNotebook.text.toString())
+            }
             .setNegativeButton("Отмена", null)
             .show()
     }
@@ -154,9 +162,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
     }
 
     private fun shareNote(note: Note) {
-        // TODO: Реализовать функциональность "поделиться"
-        Toast.makeText(requireContext(), "Функция поделиться в разработке", Toast.LENGTH_SHORT)
-            .show()
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, "${note.title} \n\n${note.content} ")
+            type = "text/plain"
+        }
+        startActivity(Intent.createChooser(shareIntent, "Поделиться заметкой"))
     }
 
     private fun setupFab() {
@@ -189,5 +200,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
             binding.emptyList.visibility = View.GONE
             binding.recyclerView.visibility = View.VISIBLE
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.reloadNotes()
     }
 }

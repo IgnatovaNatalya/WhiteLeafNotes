@@ -8,18 +8,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.use_case.CreateNote
-import com.example.txtnotesapp.domain.use_case.DeleteNote
+import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotes
-import com.example.txtnotesapp.domain.use_case.MoveNote
+import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNote
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 class NoteListViewModel(
     private val getNotes: GetNotes,
-    private val deleteNote: DeleteNote,
+    private val deleteNoteUseCase: DeleteNoteUseCase,
     private val createNote: CreateNote,
-    private val moveNote: MoveNote,
+    private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNote: RenameNote,
     private val preferences: SharedPreferences,
     private val notebookPath: String?
@@ -80,7 +80,7 @@ class NoteListViewModel(
     fun deleteNote(note: Note) {
         viewModelScope.launch {
             try {
-                deleteNote(note)
+                deleteNoteUseCase(note)
                 // Обновляем список после удаления
                 loadNotes()
             } catch (e: Exception) {
@@ -92,7 +92,7 @@ class NoteListViewModel(
     fun moveNote(note: Note, targetNotebookPath: String?) {
         viewModelScope.launch {
             try {
-                moveNote(note, targetNotebookPath)
+                moveNoteUseCase(note, targetNotebookPath)
                 loadNotes()
             } catch (e: Exception) {
                 _message.value = "Ошибка перемещения заметки: ${e.message}"
@@ -122,10 +122,13 @@ class NoteListViewModel(
 
     fun clearError() =  _message.postValue(null)
 
-
     private fun saveLastOpenNotebook() {
         preferences.edit {
             putString("last_notebook_path", notebookPath)
         }
+    }
+
+    fun reloadNotes() {
+        loadNotes()
     }
 }

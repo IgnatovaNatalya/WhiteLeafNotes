@@ -95,9 +95,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     override fun onPause() {
         super.onPause()
-        // Принудительное сохранение при выходе с экрана
         viewModel.updateNoteContent(binding.noteText.text.toString())
     }
+
 
     private fun formatDate(timestamp: Long): String {
         val date = Instant.fromEpochMilliseconds(timestamp)
