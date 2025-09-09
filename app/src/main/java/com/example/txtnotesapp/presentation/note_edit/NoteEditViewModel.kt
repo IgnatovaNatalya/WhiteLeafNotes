@@ -5,17 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
-import com.example.txtnotesapp.domain.use_case.CreateNote
-import com.example.txtnotesapp.domain.use_case.GetNote
-import com.example.txtnotesapp.domain.use_case.SaveNote
+import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
+import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
+import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
 import kotlinx.coroutines.launch
 
 class NoteEditViewModel(
-private val getNote: GetNote,
-private val saveNote: SaveNote,
-private val createNote: CreateNote,
-private val noteId: String?,
-private val notebookPath: String?
+    private val getNoteUseCase: GetNoteUseCase,
+    private val saveNoteUseCase: SaveNoteUseCase,
+    private val createNoteUseCase: CreateNoteUseCase,
+    private val noteId: String?,
+    private val notebookPath: String?
 ) : ViewModel() {
 
     private val _note = MutableLiveData<Note>()
@@ -42,7 +42,7 @@ private val notebookPath: String?
             try {
                 if (noteId != null) {
                     // Загрузка существующей заметки
-                    val existingNote = getNote(noteId, notebookPath)
+                    val existingNote = getNoteUseCase(noteId, notebookPath)
                     if (existingNote != null) {
                         _note.value = existingNote
                     } else {
@@ -50,7 +50,7 @@ private val notebookPath: String?
                     }
                 } else {
                     // Создание новой заметки
-                    val newNote = createNote(notebookPath)
+                    val newNote = createNoteUseCase(notebookPath)
                     _note.value = newNote
                 }
             } catch (e: Exception) {
@@ -70,7 +70,7 @@ private val notebookPath: String?
         // Автосохранение при изменении
         viewModelScope.launch {
             try {
-                saveNote(updatedNote)
+                saveNoteUseCase(updatedNote)
                 _isSaved.postValue(true)
             } catch (e: Exception) {
                 _error.postValue("Ошибка сохранения: ${e.message}")

@@ -153,7 +153,7 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun shareNote(note: Note): Uri? {
+    override suspend fun shareNote(note: Note): Uri? { //todo заачем мне два шеринга
         return withContext(Dispatchers.IO) {
             try {
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
@@ -177,8 +177,6 @@ class NoteRepositoryImpl(
             }
         }
     }
-
-
 
     override suspend fun getAllNotes(notebooks:List<Notebook>): List<Note> {
 

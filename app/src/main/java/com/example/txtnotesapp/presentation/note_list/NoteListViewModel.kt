@@ -7,18 +7,18 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
-import com.example.txtnotesapp.domain.use_case.CreateNote
+import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
-import com.example.txtnotesapp.domain.use_case.GetNotes
+import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 class NoteListViewModel(
-    private val getNotes: GetNotes,
+    private val getNotesUseCase: GetNotesUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
-    private val createNote: CreateNote,
+    private val createNoteUseCase: CreateNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
     private val preferences: SharedPreferences,
@@ -51,7 +51,7 @@ class NoteListViewModel(
 
         viewModelScope.launch {
             try {
-                val notesList = getNotes(notebookPath)
+                val notesList = getNotesUseCase(notebookPath)
                 _notes.value = notesList
             } catch (e: IOException) {
                 _message.postValue("Ошибка загрузки заметок: ${e.message}")
@@ -68,7 +68,7 @@ class NoteListViewModel(
     fun createNewNote() {
         viewModelScope.launch {
             try {
-                val newNote = createNote(notebookPath)
+                val newNote = createNoteUseCase(notebookPath)
                 loadNotes()
                 _navigateToCreatedNote.postValue(newNote.title)
             } catch (e: Exception) {

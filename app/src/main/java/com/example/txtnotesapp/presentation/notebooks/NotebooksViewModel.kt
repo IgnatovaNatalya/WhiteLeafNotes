@@ -5,17 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Notebook
-import com.example.txtnotesapp.domain.use_case.CreateNotebook
-import com.example.txtnotesapp.domain.use_case.DeleteNotebook
-import com.example.txtnotesapp.domain.use_case.GetNotebooks
-import com.example.txtnotesapp.domain.use_case.RenameNotebook
+import com.example.txtnotesapp.domain.use_case.CreateNotebookUseCase
+import com.example.txtnotesapp.domain.use_case.DeleteNotebookUseCase
+import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
+import com.example.txtnotesapp.domain.use_case.RenameNotebookUseCase
 import kotlinx.coroutines.launch
 
 class NotebooksViewModel(
-    private val getNotebooks: GetNotebooks,
-    private val createNotebook: CreateNotebook,
-    private val deleteNotebook: DeleteNotebook,
-    private val renameNotebook: RenameNotebook
+    private val getNotebooks: GetNotebooksUseCase,
+    private val createNotebook: CreateNotebookUseCase,
+    private val deleteNotebook: DeleteNotebookUseCase,
+    private val renameNotebook: RenameNotebookUseCase
 ) : ViewModel() {
 
     private val _notebooks = MutableLiveData<List<Notebook>>()

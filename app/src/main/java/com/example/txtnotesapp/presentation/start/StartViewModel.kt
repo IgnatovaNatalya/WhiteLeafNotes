@@ -6,21 +6,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
-import com.example.txtnotesapp.domain.use_case.CreateNote
-import com.example.txtnotesapp.domain.use_case.CreateNotebook
+import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
+import com.example.txtnotesapp.domain.use_case.CreateNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
-import com.example.txtnotesapp.domain.use_case.GetNotebooks
-import com.example.txtnotesapp.domain.use_case.GetNotes
+import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
+import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import kotlinx.coroutines.launch
 import kotlin.collections.forEach
 
 class StartViewModel(
-    private val getNotebooks: GetNotebooks,
-    private val getNotes: GetNotes,
-    private val createNote: CreateNote,
-    private val createNotebook: CreateNotebook,
+    private val getNotebooksUseCase: GetNotebooksUseCase,
+    private val getNotesUseCase: GetNotesUseCase,
+    private val createNoteUseCase: CreateNoteUseCase,
+    private val createNotebookUseCase: CreateNotebookUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
@@ -44,8 +44,8 @@ class StartViewModel(
 
         viewModelScope.launch {
             try {
-                val notebooks = getNotebooks()
-                val rootNotes = getNotes(null) // Заметки в корневой папке
+                val notebooks = getNotebooksUseCase()
+                val rootNotes = getNotesUseCase(null) // Заметки в корневой папке
 
                 val items = buildStartItems(notebooks, rootNotes)
                 _startItems.value = items
@@ -94,7 +94,7 @@ class StartViewModel(
     fun createNewNote() {
         viewModelScope.launch {
             try {
-                val newNote = createNote(null) // Создаем заметку в корне
+                val newNote = createNoteUseCase(null) // Создаем заметку в корне
                 // После создания можно перейти к редактированию
                 // или просто обновить список
                 loadData()
@@ -110,7 +110,7 @@ class StartViewModel(
 
         viewModelScope.launch {
             try {
-                val newNotebook = createNotebook(name) // Создаем записную книжку
+                val newNotebook = createNotebookUseCase(name) // Создаем записную книжку
                 loadData()
                 _message.value = "Записная книжка создана: ${newNotebook.name}"
             } catch (e: Exception) {

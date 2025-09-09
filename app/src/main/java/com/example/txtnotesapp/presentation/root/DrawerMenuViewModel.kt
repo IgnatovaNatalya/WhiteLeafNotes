@@ -6,17 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
-import com.example.txtnotesapp.domain.use_case.CreateNote
-import com.example.txtnotesapp.domain.use_case.CreateNotebook
-import com.example.txtnotesapp.domain.use_case.GetNotebooks
-import com.example.txtnotesapp.domain.use_case.GetNotes
+import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
+import com.example.txtnotesapp.domain.use_case.CreateNotebookUseCase
+import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
+import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import kotlinx.coroutines.launch
 
 class DrawerMenuViewModel(
-    private val getNotebooks: GetNotebooks,
-    private val getNotes: GetNotes,
-    private val createNotebook: CreateNotebook,
-    private val createNote: CreateNote
+    private val getNotebooksUseCase: GetNotebooksUseCase,
+    private val getNotesUseCase: GetNotesUseCase,
+    private val createNotebookUseCase: CreateNotebookUseCase,
+    private val createNoteUseCase: CreateNoteUseCase
 ) : ViewModel() {
 
     private val _menuItems = MutableLiveData<List<DrawerMenuItem>>()
@@ -40,8 +40,8 @@ class DrawerMenuViewModel(
 
         viewModelScope.launch {
             try {
-                val notebooks = getNotebooks()
-                val rootNotes = getNotes(null)
+                val notebooks = getNotebooksUseCase()
+                val rootNotes = getNotesUseCase(null)
 
                 val items = buildMenuItems(notebooks, rootNotes)
                 _menuItems.value = items
@@ -88,7 +88,7 @@ class DrawerMenuViewModel(
     fun createNewNotebook(name: String) {
         viewModelScope.launch {
             try {
-                createNotebook(name)
+                createNotebookUseCase(name)
                 loadMenuData() // Перезагружаем данные после создания
             } catch (e: Exception) {
                 _error.value = "Ошибка создания записной книжки: ${e.message}"
@@ -107,7 +107,7 @@ class DrawerMenuViewModel(
 //        }
         viewModelScope.launch {
             try {
-                val newNote = createNote(null)
+                val newNote = createNoteUseCase(null)
                 _navigateToCreatedNote.value = newNote
             } catch (e: Exception) {
                 _error.value = "Ошибка создания заметки: ${e.message}"

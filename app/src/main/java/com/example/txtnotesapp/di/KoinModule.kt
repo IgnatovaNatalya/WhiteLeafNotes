@@ -11,21 +11,21 @@ import com.example.txtnotesapp.domain.repository.ExternalRepository
 import com.example.txtnotesapp.domain.repository.NotesRepository
 import com.example.txtnotesapp.domain.repository.NotebookRepository
 import com.example.txtnotesapp.domain.repository.PreferencesRepository
-import com.example.txtnotesapp.domain.use_case.CreateNote
-import com.example.txtnotesapp.domain.use_case.CreateNotebook
+import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
+import com.example.txtnotesapp.domain.use_case.CreateNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
-import com.example.txtnotesapp.domain.use_case.DeleteNotebook
+import com.example.txtnotesapp.domain.use_case.DeleteNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.ExportNotesUseCase
-import com.example.txtnotesapp.domain.use_case.GetNote
-import com.example.txtnotesapp.domain.use_case.GetNotebooks
-import com.example.txtnotesapp.domain.use_case.GetNotes
+import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
+import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
+import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
-import com.example.txtnotesapp.domain.use_case.RenameNotebook
-import com.example.txtnotesapp.domain.use_case.SaveNote
+import com.example.txtnotesapp.domain.use_case.RenameNotebookUseCase
+import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.SaveExportDirectoryUseCase
-import com.example.txtnotesapp.domain.use_case.ShareNote
+import com.example.txtnotesapp.domain.use_case.ShareNoteUseCase
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
 import com.example.txtnotesapp.presentation.note_list.NoteListViewModel
 import com.example.txtnotesapp.presentation.notebooks.NotebooksViewModel
@@ -48,19 +48,19 @@ val koinModule = module {
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
 
     // Use cases
-    factory { GetNotes(get()) }
-    factory { GetNote(get()) }
-    factory { SaveNote(get()) }
-    factory { CreateNote(get()) }
+    factory { GetNotesUseCase(get()) }
+    factory { GetNoteUseCase(get()) }
+    factory { SaveNoteUseCase(get()) }
+    factory { CreateNoteUseCase(get()) }
     factory { DeleteNoteUseCase(get()) }
     factory { MoveNoteUseCase(get()) }
     factory { RenameNoteUseCase(get()) }
-    factory { ShareNote(get()) }
+    factory { ShareNoteUseCase(get()) }
 
-    factory { GetNotebooks(get()) }
-    factory { CreateNotebook(get()) }
-    factory { DeleteNotebook(get()) }
-    factory { RenameNotebook(get()) }
+    factory { GetNotebooksUseCase(get()) }
+    factory { CreateNotebookUseCase(get()) }
+    factory { DeleteNotebookUseCase(get()) }
+    factory { RenameNotebookUseCase(get()) }
 
     factory { GetExportDirectoryUseCase(get()) }
     factory { SaveExportDirectoryUseCase(get()) }
@@ -70,10 +70,10 @@ val koinModule = module {
 
     viewModel {
         StartViewModel(
-            getNotebooks = get(),
-            getNotes = get(),
-            createNote = get(),
-            createNotebook = get(),
+            getNotebooksUseCase = get(),
+            getNotesUseCase = get(),
+            createNoteUseCase = get(),
+            createNotebookUseCase = get(),
             moveNoteUseCase = get(),
             renameNoteUseCase = get(),
             deleteNoteUseCase = get(),
@@ -82,18 +82,18 @@ val koinModule = module {
 
     viewModel {
         DrawerMenuViewModel(
-            getNotebooks = get(),
-            getNotes = get(),
-            createNotebook = get(),
-            createNote = get()
+            getNotebooksUseCase = get(),
+            getNotesUseCase = get(),
+            createNotebookUseCase = get(),
+            createNoteUseCase = get()
         )
     }
 
     viewModel { (notebookPath: String?) ->
         NoteListViewModel(
-            getNotes = get(),
+            getNotesUseCase = get(),
             deleteNoteUseCase = get(),
-            createNote = get(),
+            createNoteUseCase = get(),
             moveNoteUseCase = get(),
             renameNoteUseCase = get(),
             preferences = androidContext().getSharedPreferences(
@@ -106,9 +106,9 @@ val koinModule = module {
 
     viewModel { (noteId: String?, notebookPath: String?) ->
         NoteEditViewModel(
-            getNote = get(),
-            saveNote = get(),
-            createNote = get(),
+            getNoteUseCase = get(),
+            saveNoteUseCase = get(),
+            createNoteUseCase = get(),
             noteId = noteId,
             notebookPath = notebookPath
         )
