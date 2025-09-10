@@ -97,14 +97,6 @@ class DrawerMenuViewModel(
     }
 
     fun createNewNote() {
-//        viewModelScope.launch {
-//            try {
-//                createNote(null)
-//                loadMenuData()
-//            } catch (e: Exception) {
-//                _error.value = "Ошибка создания заметки: ${e.message}"
-//            }
-//        }
         viewModelScope.launch {
             try {
                 val newNote = createNoteUseCase(null)

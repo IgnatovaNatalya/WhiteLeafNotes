@@ -119,7 +119,7 @@ class NoteListViewModel(
 
     fun onNoteCreatedNavigated() = _navigateToCreatedNote.postValue(null)
 
-    fun clearError() = _message.postValue(null)
+    fun clearMessage() = _message.postValue(null)
 
     private fun saveLastOpenNotebook() {
         preferences.edit {

@@ -31,6 +31,7 @@ import com.example.txtnotesapp.presentation.note_list.NoteListViewModel
 import com.example.txtnotesapp.presentation.notebooks.NotebooksViewModel
 import com.example.txtnotesapp.presentation.root.DrawerMenuViewModel
 import com.example.txtnotesapp.presentation.settings.SettingsViewModel
+import com.example.txtnotesapp.presentation.shareReceive.ShareReceiverViewModel
 import com.example.txtnotesapp.presentation.start.StartViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -129,6 +130,14 @@ val koinModule = module {
             getExportDirectoryUseCase = get(),
             saveExportDirectoryUseCase = get(),
             exportNotesUseCase = get()
+        )
+    }
+
+    viewModel {
+        ShareReceiverViewModel(
+            createNoteUseCase = get(),
+            renameNoteUseCase = get(),
+            saveNoteUseCase = get(),
         )
     }
 }

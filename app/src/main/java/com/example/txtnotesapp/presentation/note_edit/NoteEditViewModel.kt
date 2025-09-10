@@ -21,24 +21,6 @@ class NoteEditViewModel(
     private val notebookPath: String?
 ) : ViewModel() {
 
-    companion object {
-        private const val EDIT_TITLE_DEBOUNCE_DELAY = 2000L
-    }
-
-    private var oldTitle: String? = null
-
-    private val editTitleDebounce = debounce<String>(
-        EDIT_TITLE_DEBOUNCE_DELAY,
-        viewModelScope,
-        true
-    ) { newTitle -> updateNoteTitle(newTitle) }
-
-    fun updateTitleDebounce(newTitle: String) {
-        if (oldTitle == newTitle) return
-        oldTitle = newTitle
-        editTitleDebounce(newTitle)
-    }
-
     private val _note = MutableLiveData<Note>()
     val note: LiveData<Note> = _note
 
@@ -111,7 +93,6 @@ class NoteEditViewModel(
                 _isSaved.postValue(false)
             }
         }
-
     }
 
     fun updateNoteContent(content: String) {

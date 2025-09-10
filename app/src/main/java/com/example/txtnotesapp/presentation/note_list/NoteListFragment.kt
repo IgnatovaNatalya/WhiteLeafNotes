@@ -47,7 +47,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
         viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                viewModel.clearError()
+                viewModel.clearMessage()
             }
         }
 
@@ -63,7 +63,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
         viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                viewModel.clearError()
+                viewModel.clearMessage()
             }
         }
 
