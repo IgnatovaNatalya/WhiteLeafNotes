@@ -1,8 +1,6 @@
 package com.example.txtnotesapp.presentation.note_edit
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.navArgs
 import com.example.txtnotesapp.common.classes.BindingFragment
+import com.example.txtnotesapp.common.utils.TextWatcherManager
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
 import kotlinx.datetime.Instant
 import kotlinx.datetime.Month
@@ -27,16 +26,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private val args: NoteEditFragmentArgs by navArgs()
     private var isEditing = false
 
-    private val textWatcher = object : TextWatcher {
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        override fun afterTextChanged(s: Editable?) {
-            if (isEditing) {
-                viewModel.updateNoteContent(s.toString())
-            }
-        }
-    }
-
     override fun createBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -50,7 +39,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
 
         setupObservers()
-        setupEditText()
+        setupEditTexts()
     }
 
     private fun setupObservers() {
@@ -64,16 +53,17 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 binding.noteText.setText(note.content)
                 isEditing = true
             }
+            //binding.noteText.requestFocus()
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        viewModel.error.observe(viewLifecycleOwner) { error ->
+        viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                viewModel.clearError()
+                viewModel.clearMessage()
             }
         }
 
@@ -88,14 +78,28 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
     }
 
-    private fun setupEditText() {
-        binding.noteText.addTextChangedListener(textWatcher)
-        isEditing = true
+    private fun setupEditTexts() {
+        TextWatcherManager.setupEditText(
+            editText = binding.noteText,
+            condition = { isEditing },
+            onAfterTextChanged = { text -> viewModel.updateNoteContent(text) }
+        )
+
+        binding.noteTitle.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                val textInput = binding.noteTitle.text.toString()
+                viewModel.updateNoteTitle(textInput)
+            }
+        }
     }
 
     override fun onPause() {
+        Toast.makeText(requireContext(),"Save note pause",Toast.LENGTH_SHORT).show()
+        viewModel.updateFullNote(
+            binding.noteText.text.toString(),
+            binding.noteText.text.toString()
+        )
         super.onPause()
-        viewModel.updateNoteContent(binding.noteText.text.toString())
     }
 
 

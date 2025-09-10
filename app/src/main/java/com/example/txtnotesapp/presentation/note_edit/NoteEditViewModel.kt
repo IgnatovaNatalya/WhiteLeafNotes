@@ -4,19 +4,40 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.txtnotesapp.common.utils.debounce
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
+import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
 import kotlinx.coroutines.launch
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
+    private val renameNoteUseCase: RenameNoteUseCase,
     private val saveNoteUseCase: SaveNoteUseCase,
     private val createNoteUseCase: CreateNoteUseCase,
     private val noteId: String?,
     private val notebookPath: String?
 ) : ViewModel() {
+
+    companion object {
+        private const val EDIT_TITLE_DEBOUNCE_DELAY = 2000L
+    }
+
+    private var oldTitle: String? = null
+
+    private val editTitleDebounce = debounce<String>(
+        EDIT_TITLE_DEBOUNCE_DELAY,
+        viewModelScope,
+        true
+    ) { newTitle -> updateNoteTitle(newTitle) }
+
+    fun updateTitleDebounce(newTitle: String) {
+        if (oldTitle == newTitle) return
+        oldTitle = newTitle
+        editTitleDebounce(newTitle)
+    }
 
     private val _note = MutableLiveData<Note>()
     val note: LiveData<Note> = _note
@@ -24,8 +45,8 @@ class NoteEditViewModel(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _message = MutableLiveData<String?>()
+    val message: LiveData<String?> = _message
 
     private val _isSaved = MutableLiveData<Boolean>()
     val isSaved: LiveData<Boolean> = _isSaved
@@ -37,35 +58,67 @@ class NoteEditViewModel(
     private fun loadNote() {
         viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null
+            _message.value = null
 
             try {
                 if (noteId != null) {
                     // Загрузка существующей заметки
                     val existingNote = getNoteUseCase(noteId, notebookPath)
                     if (existingNote != null) {
-                        _note.value = existingNote
+                        _note.postValue(existingNote)
                     } else {
-                        _error.value = "Заметка не найдена"
+                        _message.postValue("Заметка не найдена")
                     }
                 } else {
                     // Создание новой заметки
                     val newNote = createNoteUseCase(notebookPath)
-                    _note.value = newNote
+                    _note.postValue(newNote)
                 }
             } catch (e: Exception) {
-                _error.value = "Ошибка загрузки заметки: ${e.message}"
+                _message.postValue("Ошибка загрузки заметки: ${e.message}")
             } finally {
-                _isLoading.value = false
+                _isLoading.postValue(false)
             }
         }
+    }
+
+    fun updateFullNote(title: String, content: String) {
+        _message.postValue("Сохраняем всю заметку")
+        viewModelScope.launch {
+            try {
+                updateNoteContent(content)
+                updateNoteTitle(title)
+            } catch (e: Exception) {
+                _message.postValue("Ошибка сохранения заметки: ${e.message}")
+                _isSaved.postValue(false)
+            }
+        }
+    }
+
+    fun updateNoteTitle(newTitle: String) {
+        val currentNote = _note.value ?: return
+
+        viewModelScope.launch {
+            try {
+                if (newTitle != currentNote.title) {
+                    renameNoteUseCase(currentNote, newTitle)
+                    _isSaved.postValue(true)
+                    _message.postValue("Название заметки изменено")
+                    _note.postValue(currentNote.copy(title = newTitle))
+                }
+            } catch (e: Exception) {
+                _message.postValue("Ошибка переименования заметки: ${e.message}")
+                _isSaved.postValue(false)
+            }
+        }
+
     }
 
     fun updateNoteContent(content: String) {
         val currentNote = _note.value ?: return
 
         val updatedNote = currentNote.copy(content = content)
-        _note.value = updatedNote
+        _note.postValue(updatedNote)
 
         // Автосохранение при изменении
         viewModelScope.launch {
@@ -73,13 +126,13 @@ class NoteEditViewModel(
                 saveNoteUseCase(updatedNote)
                 _isSaved.postValue(true)
             } catch (e: Exception) {
-                _error.postValue("Ошибка сохранения: ${e.message}")
+                _message.postValue("Ошибка сохранения: ${e.message}")
                 _isSaved.postValue(false)
             }
         }
     }
 
-    fun clearError() {
-        _error.value = null
+    fun clearMessage() {
+        _message.postValue(null)
     }
 }
