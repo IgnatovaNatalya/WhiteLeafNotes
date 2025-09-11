@@ -45,7 +45,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun setupObservers() {
         viewModel.note.observe(viewLifecycleOwner) { note ->
             binding.noteTitle.setText(note.title)
-            binding.noteDate.text = formatDate(note.createdAt)
+            binding.noteDate.text = formatDate(note.modifiedAt)
 
             // Устанавливаем текст только если он отличается от текущего
             if (binding.noteText.text.toString() != note.content) {

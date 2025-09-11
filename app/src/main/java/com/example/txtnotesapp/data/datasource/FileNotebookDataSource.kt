@@ -1,9 +1,8 @@
 package com.example.txtnotesapp.data.datasource
 
 import android.content.Context
-import android.os.Build
-import android.os.Environment
 import android.util.Log
+import com.example.txtnotesapp.common.AppConstants.DEFAULT_DIR
 import java.io.File
 
 class FileNotebookDataSource(private val context: Context) {
@@ -160,30 +159,6 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-    /**
-     * Проверяет доступность хранилища для записи
-     */
-    fun isStorageWritable(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
-        }
-    }
-
-    /**
-     * Проверяет доступность хранилища для чтения
-     */
-    fun isStorageReadable(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            Environment.getExternalStorageState() in setOf(
-                Environment.MEDIA_MOUNTED,
-                Environment.MEDIA_MOUNTED_READ_ONLY
-            )
-        }
-    }
 
     /**
      * Получает статистику по использованию хранилища
@@ -219,7 +194,5 @@ class FileNotebookDataSource(private val context: Context) {
             false
         }
     }
-    companion object {
-        const val DEFAULT_DIR = "txtNotes"
-    }
+
 }

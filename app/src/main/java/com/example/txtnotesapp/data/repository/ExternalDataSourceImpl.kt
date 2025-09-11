@@ -71,7 +71,7 @@ class ExternalDataSourceImpl(
 
             if (sourceFile.exists()) {
                 sourceFile.copyTo(targetFile, overwrite = true)
-                targetFile.setLastModified(note.createdAt)
+                targetFile.setLastModified(note.modifiedAt)
             }
         }
     }

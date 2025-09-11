@@ -5,8 +5,9 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Note(
-    val title: String, // Имя файла без .txt
+    val id:String, //Имя файла без .txt (техническое имя с _)
+    val title: String, // Имя заметки, пустое если не задано
     val content: String,
-    val createdAt: Long, // Timestamp
+    val modifiedAt: Long, // Timestamp
     val notebookPath: String? = null // Путь к папке относительно корня
 ) : Parcelable

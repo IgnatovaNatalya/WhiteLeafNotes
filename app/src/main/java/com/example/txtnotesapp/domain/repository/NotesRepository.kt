@@ -6,7 +6,7 @@ import com.example.txtnotesapp.domain.model.Notebook
 
 interface NotesRepository {
     suspend fun getNotes(notebookPath: String?): List<Note>
-    suspend fun getNoteByTitle(noteTitle: String, notebookPath: String?): Note?
+    //suspend fun getNoteByTitle(noteTitle: String, notebookPath: String?): Note?
     suspend fun saveNote(note: Note)
     suspend fun deleteNote(note: Note)
     suspend fun moveNote(note: Note, targetNotebookPath: String?)

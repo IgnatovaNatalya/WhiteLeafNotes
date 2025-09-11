@@ -1,7 +1,7 @@
 package com.example.txtnotesapp.data.datasource
 
 import android.content.Context
-import com.example.txtnotesapp.data.datasource.FileNotebookDataSource.Companion.DEFAULT_DIR
+import com.example.txtnotesapp.common.AppConstants.DEFAULT_DIR
 import java.io.File
 
 
@@ -32,24 +32,24 @@ class FileNoteDataSource(
     }
 
     // Получение всех папок-записных книжек
-    fun getAllNotebooks(): List<File> {
-        return baseDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
-    }
+//    fun getAllNotebooks(): List<File> {
+//        return baseDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
+//    }
 
     // Получение всех заметок в конкретной записной книжке
-    fun getNotesInNotebook(notebookPath: String): List<File> {
-        val notebookDir = if (notebookPath.isNotEmpty()) {
-            File(baseDir, notebookPath)
-        } else {
-            baseDir
-        }
-
-        return if (notebookDir.exists() && notebookDir.isDirectory) {
-            notebookDir.listFiles()?.filter { it.isFile && it.name.endsWith(".txt") } ?: emptyList()
-        } else {
-            emptyList()
-        }
-    }
+//    fun getNotesInNotebook(notebookPath: String): List<File> {
+//        val notebookDir = if (notebookPath.isNotEmpty()) {
+//            File(baseDir, notebookPath)
+//        } else {
+//            baseDir
+//        }
+//
+//        return if (notebookDir.exists() && notebookDir.isDirectory) {
+//            notebookDir.listFiles()?.filter { it.isFile && it.name.endsWith(".txt") } ?: emptyList()
+//        } else {
+//            emptyList()
+//        }
+//    }
 
     // Удаление заметки
     fun deleteNote(notebookPath: String, noteId: String): Boolean {

@@ -6,6 +6,7 @@
         <item name="fontFamily">@font/nunito_semibold</item>
         <item name="android:textColor">?attr/android:textColorPrimary</item>
     </style>
+
     <style name="toolbarSubtitleStyle" parent="@style/Base.TextAppearance.AppCompat.Title">
         <item name="android:textSize">12sp</item>
         <item name="fontFamily">@font/nunito_medium</item>
