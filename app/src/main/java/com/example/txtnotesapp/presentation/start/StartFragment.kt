@@ -135,5 +135,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), NoteActionHandler
 
     override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
 
-
+    override fun onResume() {
+        super.onResume()
+        viewModel.reloadNotes()
+    }
 }

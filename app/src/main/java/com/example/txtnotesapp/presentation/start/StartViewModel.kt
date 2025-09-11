@@ -159,4 +159,8 @@ class StartViewModel(
     fun clearError() {
         _message.value = null
     }
+
+    fun reloadNotes() {
+        loadData()
+    }
 }

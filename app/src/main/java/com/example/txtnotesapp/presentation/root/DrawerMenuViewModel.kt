@@ -22,8 +22,8 @@ class DrawerMenuViewModel(
     private val _menuItems = MutableLiveData<List<DrawerMenuItem>>()
     val menuItems: LiveData<List<DrawerMenuItem>> = _menuItems
 
-    private val _navigateToCreatedNote = MutableLiveData<Note>()
-    val navigateToCreatedNote: LiveData<Note> = _navigateToCreatedNote
+    private val _navigateToCreatedNote = MutableLiveData<Note?>()
+    val navigateToCreatedNote: LiveData<Note?> = _navigateToCreatedNote
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading

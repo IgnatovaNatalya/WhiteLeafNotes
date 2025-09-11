@@ -53,7 +53,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 binding.noteText.setText(note.content)
                 isEditing = true
             }
-            //binding.noteText.requestFocus()
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -94,9 +93,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     override fun onPause() {
-        Toast.makeText(requireContext(),"Save note pause",Toast.LENGTH_SHORT).show()
+        //Toast.makeText(requireContext(),"Save note pause",Toast.LENGTH_SHORT).show()
         viewModel.updateFullNote(
-            binding.noteText.text.toString(),
+            binding.noteTitle.text.toString(),
             binding.noteText.text.toString()
         )
         super.onPause()

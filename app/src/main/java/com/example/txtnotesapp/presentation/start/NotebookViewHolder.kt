@@ -15,7 +15,7 @@ class NotebookViewHolder(
 
     fun bind(notebook: Notebook) {
         name.text = notebook.name
-        noteCount.text = "${notebook.noteCount} заметок"
+        noteCount.text = itemView.resources.getQuantityString(R.plurals.notes_count, notebook.noteCount, notebook.noteCount)
 
         itemView.setOnClickListener {
             onNotebookClicked(notebook)

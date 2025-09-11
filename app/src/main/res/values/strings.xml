@@ -34,4 +34,12 @@
     <string name="export_zip_password">Введите пароль</string>
 
     <string name="select_import_folder">Выбрать папку</string>
+
+    <plurals name="notes_count">
+        <item quantity="one">%d заметка</item>
+        <item quantity="few">%d заметки</item>
+        <item quantity="many">%d заметок</item>
+        <item quantity="other">%d заметок</item>
+    </plurals>
 </resources>
+

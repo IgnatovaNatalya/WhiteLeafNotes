@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.txtnotesapp.common.utils.debounce
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
@@ -82,7 +81,7 @@ class NoteEditViewModel(
 
         viewModelScope.launch {
             try {
-                if (newTitle != currentNote.title) {
+                if (newTitle != currentNote.title && newTitle!="") {
                     renameNoteUseCase(currentNote, newTitle)
                     _isSaved.postValue(true)
                     _message.postValue("Название заметки изменено")

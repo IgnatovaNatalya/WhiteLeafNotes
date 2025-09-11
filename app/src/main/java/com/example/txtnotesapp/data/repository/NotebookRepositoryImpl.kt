@@ -24,7 +24,7 @@ class NotebookRepositoryImpl(
                             noteCount = notebookDataSource.getNoteCount(dir)
                         )
                     }
-                    .sortedByDescending { it.createdAt }
+                    //.sortedByDescending { it.createdAt }
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка получения записных книжек: ${e.message}")
                 emptyList()
