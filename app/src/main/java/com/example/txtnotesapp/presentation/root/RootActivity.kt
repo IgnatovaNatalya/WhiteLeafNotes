@@ -173,7 +173,7 @@ class RootActivity : AppCompatActivity() {
 
     private fun navigateToNote(note: Note) {
         val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
-            noteTitle = note.title,
+            noteId = note.id,
             notebookPath = null
         )
         navController.navigate(action)
@@ -181,7 +181,7 @@ class RootActivity : AppCompatActivity() {
 
     fun navigateToCreatedNote(note: Note) {
         val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
-            noteTitle = note.title,
+            noteId = note.id,
             notebookPath = null
         )
         navController.navigate(action)

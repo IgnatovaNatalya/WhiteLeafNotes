@@ -79,7 +79,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), NoteActionHandler
 
     private fun navigateToNote(note: Note) {
         val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
-            noteTitle = note.title,
+            noteId = note.id,
             notebookPath = null
         )
         findNavController().navigate(action)
@@ -111,9 +111,9 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), NoteActionHandler
     }
 
     override fun onRenameNote(note: Note) {
-        DialogHelper.createRenameNoteDialog(
-            requireContext(), note.title,
-            { newTitle -> viewModel.updateNoteTitle(note, newTitle) })
+        DialogHelper.createRenameNoteDialog(requireContext(), note.title) { newTitle ->
+            viewModel.updateNoteTitle(note, newTitle)
+        }
             .show()
     }
 

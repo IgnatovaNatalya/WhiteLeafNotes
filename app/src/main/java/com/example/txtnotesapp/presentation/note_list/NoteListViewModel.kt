@@ -70,7 +70,7 @@ class NoteListViewModel(
             try {
                 val newNote = createNoteUseCase(notebookPath)
                 loadNotes()
-                _navigateToCreatedNote.postValue(newNote.title)
+                _navigateToCreatedNote.postValue(newNote.id)
             } catch (e: Exception) {
                 _message.postValue("Ошибка создания заметки: ${e.message}")
             }
@@ -106,6 +106,7 @@ class NoteListViewModel(
                     renameNoteUseCase(note, newTitle)
                     loadNotes()
                     _message.postValue("Название заметки изменено")
+                    reloadNotes()
                 }
             } catch (e: Exception) {
                 _message.postValue("Ошибка переименования: ${e.message}")

@@ -15,7 +15,8 @@ class NoteViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(note: Note) {
-        binding.noteTitle.text = note.title
+        val text = if (note.title!="") note.title else note.content.take(40)
+        binding.noteTitle.text = text
 
         binding.root.setOnClickListener {
             onNoteClicked(note)

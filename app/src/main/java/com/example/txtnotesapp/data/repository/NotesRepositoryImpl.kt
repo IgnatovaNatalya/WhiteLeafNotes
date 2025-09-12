@@ -25,11 +25,13 @@ class NoteRepositoryImpl(
         return withContext(Dispatchers.IO) {
             val dir =
                 notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
-            dir.listFiles()?.filter { it.isFile && it.name.endsWith(".txt") }
+
+            noteDataSource.listFilesInDirectory(dir)
+                ?.filter { it.isFile && it.name.endsWith(".txt") }
                 ?.mapNotNull { file ->
                     try {
                         val name = file.nameWithoutExtension
-                        val content = file.readText()
+                        val content = noteDataSource.readNoteContent(file)
                         Note(
                             id = name,
                             title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
@@ -41,19 +43,19 @@ class NoteRepositoryImpl(
                         null
                     }
                 }?.sortedByDescending { it.modifiedAt } ?: emptyList()
+            //} ?: emptyList()
         }
     }
 
     override suspend fun saveNote(note: Note) {
         withContext(Dispatchers.IO) {
-
             try {
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                noteFile.writeText(note.content)
+                noteDataSource.writeNoteContent(noteFile, note.content)
 
                 // Обновляем время последнего изменения
                 if (note.modifiedAt > 0) {
-                    noteFile.setLastModified(note.modifiedAt)
+                    noteDataSource.setFileLastModified(noteFile, note.modifiedAt)
                 }
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка сохранения заметки: ${e.message}")
@@ -62,37 +64,10 @@ class NoteRepositoryImpl(
         }
     }
 
-//    override suspend fun getNoteByTitle(noteTitle: String, notebookPath: String?): Note? {
-//        return withContext(Dispatchers.IO) {
-//
-//            try {
-//                val noteFile = noteDataSource.getNoteFile(notebookPath ?: "", noteTitle)
-//                if (!noteFile.exists()) {
-//                    return@withContext null
-//                }
-//
-//                val content = noteFile.readText()
-//                Note(
-//                    title = noteTitle,
-//                    content = content,
-//                    modifiedAt = noteFile.lastModified(),
-//                    notebookPath = notebookPath
-//                )
-//            } catch (e: Exception) {
-//                Log.e("NoteRepository", "Ошибка получения заметки по имени: ${e.message}")
-//                throw IOException("Ошибка получения заметки по имени: ${e.message}")
-//            }
-//        }
-//    }
-
     override suspend fun deleteNote(note: Note) {
         withContext(Dispatchers.IO) {
-
             try {
-                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                if (noteFile.exists()) {
-                    noteFile.delete()
-                }
+                noteDataSource.deleteNote(note.notebookPath ?: "", note.id)
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка удаления заметки: ${e.message}")
                 throw IOException("Ошибка удаления заметки: ${e.message}")
@@ -105,7 +80,9 @@ class NoteRepositoryImpl(
             try {
                 val sourceFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
                 val targetDir = if (targetNotebookPath != null) {
-                    File(noteDataSource.baseDir, targetNotebookPath).apply { mkdirs() }
+                    File(noteDataSource.baseDir, targetNotebookPath).apply {
+                        noteDataSource.createDirectory(this)
+                    }
                 } else {
                     noteDataSource.baseDir
                 }
@@ -117,11 +94,7 @@ class NoteRepositoryImpl(
                         throw IOException("Файл с таким именем уже существует в целевой папке")
                     }
 
-                    if (!sourceFile.renameTo(targetFile)) {
-                        // Если renameTo не сработал, копируем и удаляем оригинал
-                        sourceFile.copyTo(targetFile)
-                        sourceFile.delete()
-                    }
+                    noteDataSource.moveFile(sourceFile, targetFile)
                 }
             } catch (e: Exception) {
                 throw IOException("Ошибка перемещения заметки: ${e.message}")
@@ -129,24 +102,27 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun renameNote(note: Note, newName: String) {
-        withContext(Dispatchers.IO) {
-
+    override suspend fun renameNote(note: Note, newId: String): String {
+        return withContext(Dispatchers.IO) {
             try {
-                val oldFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newName)
+                if (newId == "") {
+                    throw IOException("Недопустимое имя файла")
+                }
 
-                if (newFile.exists()) {
+                // Используем noteDataSource для проверки существования файла
+                if (noteDataSource.noteExists(note.notebookPath ?: "", newId)) {
                     throw IOException("Файл с таким именем уже существует")
                 }
 
+                // Получаем файлы через noteDataSource
+                val oldFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
+                val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newId)
+
+                // Используем noteDataSource для операции переименования/перемещения
                 if (oldFile.exists()) {
-                    if (!oldFile.renameTo(newFile)) {
-                        // Если renameTo не сработал, копируем и удаляем оригинал
-                        oldFile.copyTo(newFile)
-                        oldFile.delete()
-                    }
+                    noteDataSource.moveFile(oldFile, newFile)
                 }
+                newId
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка переименования заметки: ${e.message}")
                 throw IOException("Ошибка переименования заметки: ${e.message}")
@@ -179,13 +155,13 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun getAllNotes(notebooks:List<Notebook>): List<Note> { //todo перенести в отдельный репозиторий экспорта/импорта
+    override suspend fun getAllNotes(notebooks: List<Notebook>): List<Note> { //todo перенести в отдельный репозиторий экспорта/импорта
 
         val allNotes = mutableListOf<Note>()
 
         allNotes.addAll(getNotes(null))
-        notebooks.forEach {
-            notebook -> allNotes.addAll(getNotes(notebook.path))
+        notebooks.forEach { notebook ->
+            allNotes.addAll(getNotes(notebook.path))
         }
         return allNotes
     }
@@ -199,5 +175,4 @@ class NoteRepositoryImpl(
             externalRepository.createExportZip(notes, notebooks, password)
         }
     }
-
 }

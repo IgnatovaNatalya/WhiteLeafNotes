@@ -84,7 +84,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
 
     private fun setupRecyclerView() {
         val adapter = NoteAdapter(
-            onNoteClicked = { note -> viewModel.onNoteClicked(note.title) },
+            onNoteClicked = { note -> viewModel.onNoteClicked(note.id) },
             noteActionHandler = this
         )
 
@@ -128,17 +128,17 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
         }
     }
 
-    private fun navigateToNoteEdit(noteTitle: String) {
+    private fun navigateToNoteEdit(noteId: String) {
         val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
-            noteTitle = noteTitle,
+            noteId = noteId,
             notebookPath = args.notebookPath
         )
         findNavController().navigate(action)
     }
 
-    private fun navigateToNoteCreated(noteTitle: String) {
+    private fun navigateToNoteCreated(noteId: String) {
         val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
-            noteTitle = noteTitle,
+            noteId = noteId,
             notebookPath = args.notebookPath
         )
         findNavController().navigate(action)

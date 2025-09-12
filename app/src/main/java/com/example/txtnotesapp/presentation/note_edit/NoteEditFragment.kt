@@ -20,7 +20,7 @@ import org.koin.core.parameter.parametersOf
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private val viewModel: NoteEditViewModel by viewModel {
-        parametersOf(args.noteTitle, args.notebookPath)
+        parametersOf(args.noteId, args.notebookPath)
     }
 
     private val args: NoteEditFragmentArgs by navArgs()

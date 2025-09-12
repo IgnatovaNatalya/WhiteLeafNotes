@@ -18,7 +18,7 @@ class FileNoteDataSource(
         }
     }
 
-    fun getNoteFile(notebookPath: String, noteTitle: String): File {
+    fun getNoteFile(notebookPath: String, noteId: String): File {
         val dir = if (notebookPath.isNotEmpty()) {
             File(baseDir, notebookPath).apply {
                 if (!exists()) {
@@ -28,28 +28,8 @@ class FileNoteDataSource(
         } else {
             baseDir
         }
-        return File(dir, "$noteTitle.txt")
+        return File(dir, "$noteId.txt")
     }
-
-    // Получение всех папок-записных книжек
-//    fun getAllNotebooks(): List<File> {
-//        return baseDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
-//    }
-
-    // Получение всех заметок в конкретной записной книжке
-//    fun getNotesInNotebook(notebookPath: String): List<File> {
-//        val notebookDir = if (notebookPath.isNotEmpty()) {
-//            File(baseDir, notebookPath)
-//        } else {
-//            baseDir
-//        }
-//
-//        return if (notebookDir.exists() && notebookDir.isDirectory) {
-//            notebookDir.listFiles()?.filter { it.isFile && it.name.endsWith(".txt") } ?: emptyList()
-//        } else {
-//            emptyList()
-//        }
-//    }
 
     // Удаление заметки
     fun deleteNote(notebookPath: String, noteId: String): Boolean {
@@ -79,4 +59,59 @@ class FileNoteDataSource(
     fun noteExists(notebookPath: String, noteId: String): Boolean {
         return getNoteFile(notebookPath, noteId).exists()
     }
+
+
+    // Чтение содержимого файла
+    fun readNoteContent(file: File): String {
+        return file.readText()
+    }
+
+    // Запись содержимого в файл
+    fun writeNoteContent(file: File, content: String) {
+        file.writeText(content)
+    }
+
+    // Установка времени последнего изменения
+    fun setFileLastModified(file: File, timestamp: Long) {
+        file.setLastModified(timestamp)
+    }
+
+    // Получение списка файлов в директории
+    fun listFilesInDirectory(directory: File): Array<File>? {
+        return directory.listFiles()
+    }
+
+    // Создание директории
+    fun createDirectory(directory: File): Boolean {
+        return directory.mkdirs()
+    }
+
+    // Перемещение/переименование файла
+    fun moveFile(source: File, target: File): Boolean {
+        return if (source.renameTo(target)) {
+            true
+        } else {
+            // Если renameTo не сработал, копируем и удаляем оригинал
+            try {
+                source.copyTo(target, overwrite = true)
+                source.delete()
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
 }
+
+    // Перемещение файла
+//    fun moveFile(source: File, target: File): Boolean {
+//        return if (source.renameTo(target)) {
+//            true
+//        } else {
+//            // Альтернативная реализация, если renameTo не сработал
+//            source.copyTo(target, overwrite = true)
+//            source.delete()
+//            true
+//        }
+//    }
+//}

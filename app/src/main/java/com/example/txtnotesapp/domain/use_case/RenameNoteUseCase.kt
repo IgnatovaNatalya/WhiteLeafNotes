@@ -5,10 +5,9 @@ import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.repository.NotesRepository
 
 class RenameNoteUseCase(private val repository: NotesRepository) {
-    suspend operator fun invoke(note: Note, newName: String) {
+    suspend operator fun invoke(note: Note, newName: String):String {
         val clearTitle = sanitizeFileName(newName)
-
         //repository.renameNote(note, newName)
-        if (clearTitle!="") repository.renameNote(note, clearTitle)
+        return repository.renameNote(note, clearTitle)
     }
 }

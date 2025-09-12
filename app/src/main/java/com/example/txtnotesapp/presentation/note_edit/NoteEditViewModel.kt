@@ -81,11 +81,11 @@ class NoteEditViewModel(
 
         viewModelScope.launch {
             try {
-                if (newTitle != currentNote.title && newTitle!="") {
-                    renameNoteUseCase(currentNote, newTitle)
+                if (newTitle != currentNote.title && newTitle != "") {
+                    val newNoteId = renameNoteUseCase(currentNote, newTitle)
                     _isSaved.postValue(true)
                     _message.postValue("Название заметки изменено")
-                    _note.postValue(currentNote.copy(title = newTitle))
+                    _note.postValue(currentNote.copy(id = newNoteId, title = newTitle))
                 }
             } catch (e: Exception) {
                 _message.postValue("Ошибка переименования заметки: ${e.message}")

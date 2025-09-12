@@ -12,7 +12,10 @@ class DrawerNoteViewHolder(
 ) : RecyclerView.ViewHolder(view) {
     fun bind(note: Note) {
         val title: TextView = itemView.findViewById<TextView>(R.id.drawer_note_title)
-        title.text = note.title
+
+        val text = if (note.title!="") note.title else note.content.take(30)
+        title.text = text
+
         itemView.setOnClickListener { onNoteClicked(note) }
     }
 }
