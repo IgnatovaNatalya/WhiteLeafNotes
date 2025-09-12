@@ -79,6 +79,7 @@ class DrawerMenuViewModel(
         } else {
             rootNotes.forEach { note ->
                 items.add(DrawerMenuItem.NoteItem(note))
+                items.add(DrawerMenuItem.Divider)
             }
         }
         items.add(DrawerMenuItem.CreateNote)
