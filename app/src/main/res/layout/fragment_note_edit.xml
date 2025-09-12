@@ -20,7 +20,7 @@
             android:layout_marginTop="16dp"
             android:background="@null"
             android:ellipsize="end"
-            android:hint="@string/note_title"
+            android:hint="@string/title"
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
             android:maxLines="3"

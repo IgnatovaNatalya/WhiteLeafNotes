@@ -4,14 +4,14 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
-import com.example.txtnotesapp.common.interfaces.NoteActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextActionHandler
 import com.example.txtnotesapp.common.utils.ContextMenuHelper
 import com.example.txtnotesapp.domain.model.Note
 
 class NoteViewHolder(
     view: View,
     private val onNoteClicked: (Note) -> Unit,
-    private val noteActionHandler: NoteActionHandler
+    private val contextActionHandler: ContextActionHandler
 ) : RecyclerView.ViewHolder(view) {
     private val title: TextView = view.findViewById(R.id.note_title)
 
@@ -35,10 +35,10 @@ class NoteViewHolder(
             items = ContextMenuHelper.getNoteContextMenuItems(anchorView.context),
             onItemSelected = { itemId ->
                 when (itemId) {
-                    R.id.note_menu_delete -> noteActionHandler.onDeleteNote(note)
-                    R.id.note_menu_move -> noteActionHandler.onMoveNote(note)
-                    R.id.note_menu_share -> noteActionHandler.onShareNote(note)
-                    R.id.note_menu_rename -> noteActionHandler.onRenameNote(note)
+                    R.id.note_menu_delete -> contextActionHandler.onDeleteNote(note)
+                    R.id.note_menu_move -> contextActionHandler.onMoveNote(note)
+                    R.id.note_menu_share -> contextActionHandler.onShareNote(note)
+                    R.id.note_menu_rename -> contextActionHandler.onRenameNote(note)
                 }
             }
         )

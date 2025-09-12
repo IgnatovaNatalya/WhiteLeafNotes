@@ -12,11 +12,11 @@
         android:textAppearance="@style/NoteEditTitle" />
 
     <EditText
-        android:id="@+id/new_note_title"
+        android:id="@+id/new_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="@string/note_title"
+        android:hint="@string/title"
         android:background="@null"
         android:importantForAutofill="no"
         android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"

@@ -11,16 +11,17 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.common.classes.BindingFragment
-import com.example.txtnotesapp.common.interfaces.NoteActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextActionHandler
 import com.example.txtnotesapp.common.utils.DialogHelper
 import com.example.txtnotesapp.common.utils.DialogHelper.ShareHelper
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
 import com.example.txtnotesapp.domain.model.Note
+import com.example.txtnotesapp.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
 
-class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionHandler {
+class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextActionHandler {
 
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
@@ -85,7 +86,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
     private fun setupRecyclerView() {
         val adapter = NoteAdapter(
             onNoteClicked = { note -> viewModel.onNoteClicked(note.id) },
-            noteActionHandler = this
+            contextActionHandler = this
         )
 
         binding.recyclerView.adapter = adapter
@@ -103,6 +104,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
             .show()
     }
 
+    override fun onDeleteNotebook(notebook: Notebook) {}
+
+    override fun onRenameNotebook(notebook: Notebook) {}
+
     override fun onMoveNote(note: Note) {
         val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
             viewModel.moveNote(note, newNotebookName)
@@ -111,7 +116,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), NoteActionH
     }
 
     override fun onDeleteNote(note: Note) {
-        val dialog = DialogHelper.createDeleteConfirmationDialog(
+        val dialog = DialogHelper.createDeleteNoteConfirmationDialog(
             context = requireContext(),
             noteTitle = note.title,
             onDeleteConfirmed = { viewModel.deleteNote(note) }

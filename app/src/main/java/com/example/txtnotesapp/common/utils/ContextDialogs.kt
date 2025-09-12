@@ -29,8 +29,22 @@ object DialogHelper {
             .create()
     }
 
+    fun createDeleteNotebookConfirmationDialog(
+        context: Context,
+        notebookTitle: String,
+        onDeleteConfirmed: () -> Unit
+    ): AlertDialog {
+        return AlertDialog.Builder(context)
+            .setTitle("Удаление записной книжки")
+            .setMessage("Вы уверены, что хотите удалить записную книжку  \"$notebookTitle\" и все заметки в ней?")
+            .setPositiveButton("Удалить") { _, _ -> onDeleteConfirmed() }
+            .setNegativeButton("Отмена", null)
+            .create()
+    }
 
-    fun createDeleteConfirmationDialog(
+
+
+    fun createDeleteNoteConfirmationDialog(
         context: Context,
         noteTitle: String,
         onDeleteConfirmed: () -> Unit
@@ -50,11 +64,33 @@ object DialogHelper {
     ): AlertDialog {
         val alertDialogBuilder = AlertDialog.Builder(context)
         val renameDialogView: View =
-            LayoutInflater.from(context).inflate(R.layout.dialog_note_rename, null)
+            LayoutInflater.from(context).inflate(R.layout.dialog_rename, null)
         alertDialogBuilder.setView(renameDialogView)
-        val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_note_title)
+        val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_title)
 
         newTitleEditText.setText(currentTitle)
+        newTitleEditText.selectAll()
+
+        return alertDialogBuilder
+            .setPositiveButton("Переименовать") { _, _ ->
+                onRenameConfirmed(newTitleEditText.text.toString())
+            }
+            .setNegativeButton("Отмена", null)
+            .create()
+    }
+
+    fun createRenameNotebookDialog(
+        context: Context,
+        currentName: String,
+        onRenameConfirmed: (String) -> Unit
+    ): AlertDialog {
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        val renameDialogView: View =
+            LayoutInflater.from(context).inflate(R.layout.dialog_rename, null)
+        alertDialogBuilder.setView(renameDialogView)
+        val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_title)
+
+        newTitleEditText.setText(currentName)
         newTitleEditText.selectAll()
 
         return alertDialogBuilder

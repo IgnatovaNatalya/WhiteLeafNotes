@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
-import com.example.txtnotesapp.common.interfaces.NoteActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextActionHandler
 import com.example.txtnotesapp.domain.model.Note
 
 class StartAdapter(
@@ -15,7 +15,7 @@ class StartAdapter(
     private val onNoteClicked: (Note) -> Unit,
     private val onAddNotebookClicked: () -> Unit,
     private val onAddNoteClicked: () -> Unit,
-    private val noteActionHandler: NoteActionHandler
+    private val contextActionHandler: ContextActionHandler
 ) : ListAdapter<StartListItem, RecyclerView.ViewHolder>(StartDiffCallback()) {
 
     companion object {
@@ -50,13 +50,13 @@ class StartAdapter(
             TYPE_NOTEBOOK -> NotebookViewHolder(
                 LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_start_notebook, parent, false),
-                onNotebookClicked
+                onNotebookClicked,  contextActionHandler
             )
 
             TYPE_NOTE -> NoteViewHolder(
                 LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_note, parent, false),
-                onNoteClicked, noteActionHandler
+                onNoteClicked, contextActionHandler
             )
 
             TYPE_ADD_NOTEBOOK -> AddButtonViewHolder(

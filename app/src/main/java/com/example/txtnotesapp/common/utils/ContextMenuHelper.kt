@@ -50,6 +50,14 @@ object ContextMenuHelper {
         )
     }
 
+    // Ппункты меню для записных книжек
+    fun getNotebookContextMenuItems(context: Context): List<ContextMenuItem> {
+        return listOf(
+            createMenuItem(context, R.id.note_menu_rename),
+            createMenuItem(context, R.id.note_menu_delete)
+        )
+    }
+
     @SuppressLint("RestrictedApi")
     private fun createMenuItem(context: Context, menuItemId: Int): ContextMenuItem {
         val menu = MenuBuilder(context)

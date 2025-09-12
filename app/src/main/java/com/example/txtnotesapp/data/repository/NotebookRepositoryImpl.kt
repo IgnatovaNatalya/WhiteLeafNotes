@@ -12,7 +12,6 @@ class NotebookRepositoryImpl(
     private val notebookDataSource: FileNotebookDataSource
 ) : NotebookRepository {
 
-
     override suspend fun getNotebooks(): List<Notebook> {
         return withContext(Dispatchers.IO) {
             try {

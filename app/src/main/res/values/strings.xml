@@ -19,7 +19,7 @@
     <string name="rename_note">Введите новое название</string>
     <string name="move_note">Введите название записной книжки для перемещения</string>
     <string name="notebook_title">Название книжки</string>
-    <string name="note_title">Название заметки</string>
+    <string name="title">Название</string>
     <string name="fragment_note_list_label">Записная книжка</string>
     <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
     <string name="add">Добавить</string>
