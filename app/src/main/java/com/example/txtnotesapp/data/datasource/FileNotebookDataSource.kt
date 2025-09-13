@@ -7,7 +7,7 @@ import java.io.File
 
 class FileNotebookDataSource(private val context: Context) {
 
-   val baseDir: File by lazy {
+    val baseDir: File by lazy {
         File(context.filesDir, DEFAULT_DIR).apply {
             if (!exists()) {
                 mkdirs()
@@ -23,9 +23,6 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-    /**
-     * Получает все существующие записные книжки (папки)
-     */
     fun getAllNotebooks(): List<File> {
         return try {
             baseDir.listFiles()?.filter { file ->
@@ -37,9 +34,6 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-    /**
-     * Подсчитывает количество заметок в записной книжке
-     */
     fun getNoteCount(notebookDir: File): Int {
         return try {
             notebookDir.listFiles()?.count { file ->
@@ -51,9 +45,6 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-    /**
-     * Получает общий размер всех заметок в записной книжке (в байтах)
-     */
     fun getNotebookSize(notebookDir: File): Long {
         return try {
             notebookDir.listFiles()?.filter { file ->
@@ -65,20 +56,10 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-    /**
-     * Удаляет записную книжку со всеми заметками внутри
-     */
     fun deleteNotebook(notebookDir: File): Boolean {
         return try {
             if (notebookDir.exists() && notebookDir.isDirectory) {
-                // Сначала удаляем все файлы в папке
-                notebookDir.listFiles()?.forEach { file ->
-                    if (file.isFile) {
-                        file.delete()
-                    }
-                }
-                // Затем удаляем саму папку
-                notebookDir.delete()
+                notebookDir.deleteRecursively()
             } else {
                 false
             }
@@ -88,37 +69,27 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-    /**
-     * Переименовывает записную книжку
-     */
     fun renameNotebook(oldDir: File, newName: String): Boolean {
         return try {
             // Проверяем, что новое имя не пустое и не содержит запрещенных символов
-            if (newName.isBlank() || newName.contains("/") || newName.contains("\\")) {
+            if (newName.isBlank() || newName.contains("/") || newName.contains("\\"))
                 return false
-            }
 
-            val newDir = File(newName)
+            val newDir = File(oldDir.parentFile, newName)
 
-            // Проверяем, что папка с таким именем не существует
-            if (newDir.exists()) {
-                return false
-            }
+            if (newDir.exists())   return false
 
-            // Переименовываем папку
             oldDir.renameTo(newDir)
+
         } catch (e: SecurityException) {
             Log.e("FileNotebookDataSource", "Нет прав на переименование: ${e.message}")
             false
         }
     }
 
-    /**
-     * Проверяет, существует ли записная книжка с указанным именем
-     */
     fun notebookExists(name: String): Boolean {
         return try {
-            val dir = File(name)
+            val dir = File(baseDir, name)
             dir.exists() && dir.isDirectory
         } catch (e: SecurityException) {
             Log.e("FileNotebookDataSource", "Нет доступа к проверке существования: ${e.message}")
@@ -126,10 +97,6 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-    /**
-     * Получает дату последнего изменения записной книжки
-     * (дата изменения последней заметки в книжке)
-     */
     fun getLastModifiedDate(notebookDir: File): Long {
         return try {
             notebookDir.listFiles()?.filter { file ->
@@ -140,18 +107,11 @@ class FileNotebookDataSource(private val context: Context) {
             notebookDir.lastModified()
         }
     }
-
-    /**
-     * Создает временную резервную копию записной книжки
-     */
     fun createBackup(notebookDir: File): File? {
         return try {
             val backupDir = File(context.cacheDir, "backups").apply { mkdirs() }
             val backupFile =
                 File(backupDir, "${notebookDir.name}_backup_${System.currentTimeMillis()}.zip")
-
-            // Здесь можно реализовать архивацию файлов
-            // Для простоты пока просто возвращаем файл для backup
             backupFile
         } catch (e: Exception) {
             Log.e("FileNotebookDataSource", "Ошибка создания бэкапа: ${e.message}")
@@ -159,10 +119,6 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
-
-    /**
-     * Получает статистику по использованию хранилища
-     */
     fun getStorageStats(): Map<String, Any> {
         return try {
             val notebooks = getAllNotebooks()
@@ -178,20 +134,6 @@ class FileNotebookDataSource(private val context: Context) {
         } catch (e: Exception) {
             Log.e("FileNotebookDataSource", "Ошибка получения статистики: ${e.message}")
             emptyMap()
-        }
-    }
-
-    /**
-     * Очищает кэш временных файлов
-     */
-    fun clearCache(): Boolean {
-        return try {
-            val cacheDir = context.cacheDir
-            cacheDir.listFiles()?.forEach { it.delete() }
-            true
-        } catch (e: Exception) {
-            Log.e("FileNotebookDataSource", "Ошибка очистки кэша: ${e.message}")
-            false
         }
     }
 
