@@ -36,6 +36,12 @@ class StartViewModel(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _navigateToCreatedNote = MutableLiveData<Note?>()
+    val navigateToCreatedNote: LiveData<Note?> = _navigateToCreatedNote
+
+    private val _navigateToCreatedNotebook = MutableLiveData<Notebook?>()
+    val navigateToCreatedNotebook: LiveData<Notebook?> = _navigateToCreatedNotebook
+
     private val _message = MutableLiveData<String?>()
     val message: LiveData<String?> = _message
 
@@ -98,10 +104,9 @@ class StartViewModel(
     fun createNewNote() {
         viewModelScope.launch {
             try {
-                val newNote = createNoteUseCase(null) // Создаем заметку в корне
-                // После создания можно перейти к редактированию
-                // или просто обновить список
-                loadData()
+                val newNote = createNoteUseCase(null)
+                _navigateToCreatedNote.value = newNote
+                _message.value = "Заметка создана"
             } catch (e: Exception) {
                 _message.value = "Ошибка создания заметки: ${e.message}"
             }
@@ -109,19 +114,13 @@ class StartViewModel(
     }
 
     fun createNewNotebook(name: String) {
-
-        _isLoading.value = true
-
         viewModelScope.launch {
             try {
-                val newNotebook = createNotebookUseCase(name) // Создаем записную книжку
-                loadData()
+                val newNotebook = createNotebookUseCase(name)
+                _navigateToCreatedNotebook.value = newNotebook
                 _message.value = "Записная книжка создана: ${newNotebook.name}"
             } catch (e: Exception) {
                 _message.value = "Ошибка создания записной книжки: ${e.message}"
-            }
-            finally {
-                _isLoading.value = false
             }
         }
     }
@@ -164,6 +163,7 @@ class StartViewModel(
             }
         }
     }
+
     fun deleteNote(note: Note) {
         viewModelScope.launch {
             try {
@@ -174,6 +174,7 @@ class StartViewModel(
             }
         }
     }
+
     fun deleteNotebook(notebook: Notebook) {
         viewModelScope.launch {
             try {
@@ -184,11 +185,13 @@ class StartViewModel(
             }
         }
     }
-    fun clearError() {
-        _message.value = null
-    }
 
-    fun reloadNotes() {
-        loadData()
-    }
+    fun onNoteNavigated() = _navigateToCreatedNote.postValue( null)
+    
+    fun onNotebookNavigated() = _navigateToCreatedNotebook.postValue( null)
+    
+    fun clearMessage() =_message.postValue( null)
+
+    fun reloadNotes() = loadData()
+
 }

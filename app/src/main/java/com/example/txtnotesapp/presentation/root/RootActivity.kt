@@ -158,9 +158,9 @@ class RootActivity : AppCompatActivity() {
             }
         }
 
-        menuViewModel.navigateToCreatedNote.observe(this) { noteTitle ->
-            noteTitle?.let {
-                navigateToCreatedNote(noteTitle)
+        menuViewModel.navigateToCreatedNote.observe(this) { note ->
+            note?.let {
+                navigateToCreatedNote(note)
                 menuViewModel.onNoteNavigated()
             }
         }

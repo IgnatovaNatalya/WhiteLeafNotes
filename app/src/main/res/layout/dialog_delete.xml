@@ -8,21 +8,18 @@
     android:paddingVertical="24dp">
 
     <TextView
+        android:id="@+id/delete_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/move_note"
+        tools:text = "Удаление чего-то"
         android:textAppearance="@style/DialogTitle" />
 
-
-    <EditText
-        android:id="@+id/new_note_notebook"
+    <TextView
+        android:id="@+id/delete_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="@string/enter_notebook_title"
-        android:background="@null"
-        android:importantForAutofill="no"
-        android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
+        tools:text = "Вы уверены?"
         android:textAppearance="@style/NoteEditText" />
 
 </LinearLayout>

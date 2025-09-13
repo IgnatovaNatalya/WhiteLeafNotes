@@ -3,12 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingHorizontal="@dimen/marginHorizontal"
+    android:paddingVertical="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/enter_notebook_title"
+        android:text="@string/creating_notebook"
         android:textAppearance="@style/NoteEditTitle" />
 
     <EditText
@@ -16,8 +17,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:hint="@string/notebook_title"
         android:background="@null"
+        android:hint="@string/enter_notebook_title"
         android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
         android:textAppearance="@style/NoteEditText" />
 

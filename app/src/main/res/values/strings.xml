@@ -1,39 +1,48 @@
 <resources>
     <string name="app_name">TxtNotesApp</string>
     <string name="new_note">+</string>
-    <string name="no_notes">Вы пока не создали\nни одной заметки</string>
     <string name="create_note">Create note</string>
     <string name="open">Открыть</string>
+    <string name="add">Добавить</string>
     <string name="edit">Редактировать</string>
     <string name="rename">Переименовать</string>
     <string name="move">Переместить</string>
     <string name="share">Поделиться</string>
     <string name="delete">Удалить</string>
-    <string name="note">Заметка</string>
+
     <string name="search">Поиск</string>
-    <string name="settings">Настройки</string>
-    <string name="all_notes">Все заметки</string>
-    <string name="notebooks">Записные книжки</string>
-    <string name="create_notebook">Создать записную книжку</string>
-    <string name="enter_notebook_title">Введите название записной книжки</string>
-    <string name="rename_note">Введите новое название</string>
-    <string name="move_note">Введите название записной книжки для перемещения</string>
-    <string name="notebook_title">Название книжки</string>
-    <string name="title">Название</string>
-    <string name="fragment_note_list_label">Записная книжка</string>
-    <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
-    <string name="add">Добавить</string>
-    <string name="empty_notebooks">Записных книжек пока нет</string>
     <string name="undo">Отменить</string>
     <string name="redo">Вернуть</string>
+    <string name="settings">Настройки</string>
+
+    <string name="note">Заметка</string>
+    <string name="all_notes">Все заметки</string>
+    <string name="notebooks">Записные книжки</string>
+
+    <string name="no_notes">Вы пока не создали\nни одной заметки</string>
+
+    <string name="create_notebook">Создать записную книжку</string>
+    <string name="creating_notebook">Создание записной книжки</string>
+
+    <string name="move_note">Перемещение заметки</string>
+    <string name="enter_notebook_title">Введите название записной книжки</string>
+
+    <string name="title">Название</string>
+
+
+    <string name="empty_notebooks">Записных книжек пока нет</string>
+
 
     <string name="export_notes">Экспорт заметок</string>
     <string name="import_notes">Импорт заметок</string>
     <string name="do_export">Выполнить экспорт</string>
     <string name="use_password">Использовать пароль</string>
     <string name="export_zip_password">Введите пароль</string>
-
     <string name="select_import_folder">Выбрать папку</string>
+
+    <string name="fragment_note_list_label">Записная книжка</string>
+    <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
+    <string name="enter_new_title">Введите новое название</string>
 
     <plurals name="notes_count">
         <item quantity="one">%d заметка</item>

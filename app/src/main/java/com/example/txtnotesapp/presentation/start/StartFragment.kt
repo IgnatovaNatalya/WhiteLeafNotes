@@ -64,10 +64,31 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
             binding.startProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
+        viewModel.navigateToCreatedNote.observe(viewLifecycleOwner) { note ->
+            note?.let {
+                //val action = StartFragmentDirections.actionGlobalNoteEditFragment(
+                val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
+                    noteId = note.id,
+                    notebookPath = null
+                )
+                findNavController().navigate(action)
+                viewModel.onNoteNavigated()
+            }
+        }
+
+        viewModel.navigateToCreatedNotebook.observe(viewLifecycleOwner) { notebook ->
+            notebook?.let {
+                //val action = StartFragmentDirections.actionGlobalNoteListFragment(
+                val action = StartFragmentDirections.actionStartFragmentToNoteListFragment(notebook.path)
+                findNavController().navigate(action)
+                viewModel.onNotebookNavigated()
+            }
+        }
+
         viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                viewModel.clearError()
+                viewModel.clearMessage()
             }
         }
     }
