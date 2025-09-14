@@ -1,15 +1,12 @@
 package com.example.txtnotesapp.presentation.start
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.common.interfaces.ContextActionHandler
 import com.example.txtnotesapp.common.utils.DialogHelper
@@ -46,7 +43,11 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
         val adapter = StartAdapter(
             onNotebookClicked = { notebook -> navigateToNotebook(notebook) },
             onNoteClicked = { note -> navigateToNote(note) },
-            onAddNotebookClicked = { showCreateNotebookDialog() },
+            onAddNotebookClicked = {
+                DialogHelper.createCreateNotebookDialog(requireContext()) { name ->
+                    viewModel.createNewNotebook(name)
+                }.show()
+            },
             onAddNoteClicked = { createNewNote() },
             contextActionHandler = this
         )
@@ -66,7 +67,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
 
         viewModel.navigateToCreatedNote.observe(viewLifecycleOwner) { note ->
             note?.let {
-                //val action = StartFragmentDirections.actionGlobalNoteEditFragment(
                 val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
                     noteId = note.id,
                     notebookPath = null
@@ -78,8 +78,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
 
         viewModel.navigateToCreatedNotebook.observe(viewLifecycleOwner) { notebook ->
             notebook?.let {
-                //val action = StartFragmentDirections.actionGlobalNoteListFragment(
-                val action = StartFragmentDirections.actionStartFragmentToNoteListFragment(notebook.path)
+                val action =
+                    StartFragmentDirections.actionStartFragmentToNoteListFragment(notebook.path)
                 findNavController().navigate(action)
                 viewModel.onNotebookNavigated()
             }
@@ -106,27 +106,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
         findNavController().navigate(action)
     }
 
-    private fun showCreateNotebookDialog() {
-        val dialogView =
-            LayoutInflater.from(requireContext()).inflate(R.layout.dialog_create_notebook, null)
-        val editText = dialogView.findViewById<EditText>(R.id.notebook_name)
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Создать записную книжку")
-            .setView(dialogView)
-            .setPositiveButton("Создать") { dialog, _ ->
-                val name = editText.text.toString().trim()
-                if (name.isNotEmpty()) {
-                    viewModel.createNewNotebook(name)
-                } else {
-                    Toast.makeText(requireContext(), "Введите название книжки", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
     private fun createNewNote() {
         viewModel.createNewNote()
     }
@@ -139,7 +118,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
     }
 
     override fun onDeleteNotebook(notebook: Notebook) {
-        val dialog = DialogHelper.createDeleteNotebookConfirmationDialog(
+        val dialog = DialogHelper.createDeleteNotebookDialog(
             context = requireContext(),
             notebookTitle = notebook.name,
             onDeleteConfirmed = { viewModel.deleteNotebook(notebook) }

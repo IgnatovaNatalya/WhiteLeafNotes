@@ -11,7 +11,7 @@ import com.example.txtnotesapp.R
 import com.example.txtnotesapp.domain.model.Note
 
 object DialogHelper {
-
+//notes
     fun createMoveNoteDialog(
         context: Context,
         onMoveClicked: (String) -> Unit
@@ -31,28 +31,6 @@ object DialogHelper {
             .create()
     }
 
-    fun createDeleteNotebookConfirmationDialog(
-        context: Context,
-        notebookTitle: String,
-        onDeleteConfirmed: () -> Unit
-    ): AlertDialog {
-        val alertDialogBuilder = AlertDialog.Builder(context)
-        val deleteDialogView: View =
-            LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
-        alertDialogBuilder.setView(deleteDialogView)
-
-        val dialogTitle = deleteDialogView.findViewById<TextView>(R.id.delete_title)
-        dialogTitle.text = "Удаление записной книжки"
-        val dialogMessage = deleteDialogView.findViewById<TextView>(R.id.delete_message)
-        val text =
-            "Вы уверены, что хотите удалить записную книжку  \"$notebookTitle\" и все заметки в ней?"
-        dialogMessage.text = text
-
-        return alertDialogBuilder
-            .setPositiveButton("Удалить") { _, _ -> onDeleteConfirmed() }
-            .setNegativeButton("Отмена", null)
-            .create()
-    }
 
 
     fun createDeleteNoteConfirmationDialog(
@@ -101,6 +79,48 @@ object DialogHelper {
             .create()
     }
 
+//notebooks
+
+    fun createDeleteNotebookDialog(
+        context: Context,
+        notebookTitle: String,
+        onDeleteConfirmed: () -> Unit
+    ): AlertDialog {
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        val deleteDialogView: View =
+            LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
+        alertDialogBuilder.setView(deleteDialogView)
+
+        val dialogTitle = deleteDialogView.findViewById<TextView>(R.id.delete_title)
+        dialogTitle.text = "Удаление записной книжки"
+        val dialogMessage = deleteDialogView.findViewById<TextView>(R.id.delete_message)
+        val text =
+            "Вы уверены, что хотите удалить записную книжку  \"$notebookTitle\" и все заметки в ней?"
+        dialogMessage.text = text
+
+        return alertDialogBuilder
+            .setPositiveButton("Удалить") { _, _ -> onDeleteConfirmed() }
+            .setNegativeButton("Отмена", null)
+            .create()
+    }
+
+    fun createCreateNotebookDialog(
+        context: Context,
+        onCreateConfirmed: (String) -> Unit)
+    : AlertDialog {
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        val createDialogView = LayoutInflater.from(context).inflate(R.layout.dialog_create_notebook, null)
+        alertDialogBuilder.setView(createDialogView)
+
+        val notebookName = createDialogView.findViewById<EditText>(R.id.notebook_name)
+        val name = notebookName.text.toString().trim()
+
+        return alertDialogBuilder
+            .setPositiveButton("Создать") { _, _ ->onCreateConfirmed(notebookName.text.toString())}
+            .setNegativeButton("Отмена", null)
+            .create()
+    }
+
     fun createRenameNotebookDialog(
         context: Context,
         currentName: String,
@@ -125,7 +145,6 @@ object DialogHelper {
     }
 
     object ShareHelper {
-
         fun createShareNoteIntent(context: Context, note: Note): Intent {
             return Intent().apply {
                 action = Intent.ACTION_SEND

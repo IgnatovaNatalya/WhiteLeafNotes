@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/creating_notebook"
-        android:textAppearance="@style/NoteEditTitle" />
+        android:textAppearance="@style/DialogTitle" />
 
     <EditText
         android:id="@+id/notebook_name"

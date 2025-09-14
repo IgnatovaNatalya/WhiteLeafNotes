@@ -1,18 +1,12 @@
 package com.example.txtnotesapp.presentation.root
 
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
@@ -20,17 +14,18 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
+import com.example.txtnotesapp.common.utils.DialogHelper
 import com.example.txtnotesapp.databinding.ActivityRootBinding
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import com.example.txtnotesapp.presentation.note_list.NoteListFragmentDirections
-import com.example.txtnotesapp.common.utils.PermissionUtils
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class RootActivity : AppCompatActivity() {
@@ -77,10 +72,11 @@ class RootActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.startFragment -> supportActionBar?.hide()
 
-                R.id.noteListFragment , R.id.noteEditFragment -> {
+                R.id.noteListFragment, R.id.noteEditFragment -> {
                     supportActionBar?.show()
                     supportActionBar?.subtitle = "Записная книжка"
                 }
+
                 R.id.settingsFragment -> {
                     supportActionBar?.show()
                     supportActionBar?.subtitle = null
@@ -125,7 +121,9 @@ class RootActivity : AppCompatActivity() {
                 drawerLayout.closeDrawer(GravityCompat.START)
             },
             onCreateNotebook = {
-                showCreateNotebookDialog()
+                DialogHelper.createCreateNotebookDialog(this) { name ->
+                    menuViewModel.createNewNotebook(name)
+                }.show()
             },
             onCreateNote = {
                 menuViewModel.createNewNote()
@@ -137,6 +135,13 @@ class RootActivity : AppCompatActivity() {
                 adapter = drawerMenuAdapter
                 layoutManager = LinearLayoutManager(this@RootActivity)
             }
+
+        binding.navView.getHeaderView(0).findViewById<TextView>(R.id.app_title).setOnClickListener {
+            val action = NoteListFragmentDirections.actionGlobalStartFragment()
+            navController.navigate(action)
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
         menuViewModel.loadMenuData()
     }
 
@@ -200,25 +205,6 @@ class RootActivity : AppCompatActivity() {
         }
     }
 
-    private fun showCreateNotebookDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_create_notebook, null)
-        val editText = dialogView.findViewById<EditText>(R.id.notebook_name)
-
-        AlertDialog.Builder(this)
-            .setTitle("Создать записную книжку")
-            .setView(dialogView)
-            .setPositiveButton("Создать") { dialog, _ ->
-                val name = editText.text.toString().trim()
-                if (name.isNotEmpty()) {
-                    menuViewModel.createNewNotebook(name)
-                } else {
-                    Toast.makeText(this, "Введите название книжки", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -234,43 +220,4 @@ class RootActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == PermissionUtils.STORAGE_PERMISSION_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                initializeApp()
-            } else {
-                // Разрешение не получено, показываем сообщение
-                Toast.makeText(
-                    this,
-                    "Для работы приложения необходимо разрешение на доступ к хранилищу",
-                    Toast.LENGTH_LONG
-                ).show()
-                // Можно предложить повторить запрос или закрыть приложение
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == PermissionUtils.STORAGE_PERMISSION_CODE) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (Environment.isExternalStorageManager()) {
-                    initializeApp()
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Для работы приложения необходимо разрешение на доступ к хранилищу",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-    }
 }
