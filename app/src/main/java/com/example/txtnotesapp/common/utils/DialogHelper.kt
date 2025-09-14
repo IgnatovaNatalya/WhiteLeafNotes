@@ -31,8 +31,6 @@ object DialogHelper {
             .create()
     }
 
-
-
     fun createDeleteNoteConfirmationDialog(
         context: Context,
         noteTitle: String,
