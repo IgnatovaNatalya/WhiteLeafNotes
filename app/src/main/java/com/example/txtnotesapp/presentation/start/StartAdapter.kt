@@ -7,7 +7,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
-import com.example.txtnotesapp.common.interfaces.ContextActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextNoteActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextNotebookActionHandler
 import com.example.txtnotesapp.domain.model.Note
 
 class StartAdapter(
@@ -15,7 +16,8 @@ class StartAdapter(
     private val onNoteClicked: (Note) -> Unit,
     private val onAddNotebookClicked: () -> Unit,
     private val onAddNoteClicked: () -> Unit,
-    private val contextActionHandler: ContextActionHandler
+    private val contextNoteActionHandler: ContextNoteActionHandler,
+    private val contextNotebookActionHandler: ContextNotebookActionHandler
 ) : ListAdapter<StartListItem, RecyclerView.ViewHolder>(StartDiffCallback()) {
 
     companion object {
@@ -50,13 +52,13 @@ class StartAdapter(
             TYPE_NOTEBOOK -> NotebookViewHolder(
                 LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_start_notebook, parent, false),
-                onNotebookClicked,  contextActionHandler
+                onNotebookClicked, contextNotebookActionHandler
             )
 
             TYPE_NOTE -> NoteViewHolder(
                 LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_note, parent, false),
-                onNoteClicked, contextActionHandler
+                onNoteClicked, contextNoteActionHandler
             )
 
             TYPE_ADD_NOTEBOOK -> AddButtonViewHolder(
@@ -96,7 +98,7 @@ class StartAdapter(
             is StartListItem.AddNoteButton -> (holder as AddButtonViewHolder).bind()
             is StartListItem.EmptyNotebooks -> (holder as EmptyListViewHolder).bind("Записных книжек пока нет")
             is StartListItem.EmptyNotes -> (holder as EmptyListViewHolder).bind("Заметок пока нет")
-            is StartListItem.Spacing ->  (holder as EmptyListViewHolder).bind("") //Пустое место после кнопки в конце списка
+            is StartListItem.Spacing -> (holder as EmptyListViewHolder).bind("") //Пустое место после кнопки в конце списка
             is StartListItem.Divider -> {} // Ничего не делаем для разделителя
         }
     }

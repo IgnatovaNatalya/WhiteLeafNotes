@@ -41,20 +41,6 @@ class FileNoteDataSource(
         }
     }
 
-    // Удаление записной книжки (со всеми заметками внутри)
-    fun deleteNotebook(notebookPath: String): Boolean {
-        if (notebookPath.isEmpty()) {
-            return false // Нельзя удалить корневую директорию
-        }
-
-        val notebookDir = File(baseDir, notebookPath)
-        return if (notebookDir.exists() && notebookDir.isDirectory) {
-            notebookDir.deleteRecursively()
-        } else {
-            false
-        }
-    }
-
     // Проверка существования файла
     fun noteExists(notebookPath: String, noteId: String): Boolean {
         return getNoteFile(notebookPath, noteId).exists()
@@ -102,16 +88,3 @@ class FileNoteDataSource(
         }
     }
 }
-
-    // Перемещение файла
-//    fun moveFile(source: File, target: File): Boolean {
-//        return if (source.renameTo(target)) {
-//            true
-//        } else {
-//            // Альтернативная реализация, если renameTo не сработал
-//            source.copyTo(target, overwrite = true)
-//            source.delete()
-//            true
-//        }
-//    }
-//}

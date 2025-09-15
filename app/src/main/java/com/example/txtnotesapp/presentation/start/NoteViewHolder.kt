@@ -4,14 +4,14 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
-import com.example.txtnotesapp.common.interfaces.ContextActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextNoteActionHandler
 import com.example.txtnotesapp.common.utils.ContextMenuHelper
 import com.example.txtnotesapp.domain.model.Note
 
 class NoteViewHolder(
     view: View,
     private val onNoteClicked: (Note) -> Unit,
-    private val contextActionHandler: ContextActionHandler
+    private val contextActionHandler: ContextNoteActionHandler
 ) : RecyclerView.ViewHolder(view) {
     private val title: TextView = view.findViewById(R.id.note_title)
 

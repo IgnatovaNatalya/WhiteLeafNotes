@@ -1,12 +1,11 @@
 package com.example.txtnotesapp.presentation.settings
 
 import android.os.Environment
-import android.provider.MediaStore
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.txtnotesapp.domain.use_case.ExportNotesUseCase
+import com.example.txtnotesapp.domain.use_case.ExportAllNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.SaveExportDirectoryUseCase
 import kotlinx.coroutines.launch
@@ -14,7 +13,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val getExportDirectoryUseCase: GetExportDirectoryUseCase,
     private val saveExportDirectoryUseCase: SaveExportDirectoryUseCase,
-    private val exportNotesUseCase: ExportNotesUseCase
+    private val exportNotesUseCase: ExportAllNotesUseCase
 ) : ViewModel() {
 
     private val _exportState = MutableLiveData<ExportState>()

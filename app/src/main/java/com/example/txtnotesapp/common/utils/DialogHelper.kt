@@ -2,13 +2,11 @@ package com.example.txtnotesapp.common.utils
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import com.example.txtnotesapp.R
-import com.example.txtnotesapp.domain.model.Note
 
 object DialogHelper {
 //notes
@@ -142,18 +140,4 @@ object DialogHelper {
             .create()
     }
 
-    object ShareHelper {
-        fun createShareNoteIntent(context: Context, note: Note): Intent {
-            return Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, "${note.title} \n\n${note.content}")
-                type = "text/plain"
-            }
-        }
-
-        fun shareNote(context: Context, note: Note, chooserTitle: String = "Поделиться заметкой") {
-            val shareIntent = createShareNoteIntent(context, note)
-            context.startActivity(Intent.createChooser(shareIntent, chooserTitle))
-        }
-    }
 }

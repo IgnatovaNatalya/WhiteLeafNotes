@@ -6,6 +6,6 @@ import com.example.txtnotesapp.domain.repository.NotesRepository
 
 class ShareNoteUseCase(private val repository: NotesRepository) {
     suspend operator fun invoke(note: Note): Uri? {
-        return repository.shareNote(note)
+        return repository.shareNoteFile(note)
     }
 }

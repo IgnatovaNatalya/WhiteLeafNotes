@@ -4,13 +4,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import com.example.txtnotesapp.common.interfaces.ContextActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextNoteActionHandler
 import com.example.txtnotesapp.databinding.ItemNoteBinding
 import com.example.txtnotesapp.domain.model.Note
 
 class NoteAdapter(
     private val onNoteClicked: (Note) -> Unit,
-    private val contextActionHandler: ContextActionHandler
+    private val contextActionHandler: ContextNoteActionHandler
 ) : ListAdapter<Note, NoteViewHolder>(NoteDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {

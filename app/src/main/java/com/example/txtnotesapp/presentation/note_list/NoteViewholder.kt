@@ -3,7 +3,7 @@ package com.example.txtnotesapp.presentation.note_list
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.example.txtnotesapp.R
-import com.example.txtnotesapp.common.interfaces.ContextActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextNoteActionHandler
 import com.example.txtnotesapp.common.utils.ContextMenuHelper
 import com.example.txtnotesapp.databinding.ItemNoteBinding
 import com.example.txtnotesapp.domain.model.Note
@@ -11,7 +11,7 @@ import com.example.txtnotesapp.domain.model.Note
 class NoteViewHolder(
     private val binding: ItemNoteBinding,
     private val onNoteClicked: (Note) -> Unit,
-    private val noteActionHandler: ContextActionHandler
+    private val noteActionHandler: ContextNoteActionHandler
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(note: Note) {

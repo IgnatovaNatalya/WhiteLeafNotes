@@ -8,7 +8,6 @@ import com.example.txtnotesapp.common.AppConstants.FILE_NAME_PREFIX
 import com.example.txtnotesapp.data.datasource.FileNoteDataSource
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
-import com.example.txtnotesapp.domain.repository.ExternalRepository
 import com.example.txtnotesapp.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,8 +16,7 @@ import java.io.IOException
 
 class NoteRepositoryImpl(
     private val context: Context,
-    private val noteDataSource: FileNoteDataSource,
-    private val externalRepository: ExternalRepository
+    private val noteDataSource: FileNoteDataSource
 ) : NotesRepository {
 
     override suspend fun getNotes(notebookPath: String?): List<Note> {
@@ -130,7 +128,7 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun shareNote(note: Note): Uri? { //todo заачем мне два шеринга
+    override suspend fun shareNoteFile(note: Note): Uri? {
         return withContext(Dispatchers.IO) {
             try {
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
@@ -155,7 +153,7 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun getAllNotes(notebooks: List<Notebook>): List<Note> { //todo перенести в отдельный репозиторий экспорта/импорта
+    override suspend fun getAllNotes(notebooks: List<Notebook>): List<Note> {
 
         val allNotes = mutableListOf<Note>()
 
@@ -166,13 +164,5 @@ class NoteRepositoryImpl(
         return allNotes
     }
 
-    override suspend fun exportToZip( //todo перенести в отдельный репозиторий экспорта/импорта
-        notes: List<Note>,
-        notebooks: List<Notebook>,
-        password: String?
-    ): Uri {
-        return withContext(Dispatchers.IO) {
-            externalRepository.createExportZip(notes, notebooks, password)
-        }
-    }
+
 }

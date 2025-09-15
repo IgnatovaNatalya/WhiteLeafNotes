@@ -4,7 +4,7 @@ import android.content.Context
 import com.example.txtnotesapp.data.repository.NoteRepositoryImpl
 import com.example.txtnotesapp.data.repository.NotebookRepositoryImpl
 import com.example.txtnotesapp.data.repository.PreferencesRepositoryImpl
-import com.example.txtnotesapp.data.repository.ExternalDataSourceImpl
+import com.example.txtnotesapp.data.repository.ExternalRepositoryImpl
 import com.example.txtnotesapp.data.datasource.FileNoteDataSource
 import com.example.txtnotesapp.data.datasource.FileNotebookDataSource
 import com.example.txtnotesapp.domain.repository.ExternalRepository
@@ -15,7 +15,7 @@ import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.CreateNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNotebookUseCase
-import com.example.txtnotesapp.domain.use_case.ExportNotesUseCase
+import com.example.txtnotesapp.domain.use_case.ExportAllNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
@@ -41,12 +41,12 @@ val koinModule = module {
     // Data sources
     single { FileNoteDataSource(get()) }
     single { FileNotebookDataSource(get()) }
-    single<ExternalRepository> { ExternalDataSourceImpl(get(), get()) }
 
     // Repositories
-    single<NotesRepository> { NoteRepositoryImpl(get(), get(), get()) }
+    single<NotesRepository> { NoteRepositoryImpl(get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
+    single<ExternalRepository> { ExternalRepositoryImpl(get(), get()) }
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -65,7 +65,7 @@ val koinModule = module {
 
     factory { GetExportDirectoryUseCase(get()) }
     factory { SaveExportDirectoryUseCase(get()) }
-    factory { ExportNotesUseCase(get(), get()) }
+    factory { ExportAllNotesUseCase(get(), get(), get()) }
 
     // ViewModels
 

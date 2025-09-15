@@ -20,7 +20,7 @@ import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-class ExternalDataSourceImpl(
+class ExternalRepositoryImpl(
     private val context: Context,
     private val fileNoteDataSource: FileNoteDataSource
 ) : ExternalRepository {
@@ -35,24 +35,21 @@ class ExternalDataSourceImpl(
                 deleteRecursively()
                 mkdirs()
             }
-
             try {
-                // Создаем структуру папок
                 createExportStructure(tempDir, notes, notebooks)
-
-                // Создаем ZIP файл
                 val zipFile = createZipFile(tempDir, password)
-
-                // Сохраняем во внешнее хранилище
                 saveToExternalStorage(zipFile)
             } finally {
                 // Очищаем временные файлы
-                //tempDir.deleteRecursively()
+                tempDir.deleteRecursively()
             }
         }
     }
 
-    private fun createExportStructure(tempDir: File, notes: List<Note>, notebooks: List<Notebook>) {
+    private fun createExportStructure(
+        tempDir: File,
+        notes: List<Note>,
+        notebooks: List<Notebook>) {
         // Создаем папки для записных книжек
         notebooks.forEach { notebook ->
             val notebookDir = File(tempDir, notebook.path).apply { mkdirs() }
@@ -61,13 +58,13 @@ class ExternalDataSourceImpl(
 
         // Копируем все заметки
         notes.forEach { note ->
-            val sourceFile = fileNoteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
+            val sourceFile = fileNoteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
             val targetDir = if (note.notebookPath != null) {
                 File(tempDir, note.notebookPath)
             } else {
                 tempDir
             }
-            val targetFile = File(targetDir, "${note.title}.txt")
+            val targetFile = File(targetDir, "${note.id}.txt")
 
             if (sourceFile.exists()) {
                 sourceFile.copyTo(targetFile, overwrite = true)
@@ -121,4 +118,5 @@ class ExternalDataSourceImpl(
 
         return uri
     }
+
 }

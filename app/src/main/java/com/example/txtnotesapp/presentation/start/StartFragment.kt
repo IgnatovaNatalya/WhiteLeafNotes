@@ -8,15 +8,17 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.common.classes.BindingFragment
-import com.example.txtnotesapp.common.interfaces.ContextActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextNoteActionHandler
+import com.example.txtnotesapp.common.interfaces.ContextNotebookActionHandler
 import com.example.txtnotesapp.common.utils.DialogHelper
-import com.example.txtnotesapp.common.utils.DialogHelper.ShareHelper
+import com.example.txtnotesapp.common.utils.ShareHelper
 import com.example.txtnotesapp.databinding.FragmentStartBinding
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHandler {
+class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteActionHandler,
+    ContextNotebookActionHandler {
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -49,7 +51,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
                 }.show()
             },
             onAddNoteClicked = { createNewNote() },
-            contextActionHandler = this
+            contextNoteActionHandler = this,
+            contextNotebookActionHandler = this
         )
 
         binding.startRecyclerView.adapter = adapter
@@ -133,6 +136,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
             .show()
     }
 
+
+
     override fun onMoveNote(note: Note) {
         val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
             viewModel.moveNote(note, newNotebookName)
@@ -150,6 +155,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextActionHand
     }
 
     override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
+    override fun onShareNotebook(notebook: Notebook) = ShareHelper.shareNotebook(requireContext(), notebook)
 
     override fun onResume() {
         super.onResume()
