@@ -2,14 +2,20 @@ package com.example.txtnotesapp.presentation.note_list
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.common.interfaces.ContextNoteActionHandler
 import com.example.txtnotesapp.common.utils.DialogHelper
@@ -32,11 +38,17 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         return FragmentNoteListBinding.inflate(inflater, container, false)
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true) // Важно: разрешаем фрагменту работать с меню
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
 
+        setupOptionsMenu()
         setupObservers()
         setupRecyclerView()
         setupFab()
@@ -94,6 +106,27 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         binding.recyclerView.addItemDecoration(
             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
         )
+    }
+
+    private fun setupOptionsMenu() {
+        val menuProvider = object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_notelist, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                when (menuItem.itemId) {
+                    android.R.id.home -> {}
+                    R.id.options_search -> {}
+                    R.id.options_create_note -> viewModel.createNewNote()
+                    R.id.options_rename_notebook -> {}
+                    R.id.options_share_notebook -> {}
+                    R.id.options_delete_notebook -> {}
+                }
+                return false
+            }
+        }
+        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     override fun onRenameNote(note: Note) {

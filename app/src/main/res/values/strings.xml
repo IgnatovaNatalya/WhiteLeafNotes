@@ -1,13 +1,12 @@
 <resources>
     <string name="app_name">TxtNotesApp</string>
-    <string name="new_note">+</string>
-    <string name="create_note">Create note</string>
+    <string name="create">+</string>
     <string name="open">Открыть</string>
-    <string name="add">Добавить</string>
     <string name="edit">Редактировать</string>
     <string name="rename">Переименовать</string>
     <string name="move">Переместить</string>
     <string name="share">Поделиться</string>
+    <string name="share_file">Поделиться файлом</string>
     <string name="delete">Удалить</string>
 
     <string name="search">Поиск</string>
@@ -32,10 +31,14 @@
 
     <string name="empty_notebooks">Записных книжек пока нет</string>
 
-
+    <string name="create_note">Создать заметку</string>
     <string name="export_notes">Экспорт заметок</string>
     <string name="import_notes">Импорт заметок</string>
     <string name="do_export">Выполнить экспорт</string>
+
+
+    <string name="rename_notebook">Переименовать записную книжку</string>
+
     <string name="use_password">Использовать пароль</string>
     <string name="export_zip_password">Введите пароль</string>
     <string name="select_import_folder">Выбрать папку</string>

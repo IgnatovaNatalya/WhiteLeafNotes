@@ -1,8 +1,6 @@
 package com.example.txtnotesapp.presentation.root
 
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -14,7 +12,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -39,15 +36,7 @@ class RootActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        if (!PermissionUtils.checkStoragePermission(this)) {
-//            PermissionUtils.requestStoragePermission(this)
-//        } else {
-//            initializeApp()
-//        }
-
         initializeApp()
-
     }
 
     private fun initializeApp() {
@@ -203,21 +192,6 @@ class RootActivity : AppCompatActivity() {
         } else {
             super.onBackPressed()
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> {}
-            R.id.menu_search -> Toast.makeText(this, "Поиск", Toast.LENGTH_SHORT).show()
-            R.id.menu_undo -> Toast.makeText(this, "Отмена", Toast.LENGTH_SHORT).show()
-            R.id.menu_redo -> Toast.makeText(this, "Вернуть", Toast.LENGTH_SHORT).show()
-        }
-        return super.onOptionsItemSelected(item)
     }
 
 }

@@ -34,7 +34,7 @@
             android:contentDescription="Options"
             android:src="@drawable/ic_options"
             app:tint="?attr/android:textColorPrimary"
-            tools:ignore="HardcodedText" />
+            tools:ignore="HardcodedText"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

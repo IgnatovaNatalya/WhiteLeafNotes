@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
+import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
 import kotlinx.coroutines.launch
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
+    private val moveNoteUseCase: MoveNoteUseCase,
     private val saveNoteUseCase: SaveNoteUseCase,
     private val createNoteUseCase: CreateNoteUseCase,
     private val noteId: String?,
@@ -112,7 +114,21 @@ class NoteEditViewModel(
         }
     }
 
+    fun moveNote(notebookTitle: String) {
+        val currentNote = _note.value ?: return
+
+        viewModelScope.launch {
+            try {
+                moveNoteUseCase(currentNote, notebookTitle)
+            } catch (e: Exception) {
+                _message.postValue("Ошибка перемещения: ${e.message}")
+                _isSaved.postValue(false)
+            }
+        }
+    }
+
     fun clearMessage() {
         _message.postValue(null)
     }
 }
+

@@ -2,12 +2,20 @@ package com.example.txtnotesapp.presentation.note_edit
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.navArgs
+import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
+import com.example.txtnotesapp.common.utils.DialogHelper
 import com.example.txtnotesapp.common.utils.TextWatcherManager
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
 import kotlinx.datetime.Instant
@@ -25,6 +33,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private val args: NoteEditFragmentArgs by navArgs()
     private var isEditing = false
+    private lateinit var titleEditText: EditText
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -37,7 +46,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onViewCreated(view, savedInstanceState)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
+        titleEditText = binding.noteTitle
 
+        setupOptionsMenu()
         setupObservers()
         setupEditTexts()
     }
@@ -92,6 +103,39 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
     }
 
+    private fun setupOptionsMenu() {
+        val menuProvider = object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_edit, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                when (menuItem.itemId) {
+                    android.R.id.home -> {}
+                    R.id.options_undo -> {}
+                    R.id.options_redo -> {}
+                    R.id.options_rename_note -> {
+                        titleEditText.requestFocus()
+                        titleEditText.setSelectAllOnFocus(true)
+                    }
+
+                    R.id.options_move_note -> {
+                        val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+                            viewModel.moveNote(newNotebookName)
+                        }
+                        dialog.show()
+                    }
+
+                    R.id.options_share_note -> {}
+                    R.id.options_share_note_file -> {}
+                    R.id.options_delete_note -> {}
+                }
+                return false
+            }
+        }
+        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
     override fun onPause() {
         //Toast.makeText(requireContext(),"Save note pause",Toast.LENGTH_SHORT).show()
         viewModel.updateFullNote(
@@ -100,7 +144,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         )
         super.onPause()
     }
-
 
     private fun formatDate(timestamp: Long): String {
         val date = Instant.fromEpochMilliseconds(timestamp)
