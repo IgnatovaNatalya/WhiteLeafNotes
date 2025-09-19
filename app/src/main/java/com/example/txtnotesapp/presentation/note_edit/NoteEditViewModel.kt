@@ -1,5 +1,6 @@
 package com.example.txtnotesapp.presentation.note_edit
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,7 @@ import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
+import com.example.txtnotesapp.domain.use_case.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
 
 class NoteEditViewModel(
@@ -17,6 +19,7 @@ class NoteEditViewModel(
     private val renameNoteUseCase: RenameNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val saveNoteUseCase: SaveNoteUseCase,
+    private val shareNoteFileUseCase: ShareNoteFileUseCase,
     private val createNoteUseCase: CreateNoteUseCase,
     private val noteId: String?,
     private val notebookPath: String?
@@ -24,6 +27,9 @@ class NoteEditViewModel(
 
     private val _note = MutableLiveData<Note>()
     val note: LiveData<Note> = _note
+
+    private val _noteFile = MutableLiveData<Uri?>()
+    val noteFile: LiveData<Uri?> = _noteFile
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -113,6 +119,19 @@ class NoteEditViewModel(
             }
         }
     }
+
+    fun shareNoteFile() {
+        val currentNote = _note.value ?: return
+        viewModelScope.launch {
+            try {
+                val file = shareNoteFileUseCase(currentNote)
+                _noteFile.postValue(file)
+            } catch (e: Exception) {
+                _message.postValue("Ошибка передачи файла заметки: ${e.message}")
+            }
+        }
+    }
+
 
     fun moveNote(notebookTitle: String) {
         val currentNote = _note.value ?: return

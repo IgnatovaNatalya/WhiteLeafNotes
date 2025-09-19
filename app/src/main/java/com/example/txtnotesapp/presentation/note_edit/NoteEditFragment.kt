@@ -16,8 +16,10 @@ import androidx.navigation.fragment.navArgs
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.common.utils.DialogHelper
+import com.example.txtnotesapp.common.utils.ShareHelper
 import com.example.txtnotesapp.common.utils.TextWatcherManager
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
+import com.example.txtnotesapp.domain.model.Note
 import kotlinx.datetime.Instant
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
@@ -34,6 +36,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private val args: NoteEditFragmentArgs by navArgs()
     private var isEditing = false
     private lateinit var titleEditText: EditText
+    private lateinit var contentEditText: EditText
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -47,6 +50,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
         titleEditText = binding.noteTitle
+        contentEditText = binding.noteText
 
         setupOptionsMenu()
         setupObservers()
@@ -66,17 +70,20 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             }
         }
 
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        viewModel.noteFile.observe(viewLifecycleOwner) { noteFile ->
+            ShareHelper.shareFile(requireContext(), noteFile)
         }
 
-        viewModel.message.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+        viewModel.message.observe(viewLifecycleOwner) { message ->
+            message?.let {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
                 viewModel.clearMessage()
             }
         }
 
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
         viewModel.isSaved.observe(viewLifecycleOwner) { isSaved ->
             if (isSaved) {
                 // todo сделать индикатор сохранения
@@ -120,14 +127,24 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                     }
 
                     R.id.options_move_note -> {
-                        val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+                        DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
                             viewModel.moveNote(newNotebookName)
-                        }
-                        dialog.show()
+                        }.show()
                     }
 
-                    R.id.options_share_note -> {}
-                    R.id.options_share_note_file -> {}
+                    R.id.options_share_note -> {
+                        ShareHelper.shareNote(requireContext(), Note(
+                            id = titleEditText.text.toString(),
+                            title = titleEditText.text.toString(),
+                            content = contentEditText.text.toString(),
+                            modifiedAt = System.currentTimeMillis(),
+                            notebookPath = null,
+                        ))
+                    }
+                    R.id.options_share_note_file -> {
+                        viewModel.updateFullNote(titleEditText.text.toString(), contentEditText.text.toString())
+                        viewModel.shareNoteFile()
+                    }
                     R.id.options_delete_note -> {}
                 }
                 return false

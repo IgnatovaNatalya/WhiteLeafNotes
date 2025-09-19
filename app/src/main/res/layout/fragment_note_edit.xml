@@ -24,6 +24,7 @@
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
             android:maxLines="3"
+            android:selectAllOnFocus="true"
             android:textColor="?attr/android:textColorPrimary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -48,15 +49,15 @@
             android:layout_height="match_parent"
             android:layout_marginHorizontal="@dimen/marginHorizontal"
             android:layout_marginTop="32dp"
-            android:gravity="start|top"
             android:background="@null"
+            android:gravity="start|top"
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
             android:scrollbars="vertical"
+            android:textColor="?attr/android:textColorPrimary"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/note_date"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:textColor="?attr/android:textColorPrimary"
             tools:text="Текст заметки \nТекст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки" />
 
         <ProgressBar
@@ -65,10 +66,10 @@
             android:layout_height="44dp"
             android:layout_marginTop="140dp"
             android:indeterminateTint="?attr/colorOnSurface"
-            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:visibility="gone" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

@@ -1,6 +1,8 @@
 package com.example.txtnotesapp.presentation.shareReceive
 
+import android.content.ContentResolver
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -66,7 +68,29 @@ class ShareReceiverActivity : AppCompatActivity() {
                     binding.noteEditContainer.noteDate.text = formatDate(System.currentTimeMillis())
                     binding.noteEditContainer.noteText.setText(sharedText)
                 }
+//                if (intent.type == "text/plain") {
+//                    val fileUri = intent.getStringExtra(Intent.EXTRA_STREAM)
+//                    fileUri?.let {
+//                        val fileContent = readTextFileFromUri(it, contentResolver)
+//                        if (fileContent != null) {
+//                            // Здесь можно использовать содержимое файла, например, показать в TextView
+//                            println(fileContent)
+//                        }
+//                    }
+//                }
             }
+
+        }
+    }
+
+    fun readTextFileFromUri(uri: Uri, contentResolver: ContentResolver): String? {
+        return try {
+            contentResolver.openInputStream(uri)?.bufferedReader().use { reader ->
+                reader?.readText()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
