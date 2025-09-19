@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TxtNotesApp</string>
+    <string name="app_name">Белый лист заметки</string>
     <string name="create">+</string>
     <string name="open">Открыть</string>
     <string name="edit">Редактировать</string>
