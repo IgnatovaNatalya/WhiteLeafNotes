@@ -40,7 +40,7 @@ object DialogHelper {
         alertDialogBuilder.setView(deleteDialogView)
 
         val dialogTitle = deleteDialogView.findViewById<TextView>(R.id.delete_title)
-        dialogTitle.text = "Удаление записной книжки"
+        dialogTitle.text = "Удаление заметки"
         val dialogMessage = deleteDialogView.findViewById<TextView>(R.id.delete_message)
         val text =
             "Вы уверены, что хотите удалить заметку \"$noteTitle\"?"

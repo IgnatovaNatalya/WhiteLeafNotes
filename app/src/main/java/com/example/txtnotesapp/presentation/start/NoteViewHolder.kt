@@ -16,8 +16,10 @@ class NoteViewHolder(
     private val title: TextView = view.findViewById(R.id.note_title)
 
     fun bind(note: Note) {
-        title.text = note.title
-        //date.text = formatDate(note.createdAt)
+
+        val text = if (note.title!="") note.title else note.content.take(40)
+
+        title.text = text//note.title
 
         itemView.setOnClickListener {
             onNoteClicked(note)
