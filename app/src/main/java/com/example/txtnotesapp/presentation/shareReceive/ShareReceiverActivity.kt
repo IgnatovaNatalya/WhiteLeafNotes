@@ -1,10 +1,7 @@
 package com.example.txtnotesapp.presentation.shareReceive
 
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.net.Uri
+
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +9,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.databinding.ActivityShareRecieverBinding
+import com.example.txtnotesapp.domain.model.SharedContent
+import com.example.txtnotesapp.domain.model.onError
+import com.example.txtnotesapp.domain.model.onSuccess
 import kotlinx.datetime.Instant
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
@@ -37,72 +37,21 @@ class ShareReceiverActivity : AppCompatActivity() {
             insets
         }
 
-        when {
-            intent?.action == Intent.ACTION_SEND -> handleIntent(intent)
-            else -> showError("Unsupported action")
-        }
+        viewModel.processIntent(intent)
 
-        handleIntent(intent)
         setupObservers()
         setupClickListeners()
-
-    }
-
-
-    private fun handleIntent(intent: Intent) {
-        if (intent.type == "text/plain") {
-            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-            val title = intent.getStringExtra(Intent.EXTRA_SUBJECT) ?: ""
-            val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-
-            when {
-                fileUri != null -> handleFileContent(fileUri)
-                !text.isNullOrEmpty() -> showContent(title, text)
-                else -> showError("Контент не получен")
-            }
-        }
-    }
-
-    private fun handleFileContent(uri: Uri) {
-        try {
-            contentResolver.openInputStream(uri)?.use { stream ->
-                val fileName = getFileName(uri)
-                val content = stream.bufferedReader().use { it.readText() }
-
-                showContent(fileName ?: "Без названия", content)
-            }
-        } catch (e: Exception) {
-            showError("Error reading file: ${e.message}")
-        }
-    }
-
-    @SuppressLint("Range")
-    private fun getFileName(uri: Uri): String? {
-        return when (uri.scheme) {
-            "content" -> {
-                contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                    if (cursor.moveToFirst()) {
-                        cursor.getString(
-                            cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                        )
-                    } else null
-                }
-            }
-            "file" -> uri.lastPathSegment
-            else -> null
-        }
     }
 
     private fun showContent(sharedTitle: String, sharedText: String) {
-        binding.noteEditContainer.noteTitle.setText(sharedTitle)
+        //binding.noteEditContainer.noteTitle.setText(sharedTitle)
         binding.noteEditContainer.noteDate.text = formatDate(System.currentTimeMillis())
         binding.noteEditContainer.noteText.setText(sharedText)
     }
 
     private fun showError(error: String) {
-        binding.noteEditContainer.noteText.setText(error)
+        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
     }
-
 
     private fun setupClickListeners() {
         binding.shareReceiverToolbar.setOnClickListener {
@@ -121,6 +70,18 @@ class ShareReceiverActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
+
+        viewModel.contentState.observe(this) { result ->
+            result.onSuccess { content ->
+                when (content) {
+                    is SharedContent.FileContent -> showContent(content.name, content.text)
+                    is SharedContent.TextContent -> showContent(content.name, content.text)
+                }
+            }.onError { message ->
+                showError(message)
+            }
+        }
+
         viewModel.isSaved.observe(this) { isSaved ->
             if (isSaved) {
                 Toast.makeText(this, "Заметка сохранена", Toast.LENGTH_SHORT).show()

@@ -1,5 +1,6 @@
 package com.example.txtnotesapp.di
 
+import android.content.ContentResolver
 import android.content.Context
 import com.example.txtnotesapp.data.repository.NoteRepositoryImpl
 import com.example.txtnotesapp.data.repository.NotebookRepositoryImpl
@@ -20,6 +21,7 @@ import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
+import com.example.txtnotesapp.domain.use_case.GetSharedContentUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNotebookUseCase
@@ -38,6 +40,10 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val koinModule = module {
+
+    // App
+    single<ContentResolver> { androidContext().contentResolver }
+
     // Data sources
     single { FileNoteDataSource(get()) }
     single { FileNotebookDataSource(get()) }
@@ -66,6 +72,8 @@ val koinModule = module {
     factory { GetExportDirectoryUseCase(get()) }
     factory { SaveExportDirectoryUseCase(get()) }
     factory { ExportAllNotesUseCase(get(), get(), get()) }
+
+    factory { GetSharedContentUseCase(get()) }
 
     // ViewModels
 
@@ -139,6 +147,7 @@ val koinModule = module {
 
     viewModel {
         ShareReceiverViewModel(
+            getSharedContent = get(),
             createNoteUseCase = get(),
             renameNoteUseCase = get(),
             saveNoteUseCase = get(),
