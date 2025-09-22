@@ -1,9 +1,10 @@
 package com.example.txtnotesapp.presentation.shareReceive
 
-import android.content.ContentResolver
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -36,63 +37,72 @@ class ShareReceiverActivity : AppCompatActivity() {
             insets
         }
 
+        when {
+            intent?.action == Intent.ACTION_SEND -> handleIntent(intent)
+            else -> showError("Unsupported action")
+        }
+
         handleIntent(intent)
         setupObservers()
         setupClickListeners()
 
     }
 
-    private fun setupObservers() {
-        viewModel.isSaved.observe(this) { isSaved ->
-            if (isSaved) {
-                Toast.makeText(this, "Заметка сохранена", Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
-        viewModel.message.observe(this) { message ->
-            message?.let {
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-                viewModel.clearMessage()
-            }
-        }
-    }
 
     private fun handleIntent(intent: Intent) {
-        when (intent.action) {
-            Intent.ACTION_SEND -> {
-                if (intent.type == "text/plain") {
-                    val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
-                    val sharedTitle = intent.getStringExtra(Intent.EXTRA_SUBJECT) ?: ""
+        if (intent.type == "text/plain") {
+            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val title = intent.getStringExtra(Intent.EXTRA_SUBJECT) ?: ""
+            val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
 
-                    binding.noteEditContainer.noteTitle.setText(sharedTitle)
-                    binding.noteEditContainer.noteDate.text = formatDate(System.currentTimeMillis())
-                    binding.noteEditContainer.noteText.setText(sharedText)
-                }
-//                if (intent.type == "text/plain") {
-//                    val fileUri = intent.getStringExtra(Intent.EXTRA_STREAM)
-//                    fileUri?.let {
-//                        val fileContent = readTextFileFromUri(it, contentResolver)
-//                        if (fileContent != null) {
-//                            // Здесь можно использовать содержимое файла, например, показать в TextView
-//                            println(fileContent)
-//                        }
-//                    }
-//                }
+            when {
+                fileUri != null -> handleFileContent(fileUri)
+                !text.isNullOrEmpty() -> showContent(title, text)
+                else -> showError("Контент не получен")
             }
-
         }
     }
 
-    fun readTextFileFromUri(uri: Uri, contentResolver: ContentResolver): String? {
-        return try {
-            contentResolver.openInputStream(uri)?.bufferedReader().use { reader ->
-                reader?.readText()
+    private fun handleFileContent(uri: Uri) {
+        try {
+            contentResolver.openInputStream(uri)?.use { stream ->
+                val fileName = getFileName(uri)
+                val content = stream.bufferedReader().use { it.readText() }
+
+                showContent(fileName ?: "Без названия", content)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            null
+            showError("Error reading file: ${e.message}")
         }
     }
+
+    @SuppressLint("Range")
+    private fun getFileName(uri: Uri): String? {
+        return when (uri.scheme) {
+            "content" -> {
+                contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        cursor.getString(
+                            cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        )
+                    } else null
+                }
+            }
+            "file" -> uri.lastPathSegment
+            else -> null
+        }
+    }
+
+    private fun showContent(sharedTitle: String, sharedText: String) {
+        binding.noteEditContainer.noteTitle.setText(sharedTitle)
+        binding.noteEditContainer.noteDate.text = formatDate(System.currentTimeMillis())
+        binding.noteEditContainer.noteText.setText(sharedText)
+    }
+
+    private fun showError(error: String) {
+        binding.noteEditContainer.noteText.setText(error)
+    }
+
 
     private fun setupClickListeners() {
         binding.shareReceiverToolbar.setOnClickListener {
@@ -108,6 +118,21 @@ class ShareReceiverActivity : AppCompatActivity() {
             .toLocalDateTime(TimeZone.currentSystemDefault())
 
         return "${date.dayOfMonth} ${getMonthName(date.month)} ${date.year}"
+    }
+
+    private fun setupObservers() {
+        viewModel.isSaved.observe(this) { isSaved ->
+            if (isSaved) {
+                Toast.makeText(this, "Заметка сохранена", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+        viewModel.message.observe(this) { message ->
+            message?.let {
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                viewModel.clearMessage()
+            }
+        }
     }
 
     private fun getMonthName(month: Month): String { //todo
@@ -126,5 +151,4 @@ class ShareReceiverActivity : AppCompatActivity() {
             Month.DECEMBER -> "декабря"
         }
     }
-
 }
