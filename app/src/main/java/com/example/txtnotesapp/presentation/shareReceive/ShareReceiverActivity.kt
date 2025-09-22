@@ -43,16 +43,6 @@ class ShareReceiverActivity : AppCompatActivity() {
         setupClickListeners()
     }
 
-    private fun showContent(sharedTitle: String, sharedText: String) {
-        //binding.noteEditContainer.noteTitle.setText(sharedTitle)
-        binding.noteEditContainer.noteDate.text = formatDate(System.currentTimeMillis())
-        binding.noteEditContainer.noteText.setText(sharedText)
-    }
-
-    private fun showError(error: String) {
-        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
-    }
-
     private fun setupClickListeners() {
         binding.shareReceiverToolbar.setOnClickListener {
             viewModel.insertNote(
@@ -75,7 +65,7 @@ class ShareReceiverActivity : AppCompatActivity() {
             result.onSuccess { content ->
                 when (content) {
                     is SharedContent.FileContent -> showContent(content.name, content.text)
-                    is SharedContent.TextContent -> showContent(content.name, content.text)
+                    is SharedContent.TextContent -> showContent(content.text)
                 }
             }.onError { message ->
                 showError(message)
@@ -94,6 +84,18 @@ class ShareReceiverActivity : AppCompatActivity() {
                 viewModel.clearMessage()
             }
         }
+    }
+
+    private fun showContent(sharedTitle: String?, sharedText: String) {
+        if (!sharedTitle.isNullOrEmpty()) binding.noteEditContainer.noteTitle.setText(sharedTitle)
+        binding.noteEditContainer.noteDate.text = formatDate(System.currentTimeMillis())
+        binding.noteEditContainer.noteText.setText(sharedText)
+    }
+
+    private fun showContent(sharedText: String) = showContent(null, sharedText)
+
+    private fun showError(error: String) {
+        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
     }
 
     private fun getMonthName(month: Month): String { //todo

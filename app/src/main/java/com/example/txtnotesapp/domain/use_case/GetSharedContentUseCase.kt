@@ -26,8 +26,7 @@ class GetSharedContentUseCase(
 
             intent.hasExtra(Intent.EXTRA_TEXT) -> {
                 val text = intent.getStringExtra(Intent.EXTRA_TEXT)!!
-                val title = intent.getStringExtra(Intent.EXTRA_SUBJECT) ?: ""
-                SharedContentResult.Success(SharedContent.TextContent(title, text))
+                SharedContentResult.Success(SharedContent.TextContent(text.trim(' ', '\t', '\n', '\r', '"')))
             }
 
             else -> SharedContentResult.Error("No content found in intent")
