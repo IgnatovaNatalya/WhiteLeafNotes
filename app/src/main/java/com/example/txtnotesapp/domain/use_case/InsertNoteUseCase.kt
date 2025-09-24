@@ -7,18 +7,24 @@ import com.example.txtnotesapp.domain.repository.NotesRepository
 
 class InsertNoteUseCase(private val repository: NotesRepository) {
     suspend operator fun invoke(
-        noteTitle: String,
+        noteTitle: String?,
         noteContent: String,
-        notebookPath: String? = null
+        notebookPath: String
     ): Note {
         val timestamp = System.currentTimeMillis()
-        val noteId = "$FILE_NAME_PREFIX${timestamp}"
-        //val clearTitle = noteTitle.replace(Regex("[^a-zA-Z0-9_\\- ,]"), "")
-        val clearTitle = sanitizeFileName(noteTitle)
+        val baseId =
+            sanitizeFileName(noteTitle?.takeIf { it.isNotBlank() } ?: "$FILE_NAME_PREFIX$timestamp")
+
+        var counter = 1
+        var noteId = baseId
+
+        while (repository.existsNote(notebookPath, noteId)) {
+            noteId = "${baseId}_${counter++}"
+        }
 
         val note = Note(
-            id = if (clearTitle == "") noteId else clearTitle,
-            title = clearTitle,
+            id = noteId,
+            title = noteId,
             content = noteContent,
             modifiedAt = timestamp,
             notebookPath = notebookPath

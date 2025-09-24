@@ -7,17 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.SharedContent
 import com.example.txtnotesapp.domain.model.SharedContentResult
-import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetSharedContentUseCase
-import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
-import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
+import com.example.txtnotesapp.domain.use_case.InsertNoteUseCase
 import kotlinx.coroutines.launch
 
 class ShareReceiverViewModel(
     private val getSharedContent: GetSharedContentUseCase,
-    private val createNoteUseCase: CreateNoteUseCase,
-    private val renameNoteUseCase: RenameNoteUseCase,
-    private val saveNoteUseCase: SaveNoteUseCase
+    private val insertNoteUseCase: InsertNoteUseCase
 
 ) : ViewModel() {
 
@@ -40,16 +36,15 @@ class ShareReceiverViewModel(
         }
     }
 
-    fun insertNote(receivedTitle:String, receivedText:String) {
+    fun insertNote(receivedTitle: String, receivedText: String) {
+        _isSaved.postValue(false)
+
         viewModelScope.launch {
             try {
-                val newNote = createNoteUseCase()
-                saveNoteUseCase(newNote.copy(content =receivedText))
-                if (receivedTitle != "") renameNoteUseCase(newNote, receivedTitle)
+                insertNoteUseCase(receivedTitle, receivedText, "")
                 _isSaved.postValue(true)
-
             } catch (e: Exception) {
-                _message.postValue("Ошибка сохранения заметки: ${e.message}")
+                _message.postValue("Ошибка создания заметки: ${e.message}")
             }
         }
     }

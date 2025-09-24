@@ -12,5 +12,6 @@ interface NotesRepository {
     suspend fun renameNote(note: Note, newName: String): String
     suspend fun shareNoteFile(note: Note): Uri?
     suspend fun getAllNotes(notebooks: List<Notebook>): List<Note>
+    suspend fun existsNote(notebookPath: String, noteId: String): Boolean
     //suspend fun exportToZip(notes: List<Note>, notebooks: List<Notebook>, password: String?): Uri
 }

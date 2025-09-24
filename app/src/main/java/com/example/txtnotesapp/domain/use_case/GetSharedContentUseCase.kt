@@ -26,7 +26,17 @@ class GetSharedContentUseCase(
 
             intent.hasExtra(Intent.EXTRA_TEXT) -> {
                 val text = intent.getStringExtra(Intent.EXTRA_TEXT)!!
-                SharedContentResult.Success(SharedContent.TextContent(text.trim(' ', '\t', '\n', '\r', '"')))
+                SharedContentResult.Success(
+                    SharedContent.TextContent(
+                        text.trim(
+                            ' ',
+                            '\t',
+                            '\n',
+                            '\r',
+                            '"'
+                        )
+                    )
+                )
             }
 
             else -> SharedContentResult.Error("No content found in intent")
@@ -42,7 +52,7 @@ class GetSharedContentUseCase(
 
                     SharedContentResult.Success(
                         SharedContent.FileContent(
-                            name = fileName ?: "Без названия>",
+                            name = fileName?.removeSuffix(".txt") ?: "Без названия",
                             text = content
                         )
                     )

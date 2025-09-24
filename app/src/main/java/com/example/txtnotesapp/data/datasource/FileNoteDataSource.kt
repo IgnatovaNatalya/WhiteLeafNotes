@@ -42,8 +42,9 @@ class FileNoteDataSource(
     }
 
     // Проверка существования файла
-    fun noteExists(notebookPath: String, noteId: String): Boolean {
-        return getNoteFile(notebookPath, noteId).exists()
+    fun existsNote(notebookPath: String, noteId: String): Boolean {
+        val file = getNoteFile(notebookPath, noteId)
+        return file.exists()
     }
 
 

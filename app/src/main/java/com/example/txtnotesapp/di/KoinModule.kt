@@ -22,6 +22,7 @@ import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.GetSharedContentUseCase
+import com.example.txtnotesapp.domain.use_case.InsertNoteUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNotebookUseCase
@@ -74,6 +75,7 @@ val koinModule = module {
     factory { ExportAllNotesUseCase(get(), get(), get()) }
 
     factory { GetSharedContentUseCase(get()) }
+    factory { InsertNoteUseCase(get()) }
 
     // ViewModels
 
@@ -148,9 +150,7 @@ val koinModule = module {
     viewModel {
         ShareReceiverViewModel(
             getSharedContent = get(),
-            createNoteUseCase = get(),
-            renameNoteUseCase = get(),
-            saveNoteUseCase = get(),
+            insertNoteUseCase = get(),
         )
     }
 }

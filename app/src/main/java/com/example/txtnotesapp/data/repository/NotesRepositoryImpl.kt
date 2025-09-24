@@ -108,7 +108,7 @@ class NoteRepositoryImpl(
                 }
 
                 // Используем noteDataSource для проверки существования файла
-                if (noteDataSource.noteExists(note.notebookPath ?: "", newId)) {
+                if (noteDataSource.existsNote(note.notebookPath ?: "", newId)) {
                     throw IOException("Файл с таким именем уже существует")
                 }
 
@@ -162,6 +162,15 @@ class NoteRepositoryImpl(
             allNotes.addAll(getNotes(notebook.path))
         }
         return allNotes
+    }
+
+    override suspend fun existsNote(notebookPath: String, noteId: String): Boolean {
+        return try {
+            noteDataSource.existsNote(notebookPath, noteId)
+        } catch (e: Exception) {
+            // Если произошла ошибка считаем что заметки нет
+            false
+        }
     }
 
 
