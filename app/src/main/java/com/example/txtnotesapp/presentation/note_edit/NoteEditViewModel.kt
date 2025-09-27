@@ -31,6 +31,9 @@ class NoteEditViewModel(
     private val _noteFile = MutableLiveData<Uri?>()
     val noteFile: LiveData<Uri?> = _noteFile
 
+    private val _noteMoved = MutableLiveData<Boolean>()
+    val noteMoved: LiveData<Boolean> = _noteMoved
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
@@ -139,12 +142,14 @@ class NoteEditViewModel(
         viewModelScope.launch {
             try {
                 moveNoteUseCase(currentNote, notebookTitle)
+                _noteMoved.postValue(true)
             } catch (e: Exception) {
                 _message.postValue("Ошибка перемещения: ${e.message}")
                 _isSaved.postValue(false)
             }
         }
     }
+
 
     fun clearMessage() {
         _message.postValue(null)

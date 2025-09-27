@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
@@ -37,6 +38,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var isEditing = false
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
+    private var isMoved = false
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -72,6 +74,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
         viewModel.noteFile.observe(viewLifecycleOwner) { noteFile ->
             ShareHelper.shareFile(requireContext(), noteFile)
+        }
+
+        viewModel.noteMoved.observe(viewLifecycleOwner) {
+            isMoved = true
+            findNavController().navigateUp()
         }
 
         viewModel.message.observe(viewLifecycleOwner) { message ->
@@ -133,18 +140,25 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                     }
 
                     R.id.options_share_note -> {
-                        ShareHelper.shareNote(requireContext(), Note(
-                            id = titleEditText.text.toString(),
-                            title = titleEditText.text.toString(),
-                            content = contentEditText.text.toString(),
-                            modifiedAt = System.currentTimeMillis(),
-                            notebookPath = null,
-                        ))
+                        ShareHelper.shareNote(
+                            requireContext(), Note(
+                                id = titleEditText.text.toString(),
+                                title = titleEditText.text.toString(),
+                                content = contentEditText.text.toString(),
+                                modifiedAt = System.currentTimeMillis(),
+                                notebookPath = null,
+                            )
+                        )
                     }
+
                     R.id.options_share_note_file -> {
-                        viewModel.updateFullNote(titleEditText.text.toString(), contentEditText.text.toString())
+                        viewModel.updateFullNote(
+                            titleEditText.text.toString(),
+                            contentEditText.text.toString()
+                        )
                         viewModel.shareNoteFile()
                     }
+
                     R.id.options_delete_note -> {}
                 }
                 return false
@@ -154,11 +168,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     override fun onPause() {
-        //Toast.makeText(requireContext(),"Save note pause",Toast.LENGTH_SHORT).show()
-        viewModel.updateFullNote(
-            binding.noteTitle.text.toString(),
-            binding.noteText.text.toString()
-        )
+        if (!isMoved) {
+            //Toast.makeText(requireContext(), "Save note pause", Toast.LENGTH_SHORT).show()
+            viewModel.updateFullNote(
+                binding.noteTitle.text.toString(),
+                binding.noteText.text.toString()
+            )
+        }
         super.onPause()
     }
 
