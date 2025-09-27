@@ -12,12 +12,13 @@ import com.example.txtnotesapp.databinding.ActivityShareRecieverBinding
 import com.example.txtnotesapp.domain.model.SharedContent
 import com.example.txtnotesapp.domain.model.onError
 import com.example.txtnotesapp.domain.model.onSuccess
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.getValue
+import kotlin.time.ExperimentalTime
 
 class ShareReceiverActivity : AppCompatActivity() {
     private lateinit var binding: ActivityShareRecieverBinding
@@ -52,11 +53,12 @@ class ShareReceiverActivity : AppCompatActivity() {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun formatDate(timestamp: Long): String {
         val date = Instant.fromEpochMilliseconds(timestamp)
             .toLocalDateTime(TimeZone.currentSystemDefault())
 
-        return "${date.dayOfMonth} ${getMonthName(date.month)} ${date.year}"
+        return "${date.day} ${getMonthName(date.month)} ${date.year}"
     }
 
     private fun setupObservers() {

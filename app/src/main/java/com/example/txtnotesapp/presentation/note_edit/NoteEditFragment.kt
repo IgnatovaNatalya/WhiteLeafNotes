@@ -21,12 +21,13 @@ import com.example.txtnotesapp.common.utils.ShareHelper
 import com.example.txtnotesapp.common.utils.TextWatcherManager
 import com.example.txtnotesapp.databinding.FragmentNoteEditBinding
 import com.example.txtnotesapp.domain.model.Note
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.time.ExperimentalTime
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
@@ -178,11 +179,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun formatDate(timestamp: Long): String {
         val date = Instant.fromEpochMilliseconds(timestamp)
             .toLocalDateTime(TimeZone.currentSystemDefault())
 
-        return "${date.dayOfMonth} ${getMonthName(date.month)} ${date.year}"
+        return "${date.day} ${getMonthName(date.month)} ${date.year}"
     }
 
     private fun getMonthName(month: Month): String {
