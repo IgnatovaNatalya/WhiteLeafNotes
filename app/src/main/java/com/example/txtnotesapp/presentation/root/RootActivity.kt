@@ -61,7 +61,7 @@ class RootActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.startFragment -> supportActionBar?.hide()
 
-                R.id.noteListFragment, R.id.noteEditFragment -> {
+                R.id.noteListFragment -> {
                     supportActionBar?.show()
                     supportActionBar?.subtitle = "Записная книжка"
                 }
@@ -69,6 +69,11 @@ class RootActivity : AppCompatActivity() {
                 R.id.settingsFragment -> {
                     supportActionBar?.show()
                     supportActionBar?.subtitle = null
+                }
+                R.id.noteEditFragment -> {
+                    supportActionBar?.show()
+                    supportActionBar?.title = ""
+                    supportActionBar?.subtitle  = null
                 }
             }
         }

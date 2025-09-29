@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
@@ -51,7 +50,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
         titleEditText = binding.noteTitle
         contentEditText = binding.noteText
 
@@ -130,8 +128,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                     R.id.options_undo -> {}
                     R.id.options_redo -> {}
                     R.id.options_rename_note -> {
+                        Toast.makeText(requireContext(), "Переименовать", Toast.LENGTH_SHORT).show()
                         titleEditText.requestFocus()
-                        titleEditText.setSelectAllOnFocus(true)
                     }
 
                     R.id.options_move_note -> {

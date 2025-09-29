@@ -69,9 +69,9 @@
     </style>
 
     <style name="NoteEditTitle">
-        <item name="android:textSize">16sp</item>
-        <item name="android:lineSpacingMultiplier">1.15</item>
-        <item name="fontFamily">@font/nunito_semibold</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:lineSpacingMultiplier">0.9</item>
+        <item name="fontFamily">@font/nunito_bold</item>
     </style>
 
     <style name="NoteEditDate">
