@@ -120,6 +120,7 @@ val koinModule = module {
     viewModel { (noteId: String?, notebookPath: String?) ->
         NoteEditViewModel(
             getNoteUseCase = get(),
+            deleteNoteUseCase = get(),
             renameNoteUseCase = get(),
             moveNoteUseCase = get(),
             saveNoteUseCase = get(),

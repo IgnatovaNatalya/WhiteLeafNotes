@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
+import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
+    private val deleteNoteUseCase: DeleteNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val saveNoteUseCase: SaveNoteUseCase,
@@ -145,11 +147,23 @@ class NoteEditViewModel(
                 _noteMoved.postValue(true)
             } catch (e: Exception) {
                 _message.postValue("Ошибка перемещения: ${e.message}")
-                _isSaved.postValue(false)
+            }
+        }
+
+    }
+
+    fun deleteNote() {
+        val currentNote = _note.value ?: return
+
+        viewModelScope.launch {
+            try {
+                deleteNoteUseCase(currentNote)
+                _noteMoved.postValue(true)
+            } catch (e: Exception) {
+                _message.postValue("Ошибка удаления: ${e.message}")
             }
         }
     }
-
 
     fun clearMessage() {
         _message.postValue(null)

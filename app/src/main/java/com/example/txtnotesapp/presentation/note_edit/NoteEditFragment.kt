@@ -36,9 +36,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private val args: NoteEditFragmentArgs by navArgs()
     private var isEditing = false
+    private var isMoved = false
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
-    private var isMoved = false
+
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -125,10 +126,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 when (menuItem.itemId) {
                     android.R.id.home -> {}
-                    R.id.options_undo -> {}
-                    R.id.options_redo -> {}
+
+                    //todo сделать истонию действий для отмены
+                    //R.id.options_undo -> {}
+                    //R.id.options_redo -> {}
+
                     R.id.options_rename_note -> {
-                        Toast.makeText(requireContext(), "Переименовать", Toast.LENGTH_SHORT).show()
                         titleEditText.requestFocus()
                     }
 
@@ -158,7 +161,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                         viewModel.shareNoteFile()
                     }
 
-                    R.id.options_delete_note -> {}
+                    R.id.options_delete_note -> {
+                        DialogHelper.createDeleteNoteConfirmationDialog(
+                            requireContext(),
+                            titleEditText.text.toString()
+                        )
+                        { viewModel.deleteNote() }.show()
+                    }
                 }
                 return false
             }
