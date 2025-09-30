@@ -10,10 +10,12 @@ import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNotebookByPathUseCase
+import com.example.txtnotesapp.domain.use_case.ShareNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNotebookByPathUseCase
+import com.example.txtnotesapp.presentation.settings.ExportState
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -24,6 +26,7 @@ class NoteListViewModel(
     private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
     private val renameNotebookUseCase: RenameNotebookByPathUseCase,
+    private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val preferences: SharedPreferences,
     private val notebookPath: String?
@@ -31,6 +34,9 @@ class NoteListViewModel(
 
     private val _notes = MutableLiveData<List<Note>>()
     val notes: LiveData<List<Note>> = _notes
+
+    private val _shareNotebookState = MutableLiveData<ExportState>()
+    val shareNotebookState: LiveData<ExportState> = _shareNotebookState
 
     private val _notebookRenamed = MutableLiveData<String>()
     val notebookRenamed: LiveData<String> = _notebookRenamed
@@ -138,6 +144,24 @@ class NoteListViewModel(
         }
     }
 
+    fun shareNotebook() {
+        _shareNotebookState.postValue(ExportState.Loading)
+
+        viewModelScope.launch {
+            if (notebookPath != null)
+                try {
+                    val result = shareNotebookUseCase(notebookPath)
+                    if (result.isSuccess)
+                        _shareNotebookState.postValue(ExportState.Success(result.getOrNull()))
+                     else
+                        _shareNotebookState.postValue(ExportState.Error(result.exceptionOrNull()?.message ?: "Unknown error"))
+
+                } catch (e: Exception) {
+                    _message.postValue("Ошибка передачи файла записной книжки: ${e.message}")
+                }
+        }
+    }
+
     fun deleteNotebook() {
         viewModelScope.launch {
             try {
@@ -145,8 +169,7 @@ class NoteListViewModel(
                     deleteNotebookUseCase(notebookPath)
                     _notebookDeleted.postValue(true)
                     _message.postValue("Записная книжка удалена")
-                }
-                else _message.postValue("Ошибка удаления записной книжки: путь не задан")
+                } else _message.postValue("Ошибка удаления записной книжки: путь не задан")
             } catch (e: Exception) {
                 _message.postValue("Ошибка удаления записной книжки: ${e.message}")
             }

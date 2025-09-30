@@ -13,7 +13,7 @@ object FileUtils {
 
     fun sanitizeFileName(input: String, replacement: Char = '_'): String {
         //var cleaned = input.replace(Regex("[^a-zA-Z0-9_\\- .]"), "")
-        var cleaned = input.replace(Regex("""[/\\:*?"<>|.]"""), "")
+        var cleaned = input.replace(Regex("""[/\\:*?"<>|]"""), "")
 
         //cleaned = Normalizer.normalize(cleaned, Normalizer.Form.NFD)
         //    .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")

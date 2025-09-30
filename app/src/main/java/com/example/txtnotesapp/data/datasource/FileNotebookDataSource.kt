@@ -77,7 +77,7 @@ class FileNotebookDataSource(private val context: Context) {
 
             val newDir = File(oldDir.parentFile, newName)
 
-            if (newDir.exists())   return false
+            if (newDir.exists()) return false
 
             oldDir.renameTo(newDir)
 
@@ -107,6 +107,7 @@ class FileNotebookDataSource(private val context: Context) {
             notebookDir.lastModified()
         }
     }
+
     fun createBackup(notebookDir: File): File? {
         return try {
             val backupDir = File(context.cacheDir, "backups").apply { mkdirs() }

@@ -1,5 +1,7 @@
 package com.example.txtnotesapp.presentation.note_list
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -22,6 +24,7 @@ import com.example.txtnotesapp.common.utils.DialogHelper
 import com.example.txtnotesapp.common.utils.ShareHelper
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
 import com.example.txtnotesapp.domain.model.Note
+import com.example.txtnotesapp.presentation.settings.ExportState
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
@@ -86,6 +89,32 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             findNavController().navigateUp()
         }
 
+        viewModel.shareNotebookState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is ExportState.Idle -> {
+                    hideProgress()
+                }
+
+                is ExportState.Loading -> {
+                    showProgress()
+                    Toast.makeText(requireContext(), "Создание архива...", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+                is ExportState.Success -> {
+                    hideProgress()
+                    Toast.makeText(requireContext(), "Архив создан успешно", Toast.LENGTH_SHORT)
+                        .show()
+                    shareExportFile(state.fileUri)
+                }
+
+                is ExportState.Error -> {
+                    hideProgress()
+                    Toast.makeText(requireContext(), "Ошибка экспорта", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
@@ -131,7 +160,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                         { newName -> viewModel.renameNotebook(newName) }.show()
                     }
 
-                    R.id.options_share_notebook -> {}
+                    R.id.options_share_notebook -> {
+                        viewModel.shareNotebook()
+                    }
 
                     R.id.options_delete_notebook -> {
                         DialogHelper.createDeleteNotebookDialog(
@@ -145,6 +176,23 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             }
         }
         requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun showProgress() {
+        binding.noteListProgressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideProgress() {
+        binding.noteListProgressBar.visibility = View.GONE
+    }
+
+    private fun shareExportFile(uri: Uri?) {
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, uri)
+            type = "application/zip"
+        }
+        startActivity(Intent.createChooser(shareIntent, "Поделиться архивом"))
     }
 
     override fun onRenameNote(note: Note) {
