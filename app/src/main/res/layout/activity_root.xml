@@ -25,6 +25,7 @@
             app:subtitle="Записная книжка"
             app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
             app:title="Белый лист"
+            app:popupTheme="@style/PopupMenu"
             app:titleTextAppearance="@style/toolbarTitleStyle" />
 
         <androidx.fragment.app.FragmentContainerView

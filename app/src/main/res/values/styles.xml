@@ -86,6 +86,11 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
+    <style name="PopupTheme" parent="ThemeOverlay.MaterialComponents.Light">
+        <item name="android:background">?attr/colorContainer</item>
+        <item name="android:textColor">?attr/android:textColorPrimary</item>
+    </style>
+
     <style name="PopupMenu" parent="ThemeOverlay.AppCompat.Light">
         <item name="android:popupBackground">?attr/colorContainer</item>
         <item name="android:textColor">?attr/android:textColorPrimary</item>
@@ -98,6 +103,11 @@
         <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">@font/nunito_medium</item>
         <item name="android:background">@drawable/popup_menu_item_background</item>
+    </style>
+
+    <style name="MyActionBarStyle" parent="Widget.AppCompat.Light.ActionBar.Solid">
+        <item name="titleTextStyle">@style/NoteEditText</item>
+        <item name="popupTheme">@style/PopupTheme</item>
     </style>
 
 </resources>
