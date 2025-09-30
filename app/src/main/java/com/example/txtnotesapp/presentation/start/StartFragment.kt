@@ -132,11 +132,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     override fun onRenameNotebook(notebook: Notebook) {
         DialogHelper.createRenameNotebookDialog(requireContext(), notebook.name) { newName ->
             viewModel.renameNotebook(notebook, newName)
-        }
-            .show()
+        }.show()
     }
-
-
 
     override fun onMoveNote(note: Note) {
         val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
@@ -155,7 +152,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
-    override fun onShareNotebook(notebook: Notebook) = ShareHelper.shareNotebook(requireContext(), notebook)
+    override fun onShareNotebook(notebook: Notebook) =
+        ShareHelper.shareNotebook(requireContext(), notebook)
 
     override fun onResume() {
         super.onResume()

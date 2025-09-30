@@ -113,7 +113,6 @@ class NotebookRepositoryImpl(
                         path = path,
                         createdAt = notebookDir.lastModified(),
                         noteCount = notebookDataSource.getNoteCount(notebookDir),
-                        //modifiedAt = notebookDataSource.getLastModifiedDate(notebookDir)
                     )
                 } else {
                     null

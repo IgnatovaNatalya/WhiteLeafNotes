@@ -30,6 +30,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
+    private var notebookTitle = ""
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -47,6 +48,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         super.onViewCreated(view, savedInstanceState)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
+        notebookTitle = args.notebookPath.toString()
 
         setupOptionsMenu()
         setupObservers()
@@ -56,27 +58,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun setupObservers() {
 
-        viewModel.message.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                viewModel.clearMessage()
-            }
-        }
-
         viewModel.notes.observe(viewLifecycleOwner) { notes ->
             toggleEmptyState(notes.isEmpty())
             (binding.recyclerView.adapter as NoteAdapter).submitList(notes)
-        }
-
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        }
-
-        viewModel.message.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                viewModel.clearMessage()
-            }
         }
 
         viewModel.navigateToNote.observe(viewLifecycleOwner) { noteId ->
@@ -90,6 +74,26 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             noteId?.let {
                 navigateToNoteCreated(noteId)
                 viewModel.onNoteCreatedNavigated()
+            }
+        }
+
+        viewModel.notebookRenamed.observe(viewLifecycleOwner) { path ->
+            val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
+            findNavController().navigate(action)
+        }
+
+        viewModel.notebookDeleted.observe(viewLifecycleOwner) {
+            findNavController().navigateUp()
+        }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.message.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+                viewModel.clearMessage()
             }
         }
     }
@@ -117,11 +121,25 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 when (menuItem.itemId) {
                     android.R.id.home -> {}
-                    R.id.options_search -> {}
+
+                    //R.id.options_search -> {} //todo
+
                     R.id.options_create_note -> viewModel.createNewNote()
-                    R.id.options_rename_notebook -> {}
+
+                    R.id.options_rename_notebook -> {
+                        DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
+                        { newName -> viewModel.renameNotebook(newName) }.show()
+                    }
+
                     R.id.options_share_notebook -> {}
-                    R.id.options_delete_notebook -> {}
+
+                    R.id.options_delete_notebook -> {
+                        DialogHelper.createDeleteNotebookDialog(
+                            context = requireContext(),
+                            notebookTitle = notebookTitle,
+                            onDeleteConfirmed = { viewModel.deleteNotebook() }
+                        ).show()
+                    }
                 }
                 return false
             }

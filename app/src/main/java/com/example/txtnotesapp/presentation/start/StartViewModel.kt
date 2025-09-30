@@ -67,7 +67,10 @@ class StartViewModel(
         }
     }
 
-    private fun buildStartItems(notebooks: List<Notebook>, rootNotes: List<Note>): List<StartListItem> {
+    private fun buildStartItems(
+        notebooks: List<Notebook>,
+        rootNotes: List<Note>
+    ): List<StartListItem> {
         val items = mutableListOf<StartListItem>()
 
         // Секция записных книжек
@@ -181,16 +184,16 @@ class StartViewModel(
                 deleteNotebookUseCase(notebook)
                 loadData()
             } catch (e: Exception) {
-                _message.postValue("Ошибка удаления заметки: ${e.message}")
+                _message.postValue("Ошибка удаления записной книжки: ${e.message}")
             }
         }
     }
 
-    fun onNoteNavigated() = _navigateToCreatedNote.postValue( null)
-    
-    fun onNotebookNavigated() = _navigateToCreatedNotebook.postValue( null)
-    
-    fun clearMessage() =_message.postValue( null)
+    fun onNoteNavigated() = _navigateToCreatedNote.postValue(null)
+
+    fun onNotebookNavigated() = _navigateToCreatedNotebook.postValue(null)
+
+    fun clearMessage() = _message.postValue(null)
 
     fun reloadNotes() = loadData()
 

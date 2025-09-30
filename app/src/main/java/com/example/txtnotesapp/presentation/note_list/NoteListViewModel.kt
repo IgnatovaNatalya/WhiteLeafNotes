@@ -9,9 +9,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
+import com.example.txtnotesapp.domain.use_case.DeleteNotebookByPathUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
+import com.example.txtnotesapp.domain.use_case.RenameNotebookByPathUseCase
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -21,12 +23,20 @@ class NoteListViewModel(
     private val createNoteUseCase: CreateNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
+    private val renameNotebookUseCase: RenameNotebookByPathUseCase,
+    private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val preferences: SharedPreferences,
     private val notebookPath: String?
 ) : ViewModel() {
 
     private val _notes = MutableLiveData<List<Note>>()
     val notes: LiveData<List<Note>> = _notes
+
+    private val _notebookRenamed = MutableLiveData<String>()
+    val notebookRenamed: LiveData<String> = _notebookRenamed
+
+    private val _notebookDeleted = MutableLiveData<Boolean>()
+    val notebookDeleted: LiveData<Boolean> = _notebookDeleted
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -110,6 +120,35 @@ class NoteListViewModel(
                 }
             } catch (e: Exception) {
                 _message.postValue("Ошибка переименования: ${e.message}")
+            }
+        }
+    }
+
+    fun renameNotebook(newName: String) {
+        viewModelScope.launch {
+            try {
+                if (newName != notebookPath && notebookPath != null) {
+                    renameNotebookUseCase(notebookPath, newName)
+                    _message.postValue("Название записной книжки изменено")
+                    _notebookRenamed.postValue(newName)
+                } else _message.postValue("Ошибка переименования")
+            } catch (e: Exception) {
+                _message.postValue("Ошибка переименования: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteNotebook() {
+        viewModelScope.launch {
+            try {
+                if (notebookPath != null) {
+                    deleteNotebookUseCase(notebookPath)
+                    _notebookDeleted.postValue(true)
+                    _message.postValue("Записная книжка удалена")
+                }
+                else _message.postValue("Ошибка удаления записной книжки: путь не задан")
+            } catch (e: Exception) {
+                _message.postValue("Ошибка удаления записной книжки: ${e.message}")
             }
         }
     }
