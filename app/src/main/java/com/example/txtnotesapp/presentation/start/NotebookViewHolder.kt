@@ -31,7 +31,7 @@ class NotebookViewHolder(
     }
 
     private fun showContextMenu(anchorView: View, notebook: Notebook) {
-        ContextMenuHelper.showContextMenu(
+        ContextMenuHelper.showPopupMenu(
             context = anchorView.context,
             anchorView = anchorView,
             items = ContextMenuHelper.getNotebookContextMenuItems(anchorView.context),

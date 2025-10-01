@@ -1,20 +1,22 @@
 package com.example.txtnotesapp.presentation.note_edit
 
+import android.app.Activity
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
-import androidx.core.view.MenuProvider
-import androidx.lifecycle.Lifecycle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
+import com.example.txtnotesapp.common.utils.ContextMenuHelper
 import com.example.txtnotesapp.common.utils.DialogHelper
 import com.example.txtnotesapp.common.utils.ShareHelper
 import com.example.txtnotesapp.common.utils.TextWatcherManager
@@ -40,7 +42,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
 
-
     override fun createBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -64,7 +65,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             binding.noteTitle.setText(note.title)
             binding.noteDate.text = formatDate(note.modifiedAt)
 
-            // Устанавливаем текст только если он отличается от текущего
             if (binding.noteText.text.toString() != note.content) {
                 isEditing = false
                 binding.noteText.setText(note.content)
@@ -118,61 +118,65 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun setupOptionsMenu() {
-        val menuProvider = object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.menu_edit, menu)
-            }
+        val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                when (menuItem.itemId) {
-                    android.R.id.home -> {}
-
-                    //todo сделать истонию действий для отмены
-                    //R.id.options_undo -> {}
-                    //R.id.options_redo -> {}
-
-                    R.id.options_rename_note -> {
-                        titleEditText.requestFocus()
-                    }
-
-                    R.id.options_move_note -> {
-                        DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
-                            viewModel.moveNote(newNotebookName)
-                        }.show()
-                    }
-
-                    R.id.options_share_note -> {
-                        ShareHelper.shareNote(
-                            requireContext(), Note(
-                                id = titleEditText.text.toString(),
-                                title = titleEditText.text.toString(),
-                                content = contentEditText.text.toString(),
-                                modifiedAt = System.currentTimeMillis(),
-                                notebookPath = null,
-                            )
-                        )
-                    }
-
-                    R.id.options_share_note_file -> {
-                        viewModel.updateFullNote(
-                            titleEditText.text.toString(),
-                            contentEditText.text.toString()
-                        )
-                        viewModel.shareNoteFile()
-                    }
-
-                    R.id.options_delete_note -> {
-                        DialogHelper.createDeleteNoteConfirmationDialog(
-                            requireContext(),
-                            titleEditText.text.toString()
-                        )
-                        { viewModel.deleteNote() }.show()
+        optionsButton?.setOnClickListener {
+            ContextMenuHelper.showPopupMenu(
+                context = requireContext(),
+                anchorView = optionsButton,
+                items = ContextMenuHelper.getOptionsMenuItemsNoteEdit(optionsButton.context),
+                onItemSelected = { itemId ->
+                    when (itemId) {
+                        R.id.options_rename_note -> onOptionsRenameNote()
+                        R.id.options_move_note -> onOptionsMoveNote()
+                        R.id.options_share_note -> onOptionsShareNote()
+                        R.id.options_share_note_file -> onOptionsShareNoteFile()
+                        R.id.options_delete_note -> onOptionsDeleteNote()
                     }
                 }
-                return false
-            }
+            )
         }
-        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun onOptionsRenameNote() {
+        titleEditText.requestFocus()
+
+        (requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
+            .showSoftInput(titleEditText, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun onOptionsMoveNote() {
+        DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+            viewModel.moveNote(newNotebookName)
+        }.show()
+    }
+
+    private fun onOptionsShareNote() {
+        ShareHelper.shareNote(
+            requireContext(), Note(
+                id = titleEditText.text.toString(),
+                title = titleEditText.text.toString(),
+                content = contentEditText.text.toString(),
+                modifiedAt = System.currentTimeMillis(),
+                notebookPath = null,
+            )
+        )
+    }
+
+    private fun onOptionsShareNoteFile() {
+        viewModel.updateFullNote(
+            titleEditText.text.toString(),
+            contentEditText.text.toString()
+        )
+        viewModel.shareNoteFile()
+    }
+
+    private fun onOptionsDeleteNote() {
+        DialogHelper.createDeleteNoteConfirmationDialog(
+            requireContext(),
+            titleEditText.text.toString()
+        )
+        { viewModel.deleteNote() }.show()
     }
 
     override fun onPause() {

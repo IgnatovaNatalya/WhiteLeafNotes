@@ -13,7 +13,7 @@ import com.example.txtnotesapp.domain.model.ContextMenuItem
 
 object ContextMenuHelper {
 
-    fun showContextMenu(
+    fun showPopupMenu(
         context: Context,
         anchorView: View,
         items: List<ContextMenuItem>,
@@ -25,11 +25,10 @@ object ContextMenuHelper {
 
             this.anchorView = anchorView
             setDropDownGravity(Gravity.START)
-            width = 140.dpToPx(context)
+            width = 170.dpToPx(context)
             setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.popup_background))
-            verticalOffset = -anchorView.height
-            horizontalOffset = 16.dpToPx(context)
-
+            verticalOffset = -anchorView.height/2
+            horizontalOffset = 1.dpToPx(context)
 
             setOnItemClickListener { parent, view, position, id ->
                 val item = items[position]
@@ -40,7 +39,28 @@ object ContextMenuHelper {
         listPopupWindow.show()
     }
 
-    // Стандартные пункты меню для заметок
+    // Пункты меню опций при просмотре записной книжки
+    fun getOptionsMenuItemsNoteList(context: Context): List<ContextMenuItem> {
+        return listOf(
+            createMenuItem(context, R.id.options_create_note),
+            createMenuItem(context, R.id.options_rename_notebook),
+            createMenuItem(context, R.id.options_share_notebook),
+            createMenuItem(context, R.id.options_delete_notebook)
+        )
+    }
+
+    // Пункты меню опций при просмотре записной книжки
+    fun getOptionsMenuItemsNoteEdit(context: Context): List<ContextMenuItem> {
+        return listOf(
+            createMenuItem(context, R.id.options_rename_note),
+            createMenuItem(context, R.id.options_move_note),
+            createMenuItem(context, R.id.options_share_note),
+            createMenuItem(context, R.id.options_share_note_file),
+            createMenuItem(context, R.id.options_delete_note)
+        )
+    }
+
+    // Пункты контекстного меню для заметок
     fun getNoteContextMenuItems(context: Context): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.note_menu_rename),
@@ -50,7 +70,9 @@ object ContextMenuHelper {
         )
     }
 
-    // Ппункты меню для записных книжек
+
+
+    // Пункты контекстного меню для записных книжек
     fun getNotebookContextMenuItems(context: Context): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.note_menu_rename),
@@ -61,7 +83,7 @@ object ContextMenuHelper {
     @SuppressLint("RestrictedApi")
     private fun createMenuItem(context: Context, menuItemId: Int): ContextMenuItem {
         val menu = MenuBuilder(context)
-        MenuInflater(context).inflate(R.menu.context_note_menu, menu)
+        MenuInflater(context).inflate(R.menu.menu_items, menu)
         val item = menu.findItem(menuItemId)
 
         return ContextMenuItem(

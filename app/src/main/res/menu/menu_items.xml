@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/note_menu_rename"
+        android:title="@string/rename"/>
+
+    <item
+        android:id="@+id/note_menu_move"
+        android:title="@string/move" />
+
+    <item
+        android:id="@+id/note_menu_share"
+        android:title="@string/share"/>
+
+    <item
+        android:id="@+id/note_menu_delete"
+        android:title="@string/delete" />
+
+    <item android:id="@+id/options_create_note"
+        android:title="@string/create_note" />
+
+    <item android:id="@+id/options_rename_notebook"
+        android:title="@string/rename"/>
+
+    <item android:id="@+id/options_share_notebook"
+        android:title="@string/share" />
+
+    <item android:id="@+id/options_delete_notebook"
+        android:title="@string/delete" />
+
+    <item android:id="@+id/options_rename_note"
+        android:title="@string/rename" />
+
+    <item android:id="@+id/options_move_note"
+        android:title="@string/move" />
+
+    <item android:id="@+id/options_share_note"
+        android:title="@string/share" />
+
+    <item android:id="@+id/options_share_note_file"
+        android:title="@string/share_file" />
+
+    <item android:id="@+id/options_delete_note"
+        android:title="@string/delete" />
+</menu>

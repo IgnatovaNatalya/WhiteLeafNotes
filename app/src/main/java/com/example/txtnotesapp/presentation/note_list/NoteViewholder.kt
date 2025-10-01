@@ -29,7 +29,7 @@ class NoteViewHolder(
     }
 
     private fun showContextMenu(anchorView: View, note: Note) {
-        ContextMenuHelper.showContextMenu(
+        ContextMenuHelper.showPopupMenu(
             context = anchorView.context,
             anchorView = anchorView,
             items = ContextMenuHelper.getNoteContextMenuItems(anchorView.context),

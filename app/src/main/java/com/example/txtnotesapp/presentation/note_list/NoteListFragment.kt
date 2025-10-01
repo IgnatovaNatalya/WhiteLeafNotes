@@ -4,15 +4,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.MenuProvider
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -20,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.common.classes.BindingFragment
 import com.example.txtnotesapp.common.interfaces.ContextNoteActionHandler
+import com.example.txtnotesapp.common.utils.ContextMenuHelper
 import com.example.txtnotesapp.common.utils.DialogHelper
 import com.example.txtnotesapp.common.utils.ShareHelper
 import com.example.txtnotesapp.databinding.FragmentNoteListBinding
@@ -42,9 +39,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         return FragmentNoteListBinding.inflate(inflater, container, false)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) { ///?
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true) // Важно: разрешаем фрагменту работать с меню
+        //setHasOptionsMenu(true) // Важно: разрешаем фрагменту работать с меню
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -142,49 +139,69 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun setupOptionsMenu() {
-        val menuProvider = object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.menu_notelist, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                when (menuItem.itemId) {
-                    android.R.id.home -> {}
-
-                    //R.id.options_search -> {} //todo
-
-                    R.id.options_create_note -> viewModel.createNewNote()
-
-                    R.id.options_rename_notebook -> {
-                        DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
-                        { newName -> viewModel.renameNotebook(newName) }.show()
-                    }
-
-                    R.id.options_share_notebook -> {
-                        viewModel.shareNotebook()
-                    }
-
-                    R.id.options_delete_notebook -> {
-                        DialogHelper.createDeleteNotebookDialog(
-                            context = requireContext(),
-                            notebookTitle = notebookTitle,
-                            onDeleteConfirmed = { viewModel.deleteNotebook() }
-                        ).show()
+        val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
+        optionsButton?.setOnClickListener {// showOptionsMenu(optionsButton)
+            ContextMenuHelper.showPopupMenu(
+                context = requireContext(),
+                anchorView = optionsButton,
+                items = ContextMenuHelper.getOptionsMenuItemsNoteList(optionsButton.context),
+                onItemSelected = { itemId ->
+                    when (itemId) {
+                        R.id.options_create_note -> onOptionsCreateNote()
+                        R.id.options_rename_notebook -> onOptionsRenameNotebook()
+                        R.id.options_share_notebook -> onOptionsShareNotebook()
+                        R.id.options_delete_notebook -> onOptionsDeleteNotebook()
                     }
                 }
-                return false
-            }
+            )
         }
-        requireActivity().addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
-    private fun showProgress() {
-        binding.noteListProgressBar.visibility = View.VISIBLE
+    private fun setupFab() {
+        binding.createNote.setOnClickListener {
+            viewModel.createNewNote()
+        }
     }
 
-    private fun hideProgress() {
-        binding.noteListProgressBar.visibility = View.GONE
+    private fun onOptionsCreateNote() = viewModel.createNewNote()
+
+    private fun onOptionsRenameNotebook() {
+        DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
+        { newName -> viewModel.renameNotebook(newName) }.show()
     }
+
+    private fun onOptionsShareNotebook() = viewModel.shareNotebook()
+
+    private fun onOptionsDeleteNotebook() {
+        DialogHelper.createDeleteNotebookDialog(
+            context = requireContext(),
+            notebookTitle = notebookTitle,
+            onDeleteConfirmed = { viewModel.deleteNotebook() }
+        ).show()
+    }
+
+    override fun onRenameNote(note: Note) {
+        DialogHelper.createRenameNoteDialog(
+            requireContext(),
+            note.title
+        ) { newTitle -> viewModel.updateNoteTitle(note, newTitle) }.show()
+    }
+
+    override fun onMoveNote(note: Note) {
+        DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+            viewModel.moveNote(note, newNotebookName)
+        }.show()
+    }
+
+    override fun onDeleteNote(note: Note) {
+        DialogHelper.createDeleteNoteConfirmationDialog(
+            context = requireContext(),
+            noteTitle = note.title,
+            onDeleteConfirmed = { viewModel.deleteNote(note) }
+        ).show()
+    }
+
+    override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
 
     private fun shareExportFile(uri: Uri?) {
         val shareIntent = Intent().apply {
@@ -193,37 +210,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             type = "application/zip"
         }
         startActivity(Intent.createChooser(shareIntent, "Поделиться архивом"))
-    }
-
-    override fun onRenameNote(note: Note) {
-        DialogHelper.createRenameNoteDialog(
-            requireContext(), note.title,
-            { newTitle -> viewModel.updateNoteTitle(note, newTitle) })
-            .show()
-    }
-
-    override fun onMoveNote(note: Note) {
-        val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
-            viewModel.moveNote(note, newNotebookName)
-        }
-        dialog.show()
-    }
-
-    override fun onDeleteNote(note: Note) {
-        val dialog = DialogHelper.createDeleteNoteConfirmationDialog(
-            context = requireContext(),
-            noteTitle = note.title,
-            onDeleteConfirmed = { viewModel.deleteNote(note) }
-        )
-        dialog.show()
-    }
-
-    override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
-
-    private fun setupFab() {
-        binding.createNote.setOnClickListener {
-            viewModel.createNewNote()
-        }
     }
 
     private fun navigateToNoteEdit(noteId: String) {
@@ -240,6 +226,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             notebookPath = args.notebookPath
         )
         findNavController().navigate(action)
+    }
+
+    private fun showProgress() {
+        binding.noteListProgressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideProgress() {
+        binding.noteListProgressBar.visibility = View.GONE
     }
 
     private fun toggleEmptyState(isEmpty: Boolean) {

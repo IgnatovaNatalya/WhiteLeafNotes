@@ -79,7 +79,9 @@ class RootActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupToolbar() = setSupportActionBar(binding.toolbar)
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+    }
 
     private fun setupNavigation() {
         val navHostFragment = supportFragmentManager
@@ -198,5 +200,4 @@ class RootActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
-
 }

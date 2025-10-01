@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import android.widget.ImageView
 import android.widget.TextView
 import com.example.txtnotesapp.R
 import com.example.txtnotesapp.domain.model.ContextMenuItem
@@ -26,22 +25,22 @@ class ContextMenuAdapter(
         val item = getItem(position)
 
         val itemTitleTextView = view.findViewById<TextView>(R.id.context_item_title)
-        val itemIconImageView = view.findViewById<ImageView>(R.id.context_item_icon)
+        //val itemIconImageView = view.findViewById<ImageView>(R.id.context_item_icon)
 
         // Установка заголовка
         itemTitleTextView.text = item.title
 
         // Установка иконки (если есть)
-        if (item.iconRes != null) {
-            itemIconImageView.setImageResource(item.iconRes)
-            itemIconImageView.visibility = View.VISIBLE
-        } else {
-            itemIconImageView.visibility = View.GONE
-        }
+//        if (item.iconRes != null) {
+//            itemIconImageView.setImageResource(item.iconRes)
+//            itemIconImageView.visibility = View.VISIBLE
+//        } else {
+//            itemIconImageView.visibility = View.GONE
+//        }
 
         // Настройка состояния (включено/выключено)
         itemTitleTextView.isEnabled = item.isEnabled
-        itemIconImageView.isEnabled = item.isEnabled
+        //itemIconImageView.isEnabled = item.isEnabled
         view.isEnabled = item.isEnabled
 
         return view
