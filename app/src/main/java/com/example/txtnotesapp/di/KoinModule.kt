@@ -34,7 +34,6 @@ import com.example.txtnotesapp.domain.use_case.ShareNoteFileUseCase
 import com.example.txtnotesapp.domain.use_case.ShareNotebookUseCase
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
 import com.example.txtnotesapp.presentation.note_list.NoteListViewModel
-import com.example.txtnotesapp.presentation.notebooks.NotebooksViewModel
 import com.example.txtnotesapp.presentation.root.DrawerMenuViewModel
 import com.example.txtnotesapp.presentation.settings.SettingsViewModel
 import com.example.txtnotesapp.presentation.shareReceive.ShareReceiverViewModel
@@ -137,15 +136,6 @@ val koinModule = module {
             createNoteUseCase = get(),
             noteId = noteId,
             notebookPath = notebookPath
-        )
-    }
-
-    viewModel {
-        NotebooksViewModel(
-            getNotebooks = get(),
-            createNotebook = get(),
-            deleteNotebook = get(),
-            renameNotebook = get()
         )
     }
 
