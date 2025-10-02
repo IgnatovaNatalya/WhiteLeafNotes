@@ -24,13 +24,10 @@
 
         <item name="android:textColorPrimary">@color/text_primary_light</item>
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
+        <item name="colorControlNormal">@color/text_primary_light</item>
 
         <!-- Устанавливаем фон окна через windowBackground -->
         <item name="android:windowBackground">@color/white</item>
-        <!--item name="android:windowBackground">@color/background_light</item-->
-
-        <!-- Дополнительные атрибуты -->
-        <item name="cardViewStyle">@style/CardView.WhiteList</item>
 
         <!-- Стиль для текста -->
         <item name="textAppearanceBodyLarge">@style/TextAppearance.WhiteList.BodyLarge</item>
@@ -40,13 +37,6 @@
 
     <!-- Финальная тема -->
     <style name="Theme.WhiteList" parent="Base.Theme.WhiteList" />
-
-    <!-- Стиль для CardView -->
-    <style name="CardView.WhiteList" parent="CardView">
-        <item name="cardBackgroundColor">@color/white</item>
-        <item name="cardElevation">2dp</item>
-        <item name="cardCornerRadius">12dp</item>
-    </style>
 
     <!-- Текстовые стили -->
     <style name="TextAppearance.WhiteList.BodyLarge" parent="TextAppearance.Material3.BodyLarge">

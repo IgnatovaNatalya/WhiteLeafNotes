@@ -189,7 +189,7 @@
                     android:layout_gravity="center"
                     android:background="@drawable/bg_button_round"
                     android:padding="0dp"
-                    android:text="@string/select_import_folder"
+                    android:text="@string/select_import_zip_archive"
                     android:textColor="?attr/colorOnPrimaryContainer" />
             </LinearLayout>
 

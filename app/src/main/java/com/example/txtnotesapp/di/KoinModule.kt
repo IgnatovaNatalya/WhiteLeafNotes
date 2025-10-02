@@ -27,6 +27,7 @@ import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNoteUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNotebookByPathUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNotebookByPathUseCase
+import com.example.txtnotesapp.domain.use_case.ImportZipNotesUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
 import com.example.txtnotesapp.domain.use_case.SaveExportDirectoryUseCase
@@ -78,9 +79,11 @@ val koinModule = module {
     factory { GetExportDirectoryUseCase(get()) }
     factory { SaveExportDirectoryUseCase(get()) }
     factory { ExportAllNotesUseCase(get(), get(), get()) }
+    factory { ImportZipNotesUseCase(get(), get(), get()) }
 
     factory { GetSharedContentUseCase(get()) }
     factory { InsertNoteUseCase(get()) }
+
 
     // ViewModels
 
@@ -143,7 +146,8 @@ val koinModule = module {
         SettingsViewModel(
             getExportDirectoryUseCase = get(),
             saveExportDirectoryUseCase = get(),
-            exportNotesUseCase = get()
+            exportNotesUseCase = get(),
+            importNotesUseCase = get()
         )
     }
 

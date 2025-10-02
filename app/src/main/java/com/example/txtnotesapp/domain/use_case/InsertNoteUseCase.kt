@@ -1,6 +1,6 @@
 package com.example.txtnotesapp.domain.use_case
 
-import com.example.txtnotesapp.common.AppConstants.FILE_NAME_PREFIX
+import com.example.txtnotesapp.common.utils.FileUtils.generateNoteId
 import com.example.txtnotesapp.common.utils.FileUtils.sanitizeFileName
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.repository.NotesRepository
@@ -11,9 +11,9 @@ class InsertNoteUseCase(private val repository: NotesRepository) {
         noteContent: String,
         notebookPath: String
     ): Note {
-        val timestamp = System.currentTimeMillis()
+
         val baseId =
-            sanitizeFileName(noteTitle?.takeIf { it.isNotBlank() } ?: "$FILE_NAME_PREFIX$timestamp")
+            sanitizeFileName(noteTitle?.takeIf { it.isNotBlank() } ?: generateNoteId())
 
         var counter = 1
         var noteId = baseId
@@ -26,7 +26,7 @@ class InsertNoteUseCase(private val repository: NotesRepository) {
             id = noteId,
             title = noteId,
             content = noteContent,
-            modifiedAt = timestamp,
+            modifiedAt = System.currentTimeMillis(),
             notebookPath = notebookPath
         )
 

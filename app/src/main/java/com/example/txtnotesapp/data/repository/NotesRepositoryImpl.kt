@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
-import com.example.txtnotesapp.common.AppConstants.FILE_NAME_PREFIX
+import com.example.txtnotesapp.common.utils.FileUtils.FILE_NAME_PREFIX
 import com.example.txtnotesapp.data.datasource.FileNoteDataSource
 import com.example.txtnotesapp.domain.model.Note
 import com.example.txtnotesapp.domain.model.Notebook
@@ -51,10 +51,11 @@ class NoteRepositoryImpl(
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
                 noteDataSource.writeNoteContent(noteFile, note.content)
 
-                // Обновляем время последнего изменения
-                if (note.modifiedAt > 0) {
-                    noteDataSource.setFileLastModified(noteFile, note.modifiedAt)
-                }
+                if (note.modifiedAt > 0) noteDataSource.setFileLastModified(
+                    noteFile,
+                    note.modifiedAt
+                )
+
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка сохранения заметки: ${e.message}")
                 throw IOException("Ошибка сохранения заметки: ${e.message}")
@@ -172,6 +173,4 @@ class NoteRepositoryImpl(
             false
         }
     }
-
-
 }
