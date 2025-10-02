@@ -21,7 +21,6 @@
             android:layout_height="wrap_content"
             android:fitsSystemWindows="false"
             app:navigationIcon="@drawable/ic_menu"
-            app:navigationIconTint="?attr/colorOnSurface"
             app:subtitle="Записная книжка"
             app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
             app:title="Белый лист"

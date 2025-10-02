@@ -8,12 +8,11 @@
     tools:context=".presentation.settings.SettingsFragment">
 
     <com.google.android.material.card.MaterialCardView
+        style="@style/cardViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/marginHorizontal"
-        android:elevation="4dp"
-        android:padding="6dp"
-        app:cardCornerRadius="16dp">
+        android:padding="6dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -25,7 +24,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="22dp"
                 android:text="@string/export_notes"
                 android:textColor="?attr/android:textColorPrimary"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -63,14 +62,14 @@
                     android:src="@drawable/ic_shevron" />
             </LinearLayout>
 
-            <androidx.appcompat.widget.SwitchCompat
+            <!--androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/use_password"
                 style="@style/NoteEditText"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
                 android:layout_marginHorizontal="@dimen/marginHorizontal"
                 android:layout_marginVertical="4dp"
-                android:text="@string/use_password" />
+                android:text="@string/use_password" /-->
 
             <EditText
                 android:id="@+id/export_password"
@@ -110,9 +109,9 @@
                 android:id="@+id/export_status"
                 style="@style/NoteEditText"
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
+                android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="12dp"
+                android:layout_marginBottom="12dp"
                 android:gravity="center"
                 android:text=""
                 android:textColor="?attr/android:textColorPrimary"
@@ -122,12 +121,11 @@
 
 
     <com.google.android.material.card.MaterialCardView
+        style="@style/cardViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/marginHorizontal"
-        android:elevation="4dp"
-        android:padding="6dp"
-        app:cardCornerRadius="16dp">
+        android:padding="6dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -139,7 +137,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginTop="16dp"
+                android:layout_marginVertical="22dp"
                 android:text="@string/import_notes"
                 android:textColor="?attr/android:textColorPrimary"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -199,9 +197,9 @@
                 android:id="@+id/import_status"
                 style="@style/NoteEditText"
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
+                android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="12dp"
+                android:layout_marginBottom="12dp"
                 android:gravity="center"
                 android:text=""
                 android:textColor="?attr/android:textColorPrimary"
@@ -210,4 +208,5 @@
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
+
 </LinearLayout>

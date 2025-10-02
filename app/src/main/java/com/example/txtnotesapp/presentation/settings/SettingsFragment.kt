@@ -31,18 +31,19 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
     }
 
     private fun setupUI() {
-        binding.usePassword.setOnCheckedChangeListener { _, isChecked ->
-            binding.exportPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
-        }
+//        binding.usePassword.setOnCheckedChangeListener { _, isChecked ->
+//            binding.exportPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
+//        }
 
         binding.exportButton.setOnClickListener {
-            val password = if (binding.usePassword.isChecked) {
-                binding.exportPassword.text.toString().takeIf { it.isNotBlank() }
-            } else {
-                null
-            }
+//            val password = if (binding.usePassword.isChecked) {
+//                binding.exportPassword.text.toString().takeIf { it.isNotBlank() }
+//            } else {
+//                null
+//            }
+//            viewModel.exportNotes(password)
 
-            viewModel.exportNotes(password)
+            viewModel.exportNotes(null)
         }
     }
 
