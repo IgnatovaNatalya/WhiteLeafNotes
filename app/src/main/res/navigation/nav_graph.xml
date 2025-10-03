@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/startFragment"
-        android:name="com.example.txtnotesapp.presentation.start.StartFragment"
+        android:name="com.example.whiteleafnotes.presentation.start.StartFragment"
         android:label="@string/fragment_start_label"
         tools:layout="@layout/fragment_start" >
         <action
@@ -36,7 +36,7 @@
 
     <fragment
         android:id="@+id/noteListFragment"
-        android:name="com.example.txtnotesapp.presentation.note_list.NoteListFragment"
+        android:name="com.example.whiteleafnotes.presentation.note_list.NoteListFragment"
         android:label="@string/fragment_note_list_label"
         tools:layout="@layout/fragment_note_list" >
         <argument
@@ -55,7 +55,7 @@
 
     <fragment
         android:id="@+id/noteEditFragment"
-        android:name="com.example.txtnotesapp.presentation.note_edit.NoteEditFragment"
+        android:name="com.example.whiteleafnotes.presentation.note_edit.NoteEditFragment"
         android:label=""
         tools:layout="@layout/fragment_note_edit" >
 
@@ -100,7 +100,7 @@
 
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.example.txtnotesapp.presentation.settings.SettingsFragment"
+        android:name="com.example.whiteleafnotes.presentation.settings.SettingsFragment"
         android:label="Настройки"
         tools:layout="@layout/fragment_settings" />
 

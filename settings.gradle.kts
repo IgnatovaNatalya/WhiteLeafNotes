@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TxtNotesApp"
+rootProject.name = "WhiteLeafNotes"
 include(":app")
  

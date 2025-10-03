@@ -28,14 +28,12 @@
 
     <string name="title">Название</string>
 
-
     <string name="empty_notebooks">Записных книжек пока нет</string>
 
     <string name="create_note">Создать заметку</string>
     <string name="export_notes">Экспорт заметок</string>
     <string name="import_notes">Импорт заметок</string>
     <string name="do_export">Выполнить экспорт</string>
-
 
     <string name="rename_notebook">Переименовать записную книжку</string>
 
