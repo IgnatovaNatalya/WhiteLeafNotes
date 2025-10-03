@@ -16,9 +16,10 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
 
     private val viewModel: SettingsViewModel by viewModel()
 
-    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let { viewModel.importNotesFromZip(it) }
-    }
+    private val importLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { viewModel.importNotesFromZip(it) }
+        }
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -94,7 +95,7 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         }
         startActivityForResult(intent, REQUEST_CODE_DIRECTORY)
     }
-    
+
     private fun renderImportStateSuccess() {
         binding.importButton.isEnabled = true
         binding.importStatus.text = "Импорт выполнен успешно"
@@ -109,6 +110,7 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         binding.importButton.isEnabled = true
         binding.importStatus.text = ""
     }
+
     private fun renderImportStateError(message: String) {
         binding.importButton.isEnabled = true
         binding.importStatus.text = "Ошибка: $message"
@@ -127,8 +129,8 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
     private fun renderExportSuccess(fileUri: Uri?) {
         binding.exportButton.isEnabled = true
         binding.exportStatus.text = "Экспорт завершен успешно"
-        //todo сделать галочку нужен ли эккспорт
-        shareExportFile(fileUri)
+
+        if (binding.shareZip.isChecked == true) shareExportFile(fileUri)
     }
 
     private fun renderExportError(message: String) {

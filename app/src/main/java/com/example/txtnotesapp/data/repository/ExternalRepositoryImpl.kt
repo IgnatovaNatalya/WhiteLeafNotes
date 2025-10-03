@@ -113,9 +113,6 @@ class ExternalRepositoryImpl(
             }
         }
 
-        // Удаляем временный zip файл
-        //zipFile.delete()
-
         return uri
     }
 
