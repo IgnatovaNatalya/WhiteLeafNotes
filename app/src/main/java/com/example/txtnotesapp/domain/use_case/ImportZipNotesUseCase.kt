@@ -48,15 +48,17 @@ class ImportZipNotesUseCase(
 
     private suspend fun processNotebookDirectory(directory: File) {
         val notebookName = directory.name
-        var uniquePostfix = ""
+        var notebookPath = notebookName
+        var counter = 1
 
-        if (notebookRepository.getNotebookByPath(notebookName) != null)
-            uniquePostfix = generateRandomName()
-        notebookRepository.createNotebook(notebookName + uniquePostfix)
+        while (notebookRepository.notebookExist(notebookPath))
+            notebookPath = "${notebookName}_${counter++}"
+
+        notebookRepository.createNotebook(notebookPath)
 
         directory.listFiles()?.forEach { file ->
             if (file.isFile && isTxtFile(file)) {
-                processNoteFile(file, notebookName + uniquePostfix)
+                processNoteFile(file, notebookPath)
             }
         }
     }
@@ -65,7 +67,7 @@ class ImportZipNotesUseCase(
 
         val content = file.readText()
 
-        val baseId = file.name
+        val baseId = file.nameWithoutExtension
         var counter = 1
         var noteId = baseId
 
@@ -80,9 +82,7 @@ class ImportZipNotesUseCase(
             modifiedAt = file.lastModified()
         )
 
-        //if (!notesRepository.existsNote(notebookPath ?: "", note.id))
         notesRepository.saveNote(note)
-
     }
 
     private fun isTxtFile(file: File): Boolean {
@@ -114,7 +114,4 @@ class ImportZipNotesUseCase(
         } ?: throw IllegalArgumentException("Cannot open ZIP file")
     }
 
-    private fun generateRandomName(): String {
-        return "note_${System.currentTimeMillis()}_${(0..1000).random()}"
-    }
 }

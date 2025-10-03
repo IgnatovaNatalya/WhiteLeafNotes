@@ -8,4 +8,5 @@ interface NotebookRepository {
     suspend fun deleteNotebook(notebook: Notebook)
     suspend fun renameNotebook(notebook: Notebook, newName: String)
     suspend fun getNotebookByPath(path: String): Notebook?
+    suspend fun notebookExist(path: String): Boolean
 }

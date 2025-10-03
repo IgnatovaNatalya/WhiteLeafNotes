@@ -25,7 +25,7 @@ class NotebookRepositoryImpl(
                             //modifiedAt = notebookDataSource.getLastModifiedDate(dir)
                         )
                     }
-                    //.sortedByDescending { it.modifiedAt }
+                //.sortedByDescending { it.modifiedAt }
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка получения записных книжек: ${e.message}")
                 emptyList()
@@ -36,17 +36,14 @@ class NotebookRepositoryImpl(
     override suspend fun createNotebook(name: String): Notebook {
         return withContext(Dispatchers.IO) {
             try {
-                // Проверяем валидность имени
                 if (name.isBlank() || name.contains("/") || name.contains("\\")) {
                     throw IllegalArgumentException("Некорректное имя записной книжки")
                 }
 
-                // Проверяем, не существует ли уже папка с таким именем
                 if (notebookDataSource.notebookExists(name)) {
                     throw IOException("Записная книжка с таким именем уже существует")
                 }
 
-                // Создаем папку через dataSource
                 val notebookDir = notebookDataSource.getNotebookDir(name)
 
                 Notebook(
@@ -120,6 +117,17 @@ class NotebookRepositoryImpl(
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка получения записной книжки: ${e.message}")
                 null
+            }
+        }
+    }
+
+    override suspend fun notebookExist(path: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                notebookDataSource.notebookExists(path)
+            } catch (e: Exception) {
+                Log.e("NotebookRepository", "Ошибка проверки существования записной книжки: ${e.message}")
+                false
             }
         }
     }
