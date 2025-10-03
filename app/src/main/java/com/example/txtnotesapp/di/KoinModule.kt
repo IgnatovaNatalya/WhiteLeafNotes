@@ -4,14 +4,12 @@ import android.content.ContentResolver
 import android.content.Context
 import com.example.txtnotesapp.data.repository.NoteRepositoryImpl
 import com.example.txtnotesapp.data.repository.NotebookRepositoryImpl
-import com.example.txtnotesapp.data.repository.PreferencesRepositoryImpl
-import com.example.txtnotesapp.data.repository.ExternalRepositoryImpl
+import com.example.txtnotesapp.data.repository.ExportRepositoryImpl
 import com.example.txtnotesapp.data.datasource.FileNoteDataSource
 import com.example.txtnotesapp.data.datasource.FileNotebookDataSource
 import com.example.txtnotesapp.domain.repository.ExternalRepository
 import com.example.txtnotesapp.domain.repository.NotesRepository
 import com.example.txtnotesapp.domain.repository.NotebookRepository
-import com.example.txtnotesapp.domain.repository.PreferencesRepository
 import com.example.txtnotesapp.domain.use_case.CreateNoteUseCase
 import com.example.txtnotesapp.domain.use_case.CreateNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.DeleteNoteUseCase
@@ -20,7 +18,6 @@ import com.example.txtnotesapp.domain.use_case.ExportAllNotesUseCase
 import com.example.txtnotesapp.domain.use_case.GetNoteUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotebooksUseCase
 import com.example.txtnotesapp.domain.use_case.GetNotesUseCase
-import com.example.txtnotesapp.domain.use_case.GetExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.GetSharedContentUseCase
 import com.example.txtnotesapp.domain.use_case.InsertNoteUseCase
 import com.example.txtnotesapp.domain.use_case.MoveNoteUseCase
@@ -30,7 +27,6 @@ import com.example.txtnotesapp.domain.use_case.DeleteNotebookByPathUseCase
 import com.example.txtnotesapp.domain.use_case.ImportZipNotesUseCase
 import com.example.txtnotesapp.domain.use_case.RenameNotebookUseCase
 import com.example.txtnotesapp.domain.use_case.SaveNoteUseCase
-import com.example.txtnotesapp.domain.use_case.SaveExportDirectoryUseCase
 import com.example.txtnotesapp.domain.use_case.ShareNoteFileUseCase
 import com.example.txtnotesapp.domain.use_case.ShareNotebookUseCase
 import com.example.txtnotesapp.presentation.note_edit.NoteEditViewModel
@@ -55,8 +51,7 @@ val koinModule = module {
     // Repositories
     single<NotesRepository> { NoteRepositoryImpl(get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get()) }
-    single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
-    single<ExternalRepository> { ExternalRepositoryImpl(get(), get()) }
+    single<ExternalRepository> { ExportRepositoryImpl(get(), get()) }
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -76,8 +71,6 @@ val koinModule = module {
     factory { DeleteNotebookByPathUseCase(get()) }
     factory { ShareNotebookUseCase(get(), get(), get()) }
 
-    factory { GetExportDirectoryUseCase(get()) }
-    factory { SaveExportDirectoryUseCase(get()) }
     factory { ExportAllNotesUseCase(get(), get(), get()) }
     factory { ImportZipNotesUseCase(get(), get(), get()) }
 
@@ -144,8 +137,6 @@ val koinModule = module {
 
     viewModel {
         SettingsViewModel(
-            getExportDirectoryUseCase = get(),
-            saveExportDirectoryUseCase = get(),
             exportNotesUseCase = get(),
             importNotesUseCase = get()
         )

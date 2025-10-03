@@ -20,7 +20,7 @@ import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-class ExternalRepositoryImpl(
+class ExportRepositoryImpl(
     private val context: Context,
     private val fileNoteDataSource: FileNoteDataSource
 ) : ExternalRepository {
@@ -112,8 +112,6 @@ class ExternalRepositoryImpl(
                 input.copyTo(output)
             }
         }
-
         return uri
     }
-
 }

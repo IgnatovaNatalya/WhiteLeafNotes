@@ -1,6 +1,5 @@
 package com.example.txtnotesapp.presentation.settings
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -87,15 +86,6 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         }
     }
 
-    private fun openDirectoryPicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        }
-        startActivityForResult(intent, REQUEST_CODE_DIRECTORY)
-    }
-
     private fun renderImportStateSuccess() {
         binding.importButton.isEnabled = true
         binding.importStatus.text = "Импорт выполнен успешно"
@@ -147,23 +137,4 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         startActivity(Intent.createChooser(shareIntent, "Поделиться архивом"))
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_CODE_DIRECTORY && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { uri ->
-                // Сохраняем разрешения на доступ к URI
-                requireContext().contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                )
-                viewModel.saveDirectory(uri.toString())
-            }
-        }
-    }
-
-    companion object {
-        private const val REQUEST_CODE_DIRECTORY = 1001
-    }
 }
