@@ -1,14 +1,14 @@
 package com.example.whiteleafnotes.domain.use_case
 
 import android.net.Uri
-import com.example.whiteleafnotes.domain.repository.ExternalRepository
+import com.example.whiteleafnotes.domain.repository.ExportRepository
 import com.example.whiteleafnotes.domain.repository.NotesRepository
 import com.example.whiteleafnotes.domain.repository.NotebookRepository
 
 class ShareNotebookUseCase(
     private val notebookRepository: NotebookRepository,
     private val noteRepository: NotesRepository,
-    private val externalRepository: ExternalRepository
+    private val externalRepository: ExportRepository
 ) {
     suspend operator fun invoke(notebookPath: String, password: String? = null): Result<Uri> {
         return try {

@@ -113,5 +113,4 @@ class ImportZipNotesUseCase(
             }
         } ?: throw IllegalArgumentException("Cannot open ZIP file")
     }
-
 }

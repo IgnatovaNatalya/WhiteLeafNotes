@@ -37,7 +37,6 @@ class DrawerMenuViewModel(
 
     fun loadMenuData() {
         _isLoading.value = true
-
         viewModelScope.launch {
             try {
                 val notebooks = getNotebooksUseCase()
@@ -45,6 +44,7 @@ class DrawerMenuViewModel(
 
                 val items = buildMenuItems(notebooks, rootNotes)
                 _menuItems.value = items
+
             } catch (e: Exception) {
                 _error.value = "Ошибка загрузки данных меню: ${e.message}"
             } finally {
@@ -53,16 +53,13 @@ class DrawerMenuViewModel(
         }
     }
 
-    private fun buildMenuItems(notebooks: List<Notebook>, rootNotes: List<Note>): List<DrawerMenuItem> {
+    private fun buildMenuItems(
+        notebooks: List<Notebook>,
+        rootNotes: List<Note>
+    ): List<DrawerMenuItem> {
         val items = mutableListOf<DrawerMenuItem>()
 
-        // Заголовок для записных книжек
-        //items.add(DrawerMenuItem.Header("ЗАПИСНЫЕ КНИЖКИ"))
-
-        // Элементы записных книжек
-        if (notebooks.isEmpty()) {
-            //items.add(DrawerMenuItem.EmptyNotebooks)
-        } else {
+        if (notebooks.isNotEmpty()) {
             notebooks.forEach { notebook ->
                 items.add(DrawerMenuItem.NotebookItem(notebook))
             }
@@ -71,12 +68,7 @@ class DrawerMenuViewModel(
         items.add(DrawerMenuItem.CreateNotebook)
         items.add(DrawerMenuItem.Divider)
 
-        // Заголовок для заметок
-        //items.add(DrawerMenuItem.Header("ЗАМЕТКИ"))
-
-        if (rootNotes.isEmpty()) {
-            //items.add(DrawerMenuItem.EmptyNotes)
-        } else {
+        if (rootNotes.isNotEmpty()) {
             rootNotes.forEach { note ->
                 items.add(DrawerMenuItem.NoteItem(note))
                 items.add(DrawerMenuItem.Divider)

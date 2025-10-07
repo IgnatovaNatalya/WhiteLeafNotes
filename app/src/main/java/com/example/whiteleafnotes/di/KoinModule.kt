@@ -7,7 +7,7 @@ import com.example.whiteleafnotes.data.repository.NotebookRepositoryImpl
 import com.example.whiteleafnotes.data.repository.ExportRepositoryImpl
 import com.example.whiteleafnotes.data.datasource.FileNoteDataSource
 import com.example.whiteleafnotes.data.datasource.FileNotebookDataSource
-import com.example.whiteleafnotes.domain.repository.ExternalRepository
+import com.example.whiteleafnotes.domain.repository.ExportRepository
 import com.example.whiteleafnotes.domain.repository.NotesRepository
 import com.example.whiteleafnotes.domain.repository.NotebookRepository
 import com.example.whiteleafnotes.domain.use_case.CreateNoteUseCase
@@ -51,7 +51,7 @@ val koinModule = module {
     // Repositories
     single<NotesRepository> { NoteRepositoryImpl(get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get()) }
-    single<ExternalRepository> { ExportRepositoryImpl(get(), get()) }
+    single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -76,7 +76,6 @@ val koinModule = module {
 
     factory { GetSharedContentUseCase(get()) }
     factory { InsertNoteUseCase(get()) }
-
 
     // ViewModels
 

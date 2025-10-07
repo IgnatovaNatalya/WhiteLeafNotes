@@ -44,6 +44,7 @@
     <string name="fragment_note_list_label">Записная книжка</string>
     <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
     <string name="enter_new_title">Введите новое название</string>
+    <string name="load_archive">Загрузка архива</string>
 
     <plurals name="notes_count">
         <item quantity="one">%d заметка</item>

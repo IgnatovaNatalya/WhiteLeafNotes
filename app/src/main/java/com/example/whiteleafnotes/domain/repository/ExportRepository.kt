@@ -4,7 +4,7 @@ import android.net.Uri
 import com.example.whiteleafnotes.domain.model.Note
 import com.example.whiteleafnotes.domain.model.Notebook
 
-interface ExternalRepository {
+interface ExportRepository {
     suspend fun createExportZip(
         notes: List<Note>,
         notebooks: List<Notebook>,

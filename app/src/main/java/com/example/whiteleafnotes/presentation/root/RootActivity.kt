@@ -1,5 +1,6 @@
 package com.example.whiteleafnotes.presentation.root
 
+
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -142,7 +143,10 @@ class RootActivity : AppCompatActivity() {
         menuViewModel.loadMenuData()
     }
 
+
+
     private fun setupObservers() {
+
         menuViewModel.menuItems.observe(this) { items ->
             drawerMenuAdapter.submitList(items)
         }
@@ -188,6 +192,7 @@ class RootActivity : AppCompatActivity() {
         navController.navigate(action)
     }
 
+
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
@@ -200,4 +205,5 @@ class RootActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
+
 }

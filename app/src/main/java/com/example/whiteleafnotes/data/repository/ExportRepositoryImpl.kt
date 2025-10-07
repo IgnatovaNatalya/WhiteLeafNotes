@@ -5,10 +5,12 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import com.example.whiteleafnotes.common.AppConstants.DEFAULT_DIR
+import com.example.whiteleafnotes.common.AppConstants.EXPORT_ZIP_PREFIX
 import com.example.whiteleafnotes.data.datasource.FileNoteDataSource
 import com.example.whiteleafnotes.domain.model.Note
 import com.example.whiteleafnotes.domain.model.Notebook
-import com.example.whiteleafnotes.domain.repository.ExternalRepository
+import com.example.whiteleafnotes.domain.repository.ExportRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -23,7 +25,7 @@ import java.util.zip.ZipOutputStream
 class ExportRepositoryImpl(
     private val context: Context,
     private val fileNoteDataSource: FileNoteDataSource
-) : ExternalRepository {
+) : ExportRepository {
 
     override suspend fun createExportZip(
         notes: List<Note>,
@@ -78,7 +80,7 @@ class ExportRepositoryImpl(
         password: String? = null  //todo сделать с паролем
     ): File {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val zipFile = File(context.cacheDir, "txtnotes_export_$timestamp.zip")
+        val zipFile = File(context.cacheDir, "$EXPORT_ZIP_PREFIX$timestamp.zip")
 
         ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
             tempDir.walk().forEach { file ->
@@ -97,10 +99,11 @@ class ExportRepositoryImpl(
     }
 
     private fun saveToExternalStorage(zipFile: File): Uri {
+
         val contentValues = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, zipFile.name)
             put(MediaStore.Downloads.MIME_TYPE, "application/zip")
-            put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$DEFAULT_DIR")
         }
 
         val resolver = context.contentResolver

@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.whiteleafnotes.common.AppConstants.DEFAULT_DIR
 import com.example.whiteleafnotes.domain.use_case.ExportAllNotesUseCase
 import com.example.whiteleafnotes.domain.use_case.ImportZipNotesUseCase
 import kotlinx.coroutines.launch
@@ -25,7 +26,8 @@ class SettingsViewModel(
     val importState: LiveData<ImportState> = _importState
 
     init {
-        _directoryPath.postValue(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name)
+        _directoryPath.postValue("${Environment
+            .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR")
     }
 
     fun exportNotes(password: String? = null) {
