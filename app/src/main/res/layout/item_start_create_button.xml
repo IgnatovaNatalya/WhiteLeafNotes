@@ -13,7 +13,7 @@
         android:layout_height="32dp"
         android:padding="0dp"
         android:background="@drawable/bg_button_round"
-        android:textColor="?attr/colorOnPrimaryContainer"
+        android:textColor="?attr/colorOnPrimary"
         android:layout_gravity="center"
         tools:text="Создать записную книжку"/>
 

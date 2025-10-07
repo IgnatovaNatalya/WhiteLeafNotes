@@ -18,7 +18,7 @@
         android:layout_marginEnd="8dp"
         android:importantForAccessibility="no"
         android:src="@drawable/ic_book"
-        app:tint="@color/accent_blue" />
+        app:tint="?attr/colorSecondary" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -29,19 +29,19 @@
 
         <TextView
             android:id="@+id/notebookName"
+            style="@style/StartScreenItemTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            style="@style/StartScreenItemTitle"
             android:textColor="?android:attr/textColorPrimary"
             tools:text="Работа над ошибками" />
 
         <TextView
             android:id="@+id/noteCount"
+            style="@style/StartScreenItemNotebookCount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/StartScreenItemNotebookCount"
             android:textColor="?android:attr/textColorSecondary"
             tools:text="12 заметок" />
     </LinearLayout>

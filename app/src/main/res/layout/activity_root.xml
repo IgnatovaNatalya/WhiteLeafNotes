@@ -32,6 +32,7 @@
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_options"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="?attr/android:textColorPrimary"
                 android:layout_gravity="end" />
         </com.google.android.material.appbar.MaterialToolbar>
 

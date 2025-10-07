@@ -43,7 +43,7 @@
         android:id="@+id/start_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="?attr/colorContainer"
+        android:background="?attr/colorPrimaryContainer"
         android:clipToPadding="false"
         android:orientation="vertical"
         android:paddingTop="8dp"

@@ -3,6 +3,7 @@
     <!-- Основные цвета -->
     <color name="white">#FFFFFF</color>
     <color name="container_light">#FAFAFA</color>
+    <color name="popup_light">#FAFAFA</color>
     <color name="text_primary_light">#333333</color>
     <color name="text_secondary_light">#888888</color>
     <color name="divider_light">#F0F0F0</color>
@@ -14,11 +15,12 @@
     <color name="success_green">#A5D6A7</color>
 
     <!-- Для темной темы (также задаем здесь, но переопределим в values-night) -->
-    <color name="background_dark">#242424</color>
-    <color name="container_dark">#333333</color>
+    <color name="background_dark">#121212</color>
+    <color name="container_dark">#1f1f1f</color>
+    <color name="popup_dark">#333333</color>
     <color name="text_primary_dark">#E0E0E0</color>
     <color name="text_secondary_dark">#AAAAAA</color>
-    <color name="divider_dark">#1aFFFFFF</color>
+    <color name="divider_dark">#404040</color>
     <color name="item_pressed_dark">#666666</color>
 
 </resources>

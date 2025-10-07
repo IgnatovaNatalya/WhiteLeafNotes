@@ -102,7 +102,7 @@
     </style>
 
     <style name="cardViewStyle" >
-        <item name="cardBackgroundColor">?attr/colorContainer</item>
+        <item name="cardBackgroundColor">?attr/colorPrimaryContainer</item>
         <item name="cardElevation">1dp</item>
         <item name="cardCornerRadius">12dp</item>
         <item name="strokeColor">?attr/colorSurface</item>

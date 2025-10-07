@@ -8,7 +8,7 @@
         <!-- Основные цвета -->
         <item name="colorPrimary">@color/accent_coral</item>
         <item name="colorOnPrimary">@color/container_light</item>
-        <item name="colorPrimaryContainer">@color/accent_coral</item>
+        <item name="colorPrimaryContainer">@color/container_light</item>
         <item name="colorOnPrimaryContainer">@color/container_light</item>
 
         <item name="colorSecondary">@color/accent_blue</item>
@@ -16,7 +16,7 @@
         <item name="colorSecondaryContainer">@color/accent_blue</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
 
-        <item name="colorContainer">@color/container_light</item>
+        <item name="colorContainer">@color/popup_light</item>
         <item name="android:colorPressedHighlight">@color/item_pressed</item>
 
         <item name="colorSurface">@color/divider_light</item>
