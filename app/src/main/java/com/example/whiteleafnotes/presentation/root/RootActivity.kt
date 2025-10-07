@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -24,6 +25,7 @@ import com.example.whiteleafnotes.databinding.ActivityRootBinding
 import com.example.whiteleafnotes.domain.model.Note
 import com.example.whiteleafnotes.domain.model.Notebook
 import com.example.whiteleafnotes.presentation.note_list.NoteListFragmentDirections
+import com.example.whiteleafnotes.presentation.start.StartFragmentDirections
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class RootActivity : AppCompatActivity() {
@@ -144,7 +146,6 @@ class RootActivity : AppCompatActivity() {
     }
 
 
-
     private fun setupObservers() {
 
         menuViewModel.menuItems.observe(this) { items ->
@@ -177,11 +178,20 @@ class RootActivity : AppCompatActivity() {
     }
 
     private fun navigateToNote(note: Note) {
+
         val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
             noteId = note.id,
             notebookPath = null
         )
-        navController.navigate(action)
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.startFragment, false)
+            .setEnterAnim(R.anim.slide_in_right)
+            .setExitAnim(R.anim.slide_out_left)
+            .setPopEnterAnim(R.anim.slide_in_left)
+            .setPopExitAnim(R.anim.slide_out_right)
+            .build()
+
+        navController.navigate(action, navOptions)
     }
 
     fun navigateToCreatedNote(note: Note) {
@@ -189,7 +199,14 @@ class RootActivity : AppCompatActivity() {
             noteId = note.id,
             notebookPath = null
         )
-        navController.navigate(action)
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.startFragment, false)
+            .setEnterAnim(R.anim.slide_in_right)
+            .setExitAnim(R.anim.slide_out_left)
+            .setPopEnterAnim(R.anim.slide_in_left)
+            .setPopExitAnim(R.anim.slide_out_right)
+            .build()
+        navController.navigate(action, navOptions)
     }
 
 
