@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import com.example.whiteleafnotes.domain.model.Note
-import com.example.whiteleafnotes.domain.model.Notebook
 
 object ShareHelper {
 
@@ -24,14 +23,5 @@ object ShareHelper {
             type = "application/*"
         }
         context.startActivity(Intent.createChooser(shareIntent, chooserTitle))
-    }
-
-    fun shareNotebook(
-        context: Context,
-        notebook: Notebook,
-        chooserTitle: String = "Поделиться записной книжкой"
-    ) {
-        //val shareIntent =
-        //создать uri через ExternalRepository
     }
 }

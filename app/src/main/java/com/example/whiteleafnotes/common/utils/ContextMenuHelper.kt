@@ -70,12 +70,11 @@ object ContextMenuHelper {
         )
     }
 
-
-
     // Пункты контекстного меню для записных книжек
     fun getNotebookContextMenuItems(context: Context): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.note_menu_rename),
+            createMenuItem(context, R.id.note_menu_share),
             createMenuItem(context, R.id.note_menu_delete)
         )
     }

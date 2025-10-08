@@ -39,9 +39,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         return FragmentNoteListBinding.inflate(inflater, container, false)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) { ///?
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setHasOptionsMenu(true) // Важно: разрешаем фрагменту работать с меню
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -140,7 +139,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun setupOptionsMenu() {
         val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
-        optionsButton?.setOnClickListener {// showOptionsMenu(optionsButton)
+        optionsButton?.setOnClickListener {
             ContextMenuHelper.showPopupMenu(
                 context = requireContext(),
                 anchorView = optionsButton,

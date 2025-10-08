@@ -37,8 +37,9 @@ class NotebookViewHolder(
             items = ContextMenuHelper.getNotebookContextMenuItems(anchorView.context),
             onItemSelected = { itemId ->
                 when (itemId) {
-                    R.id.note_menu_delete -> contextActionHandler.onDeleteNotebook(notebook)
                     R.id.note_menu_rename -> contextActionHandler.onRenameNotebook(notebook)
+                    R.id.note_menu_share -> contextActionHandler.onShareNotebook(notebook)
+                    R.id.note_menu_delete -> contextActionHandler.onDeleteNotebook(notebook)
                 }
             }
         )

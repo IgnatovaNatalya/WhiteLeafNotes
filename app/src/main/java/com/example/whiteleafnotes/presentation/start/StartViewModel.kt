@@ -1,5 +1,6 @@
 package com.example.whiteleafnotes.presentation.start
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,6 +16,7 @@ import com.example.whiteleafnotes.domain.use_case.GetNotesUseCase
 import com.example.whiteleafnotes.domain.use_case.MoveNoteUseCase
 import com.example.whiteleafnotes.domain.use_case.RenameNoteUseCase
 import com.example.whiteleafnotes.domain.use_case.RenameNotebookUseCase
+import com.example.whiteleafnotes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
 import kotlin.collections.forEach
 
@@ -28,6 +30,7 @@ class StartViewModel(
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val deleteNotebookUseCase: DeleteNotebookUseCase,
+    private val shareNotebookUseCase: ShareNotebookUseCase
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -44,6 +47,9 @@ class StartViewModel(
 
     private val _message = MutableLiveData<String?>()
     val message: LiveData<String?> = _message
+
+    private val _uriToShare = MutableLiveData<Uri>()
+    val uriToShare: LiveData<Uri> = _uriToShare
 
     init {
         loadData()
@@ -174,6 +180,20 @@ class StartViewModel(
                 loadData()
             } catch (e: Exception) {
                 _message.postValue("Ошибка удаления заметки: ${e.message}")
+            }
+        }
+    }
+
+    fun shareNotebook(notebookPath: String) {
+        viewModelScope.launch {
+            try {
+                val result = shareNotebookUseCase(notebookPath)
+                if (result.isSuccess)
+                    _uriToShare.postValue(result.getOrNull())
+                else
+                    _message.postValue(result.exceptionOrNull()?.message ?: "Unknown error")
+            } catch (e: Exception) {
+                _message.postValue("Ошибка передачи файла записной книжки: ${e.message}")
             }
         }
     }

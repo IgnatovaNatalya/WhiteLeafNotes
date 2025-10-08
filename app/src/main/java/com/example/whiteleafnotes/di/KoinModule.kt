@@ -90,6 +90,7 @@ val koinModule = module {
             deleteNoteUseCase = get(),
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
+            shareNotebookUseCase = get(),
         )
     }
 

@@ -64,6 +64,10 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             (binding.startRecyclerView.adapter as StartAdapter).submitList(items)
         }
 
+        viewModel.uriToShare.observe(viewLifecycleOwner) { uri ->
+            ShareHelper.shareFile(requireContext(), uri, "Поделиться архивом ZIP")
+        }
+
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.startProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
@@ -153,8 +157,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
 
-    override fun onShareNotebook(notebook: Notebook) =
-        ShareHelper.shareNotebook(requireContext(), notebook)
+    override fun onShareNotebook(notebook: Notebook) = viewModel.shareNotebook(notebook.path)
+
 
     override fun onResume() {
         super.onResume()
