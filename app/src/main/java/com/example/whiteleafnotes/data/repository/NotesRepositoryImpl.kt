@@ -132,14 +132,14 @@ class NoteRepositoryImpl(
     override suspend fun shareNoteFile(note: Note): Uri? {
         return withContext(Dispatchers.IO) {
             try {
-                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.title)
+                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
                 if (!noteFile.exists()) {
                     return@withContext null
                 }
 
                 // Создаем временный файл для sharing
                 val cacheDir = context.cacheDir
-                val shareFile = File(cacheDir, "${note.title}.txt")
+                val shareFile = File(cacheDir, "${note.id}.txt")
                 noteFile.copyTo(shareFile, overwrite = true)
 
                 // Получаем URI через FileProvider

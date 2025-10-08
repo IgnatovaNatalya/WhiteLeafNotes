@@ -48,8 +48,8 @@ class StartViewModel(
     private val _message = MutableLiveData<String?>()
     val message: LiveData<String?> = _message
 
-    private val _uriToShare = MutableLiveData<Uri>()
-    val uriToShare: LiveData<Uri> = _uriToShare
+    private val _uriToShare = MutableLiveData<Uri?>()
+    val uriToShare: LiveData<Uri?> = _uriToShare
 
     init {
         loadData()
@@ -185,15 +185,17 @@ class StartViewModel(
     }
 
     fun shareNotebook(notebookPath: String) {
+        _message.postValue("Создание архива...")
         viewModelScope.launch {
             try {
                 val result = shareNotebookUseCase(notebookPath)
-                if (result.isSuccess)
+                if (result.isSuccess) {
                     _uriToShare.postValue(result.getOrNull())
-                else
-                    _message.postValue(result.exceptionOrNull()?.message ?: "Unknown error")
+                    _message.postValue("Архив создан успешно")
+                } else
+                    _message.postValue(result.exceptionOrNull()?.message ?: "Ошибка экспорта")
             } catch (e: Exception) {
-                _message.postValue("Ошибка передачи файла записной книжки: ${e.message}")
+                _message.postValue("Ошибка передачи архива записной книжки: ${e.message}")
             }
         }
     }
@@ -208,6 +210,8 @@ class StartViewModel(
             }
         }
     }
+
+    fun onNotebookShared() = _uriToShare.postValue(null)
 
     fun onNoteNavigated() = _navigateToCreatedNote.postValue(null)
 

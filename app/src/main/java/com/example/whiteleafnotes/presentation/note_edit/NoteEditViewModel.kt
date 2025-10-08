@@ -77,7 +77,7 @@ class NoteEditViewModel(
     }
 
     fun updateFullNote(title: String, content: String) {
-        _message.postValue("Сохраняем всю заметку")
+        _message.postValue("Сохранение заметки")
         viewModelScope.launch {
             try {
                 updateNoteContent(content)

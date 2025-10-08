@@ -10,7 +10,7 @@ class CreateNoteUseCase(private val repository: NotesRepository) {
         val note = Note(
             id = generateNoteId(),
             title = "",
-            content = " ",
+            content = "",
             modifiedAt = System.currentTimeMillis(),
             notebookPath = notebookPath
         )

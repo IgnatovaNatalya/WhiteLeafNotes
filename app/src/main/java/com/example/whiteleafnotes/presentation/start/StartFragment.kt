@@ -65,7 +65,10 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         }
 
         viewModel.uriToShare.observe(viewLifecycleOwner) { uri ->
-            ShareHelper.shareFile(requireContext(), uri, "Поделиться архивом ZIP")
+            uri?.let {
+                ShareHelper.shareFile(requireContext(), uri, "Поделиться архивом ZIP")
+                viewModel.onNotebookShared()
+            }
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -155,10 +158,13 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         dialog.show()
     }
 
-    override fun onShareNote(note: Note) = ShareHelper.shareNote(requireContext(), note)
+    override fun onShareNote(note: Note) {
+        if (note.title.trim() != "" || note.content.trim() != "")
+            ShareHelper.shareNote(requireContext(), note)
+        else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
+    }
 
     override fun onShareNotebook(notebook: Notebook) = viewModel.shareNotebook(notebook.path)
-
 
     override fun onResume() {
         super.onResume()

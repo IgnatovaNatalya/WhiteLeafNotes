@@ -140,7 +140,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun onOptionsShareNote() {
-        ShareHelper.shareNote(
+        if (noteIsNotEmpty()) ShareHelper.shareNote(
             requireContext(), Note(
                 id = titleEditText.text.toString(),
                 title = titleEditText.text.toString(),
@@ -149,15 +149,21 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 notebookPath = null,
             )
         )
+        else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
 
     private fun onOptionsShareNoteFile() {
-        viewModel.updateFullNote(
-            titleEditText.text.toString(),
-            contentEditText.text.toString()
-        )
-        viewModel.shareNoteFile()
+        if (noteIsNotEmpty()) {
+            viewModel.updateFullNote(
+                titleEditText.text.toString(),
+                contentEditText.text.toString()
+            )
+            viewModel.shareNoteFile()
+        } else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
+
+    private fun noteIsNotEmpty() =
+        titleEditText.text.toString().trim() != "" || contentEditText.text.toString().trim() != ""
 
     private fun onOptionsDeleteNote() {
         DialogHelper.createDeleteNoteConfirmationDialog(
@@ -169,7 +175,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     override fun onPause() {
         if (!isMoved) {
-            //Toast.makeText(requireContext(), "Save note pause", Toast.LENGTH_SHORT).show()
             viewModel.updateFullNote(
                 binding.noteTitle.text.toString(),
                 binding.noteText.text.toString()
