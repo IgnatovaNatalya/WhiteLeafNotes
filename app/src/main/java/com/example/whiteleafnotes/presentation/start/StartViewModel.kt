@@ -63,7 +63,14 @@ class StartViewModel(
                 val notebooks = getNotebooksUseCase()
                 val rootNotes = getNotesUseCase(null) // Заметки в корневой папке
 
-                val items = buildStartItems(notebooks, rootNotes)
+                rootNotes.forEach { note ->
+                    if (note.isEmpty()) {
+                        deleteNoteUseCase(note)
+                        _message.postValue("Пустая заметка удалена")
+                    }
+                }
+
+                val items = buildStartItems(notebooks, rootNotes.filter { it.isNotEmpty() })
                 _startItems.value = items
             } catch (e: Exception) {
                 _message.value = "Ошибка загрузки данных: ${e.message}"

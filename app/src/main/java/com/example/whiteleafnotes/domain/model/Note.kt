@@ -10,4 +10,10 @@ data class Note(
     val content: String,
     val modifiedAt: Long, // Timestamp
     val notebookPath: String? = null // Путь к папке относительно корня
-) : Parcelable
+) : Parcelable {
+    fun isEmpty(): Boolean =
+        (this.title.trim().isEmpty() && this.content.trim().isEmpty())
+
+    fun isNotEmpty() :Boolean =
+        (this.title.trim().isNotEmpty() || this.content.trim().isNotEmpty())
+}

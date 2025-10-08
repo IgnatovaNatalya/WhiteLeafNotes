@@ -68,7 +68,14 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 val notesList = getNotesUseCase(notebookPath)
-                _notes.value = notesList
+
+                notesList.forEach { note ->
+                    if (note.isEmpty()) {
+                        deleteNoteUseCase(note)
+                        _message.postValue("Пустая заметка удалена")
+                    }
+                }
+                _notes.value = notesList.filter { it.isNotEmpty() }
             } catch (e: IOException) {
                 _message.postValue("Ошибка загрузки заметок: ${e.message}")
                 _notes.postValue(emptyList())
@@ -81,11 +88,11 @@ class NoteListViewModel(
         }
     }
 
+
     fun createNewNote() {
         viewModelScope.launch {
             try {
                 val newNote = createNoteUseCase(notebookPath)
-                loadNotes()
                 _navigateToCreatedNote.postValue(newNote.id)
             } catch (e: Exception) {
                 _message.postValue("Ошибка создания заметки: ${e.message}")
@@ -153,8 +160,12 @@ class NoteListViewModel(
                     val result = shareNotebookUseCase(notebookPath)
                     if (result.isSuccess)
                         _shareNotebookState.postValue(ExportState.Success(result.getOrNull()))
-                     else
-                        _shareNotebookState.postValue(ExportState.Error(result.exceptionOrNull()?.message ?: "Unknown error"))
+                    else
+                        _shareNotebookState.postValue(
+                            ExportState.Error(
+                                result.exceptionOrNull()?.message ?: "Unknown error"
+                            )
+                        )
 
                 } catch (e: Exception) {
                     _message.postValue("Ошибка передачи файла записной книжки: ${e.message}")

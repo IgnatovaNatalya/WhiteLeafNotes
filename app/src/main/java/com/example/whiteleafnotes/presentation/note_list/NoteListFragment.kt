@@ -201,8 +201,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     override fun onShareNote(note: Note) {
-        if (note.title.trim() != "" || note.content.trim() != "")
-            ShareHelper.shareNote(requireContext(), note)
+        if (note.isNotEmpty()) ShareHelper.shareNote(requireContext(), note)
         else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
 

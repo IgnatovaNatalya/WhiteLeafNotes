@@ -97,7 +97,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
         viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
                 viewModel.clearMessage()
             }
         }
@@ -159,8 +159,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     override fun onShareNote(note: Note) {
-        if (note.title.trim() != "" || note.content.trim() != "")
-            ShareHelper.shareNote(requireContext(), note)
+        if (note.isNotEmpty()) ShareHelper.shareNote(requireContext(), note)
         else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
 
