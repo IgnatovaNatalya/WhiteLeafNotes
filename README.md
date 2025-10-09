@@ -19,8 +19,8 @@
 <img width="190" height="418" alt="Редактирование заметки" src="https://github.com/user-attachments/assets/4af70bd2-10c0-42cb-8254-c27dc828b76d" />
 
 ## Скачать
-Скачать и установить приложение можно 
-[здесь](https://github.com/IgnatovaNatalya/WhiteLeafNotes/releases/tag/v0.1.0-alpha).
+
+Скачать и установить альфа-версию приложения можно [здесь](https://github.com/IgnatovaNatalya/WhiteLeafNotes/releases/tag/v0.1.0-alpha).
 
 ## Технологии
 
