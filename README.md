@@ -18,6 +18,9 @@
 <img width="190" height="418" alt="Боковое меню в списке заметок" src="https://github.com/user-attachments/assets/f4901eff-e10e-4165-a711-b3c9820ba1be" />
 <img width="190" height="418" alt="Редактирование заметки" src="https://github.com/user-attachments/assets/4af70bd2-10c0-42cb-8254-c27dc828b76d" />
 
+## Скачать
+Скачать и установить приложение можно 
+[здесь](https://github.com/IgnatovaNatalya/WhiteLeafNotes/releases/tag/v0.1.0-alpha).
 
 ## Технологии
 
