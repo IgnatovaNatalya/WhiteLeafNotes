@@ -76,14 +76,6 @@
                 app:thumbTint="@drawable/switch_thumb_selector"
                 app:trackTint="@drawable/switch_track_selector" />
 
-            <!--androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/use_password"
-                style="@style/NoteEditText"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="4dp"
-                android:text="@string/use_password" /-->
 
             <EditText
                 android:id="@+id/export_password"

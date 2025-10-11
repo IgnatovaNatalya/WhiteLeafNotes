@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.whiteleafnotes"
+    namespace = "ru.whiteleaf.notes"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.whiteleafnotes"
+        applicationId = "ru.whiteleaf.notes"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
