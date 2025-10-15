@@ -20,13 +20,13 @@
             android:layout_marginTop="0dp"
             android:background="@null"
             android:ellipsize="end"
-            android:textColorHighlight = "@color/accent_blue"
             android:hint="@string/title"
             android:importantForAutofill="no"
             android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
             android:maxLines="3"
             android:selectAllOnFocus="true"
             android:textColor="?attr/android:textColorPrimary"
+            android:textColorHighlight="@color/accent_blue"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Название две строки три строки три строки три строки три строки" />
@@ -61,6 +61,7 @@
             app:layout_constraintTop_toBottomOf="@+id/note_date"
             tools:text="Текст заметки \nТекст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки" />
 
+
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_width="match_parent"
@@ -72,5 +73,36 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <ImageButton
+            android:id="@+id/scroll_to_end"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="18dp"
+            android:background="@drawable/bg_round"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_down"
+            android:scaleType="centerInside"
+            android:paddingTop="3dp"
+            android:elevation="4dp"
+            app:backgroundTint="?attr/colorOnContainer"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="?attr/android:textColorSecondary"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            app:fabSize="mini"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="18dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_down"
+            android:visibility="gone"
+            app:backgroundTint="?attr/colorContainer"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="?attr/android:textColorSecondary" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 </ScrollView>

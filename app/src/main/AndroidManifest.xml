@@ -30,7 +30,7 @@
         <activity
             android:name=".presentation.root.RootActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize|stateHidden">
+            android:windowSoftInputMode="adjustPan|stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
