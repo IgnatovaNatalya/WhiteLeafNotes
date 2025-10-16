@@ -1,108 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".presentation.note_edit.NoteEditFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        tools:context=".presentation.note_edit.NoteEditFragment">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:focusableInTouchMode="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/note_title"
-            style="@style/NoteEditTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/marginHorizontal"
-            android:layout_marginTop="0dp"
-            android:background="@null"
-            android:ellipsize="end"
-            android:hint="@string/title"
-            android:importantForAutofill="no"
-            android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
-            android:maxLines="3"
-            android:selectAllOnFocus="true"
-            android:textColor="?attr/android:textColorPrimary"
-            android:textColorHighlight="@color/accent_blue"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Название две строки три строки три строки три строки три строки" />
+            android:orientation="vertical"
+            android:paddingTop="0dp">
 
-        <TextView
-            android:id="@+id/note_date"
-            style="@style/NoteEditDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/marginHorizontal"
-            android:layout_marginTop="6dp"
-            android:textColor="?attr/android:textColorSecondary"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/note_title"
-            tools:text="31 мая 2025 г." />
+            <EditText
+                android:id="@+id/note_title"
+                style="@style/NoteEditTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/marginHorizontal"
+                android:background="@null"
+                android:ellipsize="end"
+                android:hint="@string/title"
+                android:imeOptions="actionNext"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
+                android:maxLines="2"
+                android:minHeight="48dp"
+                android:selectAllOnFocus="true"
+                android:textColor="?attr/android:textColorPrimary"
+                android:textColorHighlight="@color/accent_blue"
+                tools:text="Название заметки" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/note_text"
-            style="@style/NoteEditText"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="@dimen/marginHorizontal"
-            android:layout_marginTop="32dp"
-            android:background="@null"
-            android:gravity="start|top"
-            android:importantForAutofill="no"
-            android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
-            android:scrollbars="vertical"
-            android:textColor="?attr/android:textColorPrimary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/note_date"
-            tools:text="Текст заметки \nТекст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки Текст заметки" />
+            <TextView
+                android:id="@+id/note_date"
+                style="@style/NoteEditDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/marginHorizontal"
+                android:layout_marginTop="6dp"
+                android:textColor="?attr/android:textColorSecondary"
+                tools:text="27 ноября 2025" />
 
+            <EditText
+                android:id="@+id/note_text"
+                style="@style/NoteEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/marginHorizontal"
+                android:layout_marginTop="32dp"
+                android:background="@null"
+                android:gravity="start|top"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
+                android:minHeight="400dp"
+                android:paddingBottom="100dp"
+                android:textColor="?attr/android:textColorPrimary"
+                tools:text="Текст заметки..." />
 
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="140dp"
-            android:indeterminateTint="?attr/colorOnSurface"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/scroll_to_end"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="18dp"
-            android:background="@drawable/bg_round"
-            android:importantForAccessibility="no"
-            android:src="@drawable/ic_down"
-            android:scaleType="centerInside"
-            android:paddingTop="3dp"
-            android:elevation="4dp"
-            app:backgroundTint="?attr/colorOnContainer"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:tint="?attr/android:textColorSecondary"/>
+    </androidx.core.widget.NestedScrollView>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            app:fabSize="mini"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="18dp"
-            android:importantForAccessibility="no"
-            android:src="@drawable/ic_down"
-            android:visibility="gone"
-            app:backgroundTint="?attr/colorContainer"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:tint="?attr/android:textColorSecondary" />
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_gravity="center"
+        android:indeterminateTint="?attr/colorOnSurface"
+        android:visibility="gone" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageButton
+        android:id="@+id/note_scroll_down"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_margin="@dimen/marginHorizontal"
+        android:background="@drawable/bg_round"
+        android:contentDescription="@string/scroll_down"
+        android:elevation="4dp"
+        android:paddingTop="3dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_down"
+        app:layout_anchor="@id/scroll_view"
+        app:layout_anchorGravity="bottom|end" />
 
-
-</ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
