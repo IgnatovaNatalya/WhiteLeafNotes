@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import ru.whiteleaf.notes.R
@@ -25,6 +26,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
 import kotlin.time.ExperimentalTime
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
@@ -38,6 +40,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var isMoved = false
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
+    private lateinit var buttonScroll: ImageButton
+    private lateinit var scrollView: NestedScrollView
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -51,10 +55,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
         titleEditText = binding.noteTitle
         contentEditText = binding.noteText
+        buttonScroll = binding.noteScrollDown
+        scrollView = binding.scrollView
 
         setupOptionsMenu()
         setupObservers()
         setupEditTexts()
+        setupScrollDown()
     }
 
     private fun setupObservers() {
@@ -88,6 +95,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
+    }
+
+    private fun setupScrollDown() {
+        TextWatcherScrollManager.setupScrollDetection(
+            editText = contentEditText,
+            scrollView = scrollView, // ваш NestedScrollView
+            button = buttonScroll
+        )
     }
 
     private fun setupEditTexts() {
