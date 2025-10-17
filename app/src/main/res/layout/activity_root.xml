@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="0dp"
-        android:fitsSystemWindows="true"
+        android:fitsSystemWindows="false"
         android:orientation="vertical">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -21,6 +21,7 @@
             android:layout_height="wrap_content"
             android:fitsSystemWindows="false"
             app:navigationIcon="@drawable/ic_menu"
+            android:layout_marginTop="42dp"
             app:subtitle="Записная книжка"
             app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
             app:title="Белый лист"
