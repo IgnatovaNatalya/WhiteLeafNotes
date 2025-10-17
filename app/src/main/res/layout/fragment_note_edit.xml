@@ -65,6 +65,7 @@
                 android:minHeight="400dp"
                 android:paddingBottom="100dp"
                 android:textColor="?attr/android:textColorPrimary"
+                android:textColorHighlight="@color/accent_blue"
                 tools:text="Текст заметки..." />
 
         </LinearLayout>
