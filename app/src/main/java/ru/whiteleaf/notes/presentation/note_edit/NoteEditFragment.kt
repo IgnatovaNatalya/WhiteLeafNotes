@@ -117,6 +117,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 val textInput = binding.noteTitle.text.toString()
                 viewModel.updateNoteTitle(textInput)
             }
+
         }
     }
 
