@@ -5,14 +5,14 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
+    android:fitsSystemWindows="true"
     tools:context=".presentation.root.RootActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="0dp"
-        android:fitsSystemWindows="false"
+        android:fitsSystemWindows="true"
         android:orientation="vertical">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:fitsSystemWindows="false"
             app:navigationIcon="@drawable/ic_menu"
-            android:layout_marginTop="42dp"
+            android:layout_marginTop="0dp"
             app:subtitle="Записная книжка"
             app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
             app:title="Белый лист"
@@ -42,7 +42,7 @@
             android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fitsSystemWindows="false"
+            android:fitsSystemWindows="true"
             app:defaultNavHost="true"
             app:navGraph="@navigation/nav_graph" />
     </LinearLayout>

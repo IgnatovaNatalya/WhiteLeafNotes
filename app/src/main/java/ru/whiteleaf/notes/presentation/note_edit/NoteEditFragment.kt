@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.note_edit
 
+import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -119,6 +120,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             }
 
         }
+        binding.noteText.setOnClickListener {
+            if (!isKeyboardVisible(contentEditText))
+                showKeyboard(contentEditText)
+        }
+
     }
 
     private fun setupOptionsMenu() {
@@ -205,6 +211,27 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             .toLocalDateTime(TimeZone.currentSystemDefault())
 
         return "${date.day} ${getMonthName(date.month)} ${date.year}"
+    }
+
+    private fun isKeyboardVisible(editText: EditText): Boolean {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        return imm.isActive(editText) && imm.isAcceptingText
+    }
+
+    private fun showKeyboard(editText: EditText) {
+        try {
+            val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(
+                editText,
+                InputMethodManager.SHOW_IMPLICIT
+            )
+//            (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(
+//                editText,
+//                InputMethodManager.SHOW_IMPLICIT
+//            )
+        } catch (e: Exception) {
+
+        }
     }
 
     private fun getMonthName(month: Month): String {

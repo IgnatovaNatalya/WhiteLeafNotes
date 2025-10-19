@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
+    android:fitsSystemWindows="true"
     tools:context=".presentation.note_edit.NoteEditFragment">
 
     <ru.whiteleaf.notes.common.classes.CustomNestedScrollView
@@ -84,7 +84,7 @@
         android:id="@+id/note_scroll_down"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_margin="@dimen/marginHorizontal"
+        android:layout_margin="18dp"
         android:background="@drawable/bg_round"
         android:contentDescription="@string/scroll_down"
         android:elevation="4dp"
