@@ -21,12 +21,12 @@ import ru.whiteleaf.notes.common.utils.TextWatcherManager
 import ru.whiteleaf.notes.databinding.FragmentNoteEditBinding
 import ru.whiteleaf.notes.domain.model.Note
 import kotlin.time.Instant
-import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
+import ru.whiteleaf.notes.common.utils.DateHelper
 import kotlin.time.ExperimentalTime
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
@@ -204,23 +204,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         val date = Instant.fromEpochMilliseconds(timestamp)
             .toLocalDateTime(TimeZone.currentSystemDefault())
 
-        return "${date.day} ${getMonthName(date.month)} ${date.year}"
-    }
-
-    private fun getMonthName(month: Month): String {
-        return when (month) {
-            Month.JANUARY -> "января"
-            Month.FEBRUARY -> "февраля"
-            Month.MARCH -> "марта"
-            Month.APRIL -> "апреля"
-            Month.MAY -> "мая"
-            Month.JUNE -> "июня"
-            Month.JULY -> "июля"
-            Month.AUGUST -> "августа"
-            Month.SEPTEMBER -> "сентября"
-            Month.OCTOBER -> "октября"
-            Month.NOVEMBER -> "ноября"
-            Month.DECEMBER -> "декабря"
-        }
+        return "${date.day} ${DateHelper.getMonthName(date.month)} ${date.year}"
     }
 }
