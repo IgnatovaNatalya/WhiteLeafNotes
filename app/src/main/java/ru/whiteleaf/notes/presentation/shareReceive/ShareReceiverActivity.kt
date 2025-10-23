@@ -16,13 +16,13 @@ import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.common.utils.ContextMenuHelper
 import ru.whiteleaf.notes.common.utils.DateHelper
 import kotlin.getValue
 import kotlin.time.ExperimentalTime
 
 class ShareReceiverActivity : AppCompatActivity() {
     private lateinit var binding: ActivityShareRecieverBinding
-
     private val viewModel: ShareReceiverViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +32,7 @@ class ShareReceiverActivity : AppCompatActivity() {
         binding = ActivityShareRecieverBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.share_receiver_main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, 0, systemBars.right, 0)
             insets
@@ -41,16 +41,20 @@ class ShareReceiverActivity : AppCompatActivity() {
         viewModel.processIntent(intent)
 
         setupObservers()
-        setupClickListeners()
+        setupNavigationListener()
+        setupOptionsMenu()
     }
 
-    private fun setupClickListeners() {
-        binding.shareReceiverToolbar.setOnClickListener {
-            viewModel.insertNote(
-                binding.noteEditContainer.noteTitle.text.toString(),
-                binding.noteEditContainer.noteText.text.toString()
-            )
-        }
+
+    private fun setupNavigationListener() {
+        binding.shareReceiverToolbar.setNavigationOnClickListener { saveNote() }
+    }
+
+    private fun saveNote() {
+        viewModel.insertNote(
+            binding.noteEditContainer.noteTitle.text.toString(),
+            binding.noteEditContainer.noteText.text.toString()
+        )
     }
 
     @OptIn(ExperimentalTime::class)
@@ -77,6 +81,14 @@ class ShareReceiverActivity : AppCompatActivity() {
         viewModel.isSaved.observe(this) { isSaved ->
             if (isSaved) {
                 Toast.makeText(this, "Заметка сохранена", Toast.LENGTH_SHORT).show()
+//                Snackbar.make(binding.shareReceiverMain, "Заметка сохранена", Snackbar.LENGTH_LONG)
+//                    .setAction("Открыть в приложении") {
+//                        viewModel.recentNoteId.value?.let { noteId ->
+//                            openSpecificNote(noteId)
+//                        }
+//                    }
+//                    .show()
+
                 finish()
             }
         }
@@ -86,6 +98,29 @@ class ShareReceiverActivity : AppCompatActivity() {
                 viewModel.clearMessage()
             }
         }
+    }
+
+    private fun setupOptionsMenu() {
+        val optionsButton = binding.btnShareReceiverOptions
+
+        optionsButton.setOnClickListener {
+            ContextMenuHelper.showPopupMenu(
+                context = this,
+                anchorView = optionsButton,
+                items = ContextMenuHelper.getOptionsMenuShareReceiver(optionsButton.context),
+                onItemSelected = { itemId ->
+                    when (itemId) {
+                        R.id.options_save_note -> saveNote()
+                        R.id.options_append_note -> appendNote()
+                        R.id.options_cancel -> finish()
+                    }
+                }
+            )
+        }
+    }
+
+    private fun appendNote() {
+        Toast.makeText(this, "Добавление к существующей заметке пока не реализовано", Toast.LENGTH_SHORT).show()
     }
 
     private fun showContent(sharedTitle: String?, sharedText: String) {

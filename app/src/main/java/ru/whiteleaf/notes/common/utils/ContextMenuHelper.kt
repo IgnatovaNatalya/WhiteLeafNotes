@@ -60,6 +60,15 @@ object ContextMenuHelper {
         )
     }
 
+    //пункты меню опций при получении контента
+    fun getOptionsMenuShareReceiver(context: Context): List<ContextMenuItem> {
+        return listOf(
+            createMenuItem(context, R.id.options_save_note),
+            createMenuItem(context, R.id.options_append_note),
+            createMenuItem(context, R.id.options_cancel)
+        )
+    }
+
     // Пункты контекстного меню для заметок
     fun getNoteContextMenuItems(context: Context): List<ContextMenuItem> {
         return listOf(

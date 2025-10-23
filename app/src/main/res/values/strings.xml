@@ -47,6 +47,9 @@
     <string name="load_archive">Загрузка архива</string>
     <string name="header">Заголовок</string>
     <string name="scroll_down">Прокрутить вниз</string>
+    <string name="saveNewNote">Сохранить заметку</string>
+    <string name="appendNote">Добавить к заметке</string>
+    <string name="cancel">Закрыть</string>
 
     <plurals name="notes_count">
         <item quantity="one">%d заметка</item>

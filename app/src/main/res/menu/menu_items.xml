@@ -43,4 +43,13 @@
 
     <item android:id="@+id/options_delete_note"
         android:title="@string/delete" />
+
+    <item android:id="@+id/options_save_note"
+        android:title="@string/saveNewNote" />
+
+    <item android:id="@+id/options_append_note"
+        android:title="@string/appendNote" />
+
+    <item android:id="@+id/options_cancel"
+        android:title="@string/cancel" />
 </menu>
