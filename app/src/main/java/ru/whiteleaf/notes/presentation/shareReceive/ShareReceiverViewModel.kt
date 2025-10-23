@@ -10,6 +10,7 @@ import ru.whiteleaf.notes.domain.model.SharedContentResult
 import ru.whiteleaf.notes.domain.use_case.GetSharedContentUseCase
 import ru.whiteleaf.notes.domain.use_case.InsertNoteUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.model.Note
 
 class ShareReceiverViewModel(
     private val getSharedContent: GetSharedContentUseCase,
@@ -22,6 +23,9 @@ class ShareReceiverViewModel(
 
     private val _contentState = MutableLiveData<SharedContentResult<SharedContent>>()
     val contentState: LiveData<SharedContentResult<SharedContent>> = _contentState
+
+    private val _noteCreated = MutableLiveData<Note>()
+    val noteCreated: LiveData<Note> = _noteCreated
 
     private val _message = MutableLiveData<String?>()
     val message: LiveData<String?> = _message
@@ -41,8 +45,9 @@ class ShareReceiverViewModel(
 
         viewModelScope.launch {
             try {
-                insertNoteUseCase(receivedTitle, receivedText, "")
+                val note = insertNoteUseCase(receivedTitle, receivedText, "")
                 _isSaved.postValue(true)
+                _noteCreated.postValue(note)
             } catch (e: Exception) {
                 _message.postValue("Ошибка создания заметки: ${e.message}")
             }

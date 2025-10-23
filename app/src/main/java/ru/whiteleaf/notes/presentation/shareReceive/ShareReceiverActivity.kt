@@ -1,12 +1,15 @@
 package ru.whiteleaf.notes.presentation.shareReceive
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.snackbar.Snackbar
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.databinding.ActivityShareRecieverBinding
 import ru.whiteleaf.notes.domain.model.SharedContent
@@ -80,18 +83,16 @@ class ShareReceiverActivity : AppCompatActivity() {
 
         viewModel.isSaved.observe(this) { isSaved ->
             if (isSaved) {
-                Toast.makeText(this, "Заметка сохранена", Toast.LENGTH_SHORT).show()
-//                Snackbar.make(binding.shareReceiverMain, "Заметка сохранена", Snackbar.LENGTH_LONG)
-//                    .setAction("Открыть в приложении") {
-//                        viewModel.recentNoteId.value?.let { noteId ->
-//                            openSpecificNote(noteId)
-//                        }
-//                    }
-//                    .show()
+                Snackbar.make(binding.shareReceiverMain, "Заметка сохранена", Snackbar.LENGTH_LONG)
+                    .setAction("Открыть в приложении") {
+                        //viewModel.noteCreated.value?.id
+                    }
+                    .show()
 
                 finish()
             }
         }
+
         viewModel.message.observe(this) { message ->
             message?.let {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
@@ -117,6 +118,17 @@ class ShareReceiverActivity : AppCompatActivity() {
                 }
             )
         }
+    }
+
+    private fun navigateToNote(noteId: String) {
+        val deepLinkUri = "whiteleafnotes://editnote/$noteId"
+
+        val deepLinkIntent = Intent(Intent.ACTION_VIEW, deepLinkUri.toUri())
+            .setPackage(packageName)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+
+        startActivity(deepLinkIntent)
+        finish()
     }
 
     private fun appendNote() {
