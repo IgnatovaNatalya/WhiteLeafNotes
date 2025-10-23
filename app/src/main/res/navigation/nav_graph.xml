@@ -70,6 +70,11 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="@null" />
+
+        <deepLink
+            android:id="@+id/deepLink"
+            app:uri="whiteleafnotes://notes/{noteId}" />
+
     </fragment>
 
     <!-- Глобальные действия -->
@@ -103,5 +108,6 @@
         android:name="ru.whiteleaf.notes.presentation.settings.SettingsFragment"
         android:label="Настройки"
         tools:layout="@layout/fragment_settings" />
+
 
 </navigation>
