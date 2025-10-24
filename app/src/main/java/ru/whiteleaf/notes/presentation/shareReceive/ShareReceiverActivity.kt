@@ -81,16 +81,18 @@ class ShareReceiverActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.isSaved.observe(this) { isSaved ->
-            if (isSaved) {
-                Snackbar.make(binding.shareReceiverMain, "Заметка сохранена", Snackbar.LENGTH_LONG)
-                    .setAction("Открыть в приложении") {
-                        //viewModel.noteCreated.value?.id
+        viewModel.noteCreated.observe (this) {
+            noteId ->
+            Snackbar.make(binding.root, "Заметка сохранена", Snackbar.LENGTH_LONG)
+                    .setAction("Открыть") {
+                        navigateToNote(noteId)
                     }
                     .show()
 
+            binding.root.postDelayed({
                 finish()
-            }
+            }, 2000)
+
         }
 
         viewModel.message.observe(this) { message ->
@@ -121,7 +123,7 @@ class ShareReceiverActivity : AppCompatActivity() {
     }
 
     private fun navigateToNote(noteId: String) {
-        val deepLinkUri = "whiteleafnotes://editnote/$noteId"
+        val deepLinkUri = "whiteleafnotes://notes/$noteId"
 
         val deepLinkIntent = Intent(Intent.ACTION_VIEW, deepLinkUri.toUri())
             .setPackage(packageName)
@@ -146,5 +148,4 @@ class ShareReceiverActivity : AppCompatActivity() {
     private fun showError(error: String) {
         Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
     }
-
 }
