@@ -28,13 +28,7 @@ class GetSharedContentUseCase(
                 val text = intent.getStringExtra(Intent.EXTRA_TEXT)!!
                 SharedContentResult.Success(
                     SharedContent.TextContent(
-                        text.trim(
-                            ' ',
-                            '\t',
-                            '\n',
-                            '\r',
-                            '"'
-                        )
+                        text.substringBefore("http").trim(' ', '\t', '\n', '\r', '"')
                     )
                 )
             }
