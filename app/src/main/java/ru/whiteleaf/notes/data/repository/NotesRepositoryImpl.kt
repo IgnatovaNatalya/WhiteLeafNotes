@@ -11,39 +11,90 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.whiteleaf.notes.data.config.NotebookConfigManager
 import java.io.File
 import java.io.IOException
 
 class NoteRepositoryImpl(
     private val context: Context,
-    private val noteDataSource: FileNoteDataSource
+    private val noteDataSource: FileNoteDataSource,
+    private val configManager: NotebookConfigManager
 ) : NotesRepository {
 
-    override suspend fun getNotes(notebookPath: String?): List<Note> {
-        return withContext(Dispatchers.IO) {
-            val dir =
-                notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
+//    override suspend fun getNotes(notebookPath: String?): List<Note> {
+//        return withContext(Dispatchers.IO) {
+//            val dir =
+//                notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
+//
+//            noteDataSource.listFilesInDirectory(dir)
+//                ?.filter { it.isFile && it.name.endsWith(".txt") }
+//                ?.mapNotNull { file ->
+//                    try {
+//                        val name = file.nameWithoutExtension
+//                        val content = noteDataSource.readNoteContent(file)
+//                        Note(
+//                            id = name,
+//                            title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
+//                            content = content,
+//                            modifiedAt = file.lastModified(),
+//                            notebookPath = notebookPath
+//                        )
+//                    } catch (_: Exception) {
+//                        null
+//                    }
+//                }?.sortedByDescending { it.modifiedAt } ?: emptyList()
+//
+//        }
+//    }
 
-            noteDataSource.listFilesInDirectory(dir)
-                ?.filter { it.isFile && it.name.endsWith(".txt") }
-                ?.mapNotNull { file ->
+    override suspend fun getNotes(notebookPath: String?): List<Note> {
+        return try {
+            // Просто делегируем DataSource
+            // Если нужна биометрия - получим SecurityException
+            loadNotesFromDataSource(notebookPath)
+        } catch (e: SecurityException) {
+            // Сообщаем UI, что нужна биометрия
+            throw BiometricRequiredException(notebookPath, e)
+        } catch (e: Exception) {
+            // Другие ошибки
+
+            throw NotesLoadingException("Failed to load notes", e)
+                //emptyList<Note>()
+        }
+    }
+
+    private suspend fun loadNotesFromDataSource(notebookPath: String?): List<Note> {
+        return withContext(Dispatchers.IO) {
+
+            val directory = if (!notebookPath.isNullOrEmpty()) {
+                File(noteDataSource.baseDir, notebookPath)
+            } else {
+                noteDataSource.baseDir
+            }
+
+            val files =  noteDataSource.listFilesInDirectory(directory) ?:return@withContext emptyList()
+
+            files.filter { it.isFile && it.name.endsWith(".txt") }
+                .mapNotNull { file ->
                     try {
                         val name = file.nameWithoutExtension
-                        val content = noteDataSource.readNoteContent(file)
-                        Note(
+                        val content = noteDataSource.readNoteContent(file, notebookPath ?: "")
+                        val lastModified = file.lastModified()
+
+                        Note( // Явно создаем объект Note
                             id = name,
                             title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
                             content = content,
-                            modifiedAt = file.lastModified(),
-                            notebookPath = notebookPath
+                            notebookPath = notebookPath,
+                            modifiedAt = lastModified
                         )
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
                         null
                     }
-                }?.sortedByDescending { it.modifiedAt } ?: emptyList()
-
+                }.sortedByDescending { it.id }
         }
     }
+
 
     override suspend fun saveNote(note: Note) {
         withContext(Dispatchers.IO) {

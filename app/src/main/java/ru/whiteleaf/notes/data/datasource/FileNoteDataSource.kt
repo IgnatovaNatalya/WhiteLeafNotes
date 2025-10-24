@@ -2,11 +2,15 @@ package ru.whiteleaf.notes.data.datasource
 
 import android.content.Context
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
+import ru.whiteleaf.notes.data.config.NotebookConfigManager
+import ru.whiteleaf.notes.data.datasource.EncryptionManager
 import java.io.File
 
 
 class FileNoteDataSource(
-    private val context: Context
+    private val context: Context,
+    private val configManager: NotebookConfigManager,
+    private val encryptionManager: EncryptionManager? = null
 ) {
 
     // Базовая директория во внутренней памяти
@@ -49,14 +53,39 @@ class FileNoteDataSource(
 
 
     // Чтение содержимого файла
-    fun readNoteContent(file: File): String {
-        return file.readText()
+    //fun readNoteContent(file: File): String {
+    //return file.readText()
+    //}
+
+    fun readNoteContent(file: File, notebookPath: String): String {
+        val content = file.readText()
+
+        return if (configManager.isNotebookProtected(notebookPath) && encryptionManager != null) {
+            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath)!!
+            // Просто пытаемся расшифровать - если нужна биометрия, будет исключение
+            encryptionManager.decryptContent(content, keyAlias)
+        } else {
+            content
+        }
     }
 
     // Запись содержимого в файл
-    fun writeNoteContent(file: File, content: String) {
-        file.writeText(content)
+    //fun writeNoteContent(file: File, content: String) {
+    //file.writeText(content)
+    //}
+
+    fun writeNoteContent(file: File, content: String, notebookPath: String) {
+        val contentToWrite =
+            if (configManager.isNotebookProtected(notebookPath) && encryptionManager != null) {
+                val keyAlias = configManager.getKeyAliasForNotebook(notebookPath)!!
+                encryptionManager.encryptContent(content, keyAlias)
+            } else {
+                content
+            }
+
+        file.writeText(contentToWrite)
     }
+
 
     // Установка времени последнего изменения
     fun setFileLastModified(file: File, timestamp: Long) {

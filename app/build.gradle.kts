@@ -66,4 +66,7 @@ dependencies {
     // DateTime
     implementation(libs.datetime)
 
+    //gson
+    implementation(libs.gson)
+
 }
