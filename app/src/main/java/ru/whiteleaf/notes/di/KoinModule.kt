@@ -38,20 +38,41 @@ import ru.whiteleaf.notes.presentation.start.StartViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import ru.whiteleaf.notes.data.config.NotebookConfigManager
+import ru.whiteleaf.notes.data.datasource.EncryptionManager
 
 val koinModule = module {
 
     // App
     single<ContentResolver> { androidContext().contentResolver }
 
+    //security
+    single<EncryptionManager> { EncryptionManager() }
+    single<NotebookConfigManager> {
+        NotebookConfigManager(
+            sharedPreferences = androidContext().getSharedPreferences(
+                "txt_notes_prefs",
+                Context.MODE_PRIVATE
+            )
+        )
+    }
+
     // Data sources
-    single { FileNoteDataSource(get()) }
+    single {
+        FileNoteDataSource(
+            context = androidContext(),
+            configManager = get(),
+            encryptionManager = get()
+        )
+    }
+
     single { FileNotebookDataSource(get()) }
 
     // Repositories
     single<NotesRepository> { NoteRepositoryImpl(get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get()) }
     single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
+
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -78,7 +99,6 @@ val koinModule = module {
     factory { InsertNoteUseCase(get()) }
 
     // ViewModels
-
     viewModel {
         StartViewModel(
             getNotebooksUseCase = get(),
@@ -118,6 +138,8 @@ val koinModule = module {
                 Context.MODE_PRIVATE
             ),
             notebookPath = notebookPath,
+            configManager = get(),
+            encryptionManager = get(),
         )
     }
 

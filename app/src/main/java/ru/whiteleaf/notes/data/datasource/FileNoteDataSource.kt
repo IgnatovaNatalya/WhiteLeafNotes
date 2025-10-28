@@ -3,17 +3,15 @@ package ru.whiteleaf.notes.data.datasource
 import android.content.Context
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.data.config.NotebookConfigManager
-import ru.whiteleaf.notes.data.datasource.EncryptionManager
 import java.io.File
 
 
 class FileNoteDataSource(
     private val context: Context,
     private val configManager: NotebookConfigManager,
-    private val encryptionManager: EncryptionManager? = null
+    private val encryptionManager: EncryptionManager
 ) {
 
-    // Базовая директория во внутренней памяти
     val baseDir: File by lazy {
         File(context.filesDir, DEFAULT_DIR).apply {
             if (!exists()) {
@@ -50,7 +48,6 @@ class FileNoteDataSource(
         val file = getNoteFile(notebookPath, noteId)
         return file.exists()
     }
-
 
     // Чтение содержимого файла
     //fun readNoteContent(file: File): String {

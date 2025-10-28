@@ -1,6 +1,7 @@
 package ru.whiteleaf.notes.presentation.note_list
 
 import android.content.Intent
+import androidx.biometric.BiometricPrompt
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -21,9 +22,10 @@ import ru.whiteleaf.notes.common.utils.DialogHelper
 import ru.whiteleaf.notes.common.utils.ShareHelper
 import ru.whiteleaf.notes.databinding.FragmentNoteListBinding
 import ru.whiteleaf.notes.domain.model.Note
-import ru.whiteleaf.notes.presentation.settings.ExportState
+import ru.whiteleaf.notes.presentation.state.ExportState
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+import ru.whiteleaf.notes.domain.model.BiometricRequest
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
@@ -62,6 +64,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             (binding.recyclerView.adapter as NoteAdapter).submitList(notes)
         }
 
+        viewModel.biometricRequest.observe(viewLifecycleOwner) { request ->
+            request?.let { showBiometricPrompt(it) }
+        }
+
         viewModel.navigateToNote.observe(viewLifecycleOwner) { noteId ->
             noteId?.let {
                 navigateToNoteEdit(noteId)
@@ -76,12 +82,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             }
         }
 
-        viewModel.notebookRenamed.observe(viewLifecycleOwner) { path ->
+        viewModel.navigateToRenamed.observe(viewLifecycleOwner) { path ->
             val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
             findNavController().navigate(action)
         }
 
-        viewModel.notebookDeleted.observe(viewLifecycleOwner) {
+        viewModel.navigateUpAfterDelete.observe(viewLifecycleOwner) {
             findNavController().navigateUp()
         }
 
@@ -203,6 +209,30 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     override fun onShareNote(note: Note) {
         if (note.isNotEmpty()) ShareHelper.shareNote(requireContext(), note)
         else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showBiometricPrompt(request: BiometricRequest) {
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Доступ к защищенным заметкам")
+            .setSubtitle("Подтвердите отпечаток пальца")
+            .setNegativeButtonText("Отмена")
+            .build()
+
+        val biometricPrompt = BiometricPrompt(this, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                viewModel.onBiometricSuccess()
+                viewModel.onBiometricSuccess()
+                request.onSuccess()
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                viewModel.onBiometricError()
+                request.onError()
+            }
+        })
+
+        val cryptoObject = BiometricPrompt.CryptoObject(request.cipher)
+        biometricPrompt.authenticate(promptInfo, cryptoObject)
     }
 
     private fun shareExportFile(uri: Uri?) {

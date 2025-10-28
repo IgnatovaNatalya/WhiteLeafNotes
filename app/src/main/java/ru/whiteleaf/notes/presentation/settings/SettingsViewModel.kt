@@ -10,6 +10,8 @@ import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.domain.use_case.ExportAllNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.ImportZipNotesUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.presentation.state.ExportState
+import ru.whiteleaf.notes.presentation.state.ImportState
 
 class SettingsViewModel(
     private val exportNotesUseCase: ExportAllNotesUseCase,

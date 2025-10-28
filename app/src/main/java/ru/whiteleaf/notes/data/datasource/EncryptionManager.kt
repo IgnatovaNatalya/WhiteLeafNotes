@@ -10,146 +10,107 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
-class EncryptionManager(private val context: Context) {
+class EncryptionManager() {
 
-    private val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore").apply {
-        load(null)
-    }
+    private val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
 
     companion object {
         private const val TRANSFORMATION = "AES/CBC/PKCS7Padding"
-        private const val KEY_SIZE = 256
         private const val IV_SEPARATOR = "|"
+    }
+
+    /**
+     * Создает или получает существующий ключ
+     */
+    fun getOrCreateKey(keyAlias: String): SecretKey {
+        return (keyStore.getKey(keyAlias, null) as? SecretKey) ?: createKey(keyAlias)
     }
 
     /**
      * Создает ключ для блокнота с привязкой к биометрии
      */
-    fun createKeyForNotebook(keyAlias: String): Boolean {
-        return try {
-            if (keyStore.containsAlias(keyAlias)) {
-                true // Ключ уже существует
-            }
+    private fun createKey(keyAlias: String): SecretKey {
+        val keyGenerator = KeyGenerator.getInstance(
+            KeyProperties.KEY_ALGORITHM_AES,
+            "AndroidKeyStore"
+        )
 
-            val keyGenerator = KeyGenerator.getInstance(
-                KeyProperties.KEY_ALGORITHM_AES,
-                "AndroidKeyStore"
-            )
+        val keySpec = KeyGenParameterSpec.Builder(
+            keyAlias,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+            .setKeySize(256)
+            .setUserAuthenticationRequired(true)
+            .setInvalidatedByBiometricEnrollment(true)
+            .setUserAuthenticationValidityDurationSeconds(-1)
+            .build()
 
-            val keySpec = KeyGenParameterSpec.Builder(
-                keyAlias,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                .setKeySize(KEY_SIZE)
-                .setUserAuthenticationRequired(true) // Требует биометрию
-                .setInvalidatedByBiometricEnrollment(true)
-                .setUserAuthenticationValidityDurationSeconds(-1) // Каждый раз требовать аутентификацию
-                .build()
-
-            keyGenerator.init(keySpec)
-            keyGenerator.generateKey()
-            true
-        } catch (e: Exception) {
-            false
-        }
+        keyGenerator.init(keySpec)
+        return keyGenerator.generateKey()
     }
 
     /**
      * Удаляет ключ блокнота
      */
-    fun deleteKey(keyAlias: String): Boolean {
-        return try {
-            if (keyStore.containsAlias(keyAlias)) {
-                keyStore.deleteEntry(keyAlias)
-                true
-            } else {
-                false
-            }
-        } catch (e: Exception) {
-            false
-        }
+    fun deleteKey(keyAlias: String): Boolean = try {
+        keyStore.deleteEntry(keyAlias)
+        true
+    } catch (e: Exception) {
+        false
     }
 
     /**
      * Шифрует содержимое заметки
-     * Формат: base64(IV) + SEPARATOR + base64(encrypted_data)
      */
-    fun encryptContent(plainText: String, keyAlias: String): String {
-        return try {
-            val cipher = getCipher()
-            val secretKey = getSecretKey(keyAlias)
-
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-            val encryptedBytes = cipher.doFinal(plainText.toByteArray())
-            val iv = cipher.iv
-
-            // Сохраняем IV вместе с данными
-            val result = Base64.encodeToString(iv, Base64.NO_WRAP) +
-                    IV_SEPARATOR +
-                    Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)
-            result
-        } catch (e: Exception) {
-            // Если шифрование не удалось, возвращаем оригинальный текст
-            plainText
+    fun encryptContent(plainText: String, keyAlias: String): String = try {
+        val cipher = getCipher().apply {
+            init(Cipher.ENCRYPT_MODE, getOrCreateKey(keyAlias))
         }
+
+        val encryptedBytes = cipher.doFinal(plainText.toByteArray())
+        val iv = cipher.iv
+
+        "${Base64.encodeToString(iv, Base64.NO_WRAP)}$IV_SEPARATOR${Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)}"
+    } catch (e: Exception) {
+        plainText // fallback
     }
 
     /**
      * Расшифровывает содержимое заметки
-     * Требует биометрическую аутентификацию через getCipherForDecryption
      */
     fun decryptContent(encryptedText: String, keyAlias: String): String {
         return try {
             val parts = encryptedText.split(IV_SEPARATOR)
-            if (parts.size != 2) {
-                return encryptedText // Не зашифрованный формат
-            }
+            if (parts.size != 2) return encryptedText
 
             val iv = Base64.decode(parts[0], Base64.NO_WRAP)
             val encryptedBytes = Base64.decode(parts[1], Base64.NO_WRAP)
 
-            val cipher = getCipher()
-            val secretKey = getSecretKey(keyAlias)
+            val cipher = getCipher().apply {
+                init(Cipher.DECRYPT_MODE, getOrCreateKey(keyAlias), IvParameterSpec(iv))
+            }
 
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(iv))
-            val decryptedBytes = cipher.doFinal(encryptedBytes)
-            String(decryptedBytes)
+            String(cipher.doFinal(encryptedBytes))
         } catch (e: Exception) {
-            // Если расшифровка не удалась, возвращаем зашифрованный текст
-            encryptedText
+            encryptedText // fallback
         }
     }
 
     /**
      * Получает Cipher для использования с BiometricPrompt
-     * Этот метод требует биометрическую аутентификацию
      */
     fun getCipherForDecryption(keyAlias: String): Cipher {
-        val cipher = getCipher()
-        val secretKey = getSecretKey(keyAlias)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey)
-        return cipher
-    }
-
-    /**
-     * Проверяет, существует ли ключ для данного алиаса
-     */
-    fun keyExists(keyAlias: String): Boolean {
-        return try {
-            keyStore.containsAlias(keyAlias)
-        } catch (e: Exception) {
-            false
+        return getCipher().apply {
+            init(Cipher.DECRYPT_MODE, getOrCreateKey(keyAlias))
         }
     }
 
-    private fun getCipher(): Cipher {
-        return Cipher.getInstance(TRANSFORMATION)
-    }
+    /**
+     * Проверяет, существует ли ключ
+     */
+    fun keyExists(keyAlias: String): Boolean = keyStore.containsAlias(keyAlias)
 
-    private fun getSecretKey(keyAlias: String): SecretKey {
-        return keyStore.getKey(keyAlias, null) as? SecretKey
-            ?: throw SecurityException("Ключ не найден или недоступен: $keyAlias")
-    }
+    private fun getCipher(): Cipher = Cipher.getInstance(TRANSFORMATION)
 }

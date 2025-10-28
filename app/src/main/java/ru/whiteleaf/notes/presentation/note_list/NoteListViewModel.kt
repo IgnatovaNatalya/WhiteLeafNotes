@@ -15,8 +15,11 @@ import ru.whiteleaf.notes.domain.use_case.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookByPathUseCase
-import ru.whiteleaf.notes.presentation.settings.ExportState
+import ru.whiteleaf.notes.presentation.state.ExportState
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.data.config.NotebookConfigManager
+import ru.whiteleaf.notes.data.datasource.EncryptionManager
+import ru.whiteleaf.notes.domain.model.BiometricRequest
 import java.io.IOException
 
 class NoteListViewModel(
@@ -29,7 +32,9 @@ class NoteListViewModel(
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val preferences: SharedPreferences,
-    private val notebookPath: String?
+    private val notebookPath: String?,
+    private val configManager: NotebookConfigManager,
+    private val encryptionManager: EncryptionManager
 ) : ViewModel() {
 
     private val _notes = MutableLiveData<List<Note>>()
@@ -38,11 +43,7 @@ class NoteListViewModel(
     private val _shareNotebookState = MutableLiveData<ExportState>()
     val shareNotebookState: LiveData<ExportState> = _shareNotebookState
 
-    private val _notebookRenamed = MutableLiveData<String>()
-    val notebookRenamed: LiveData<String> = _notebookRenamed
 
-    private val _notebookDeleted = MutableLiveData<Boolean>()
-    val notebookDeleted: LiveData<Boolean> = _notebookDeleted
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -53,8 +54,22 @@ class NoteListViewModel(
     private val _navigateToNote = MutableLiveData<String?>()
     val navigateToNote: LiveData<String?> = _navigateToNote
 
+    private val _biometricRequest = MutableLiveData<BiometricRequest?>(null)
+    val biometricRequest: LiveData<BiometricRequest?> = _biometricRequest
+
     private val _navigateToCreatedNote = MutableLiveData<String?>()
     val navigateToCreatedNote: LiveData<String?> = _navigateToCreatedNote
+
+    private val _navigateToRenamed = MutableLiveData<String>()
+    val navigateToRenamed: LiveData<String> = _navigateToRenamed
+
+    private val _navigateUpAfterDelete = MutableLiveData<Boolean>()
+    val navigateUpAfterDelete: LiveData<Boolean> = _navigateUpAfterDelete
+
+    private val isProtected = configManager.isNotebookProtected(notebookPath ?: "")
+    private val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
+
+
 
     init {
         loadNotes()
@@ -63,7 +78,7 @@ class NoteListViewModel(
 
     fun loadNotes() {
         _isLoading.postValue(true)
-        _message.postValue(null)
+        showMessage(null)
 
         viewModelScope.launch {
             try {
@@ -72,15 +87,23 @@ class NoteListViewModel(
                 notesList.forEach { note ->
                     if (note.isEmpty()) {
                         deleteNoteUseCase(note)
-                        _message.postValue("Пустая заметка удалена")
+                        showMessage("Пустая заметка удалена")
                     }
                 }
                 _notes.value = notesList.filter { it.isNotEmpty() }
+
+            } catch (e: SecurityException) {
+                if (isProtected) {
+                    handleBiometricRequired()
+                } else {
+                    // Неожиданная ошибка - книжка не защищена, но запросила биометрию
+                    showMessage("Ошибка безопасности")
+                }
             } catch (e: IOException) {
-                _message.postValue("Ошибка загрузки заметок: ${e.message}")
+                showMessage("Ошибка загрузки заметок: ${e.message}")
                 _notes.postValue(emptyList())
             } catch (e: Exception) {
-                _message.postValue("Неизвестная ошибка: ${e.message}")
+                showMessage("Неизвестная ошибка: ${e.message}")
                 _notes.postValue(emptyList())
             } finally {
                 _isLoading.postValue(false)
@@ -88,6 +111,16 @@ class NoteListViewModel(
         }
     }
 
+    fun onBiometricSuccess() {
+        _biometricRequest.postValue(null)
+    }
+
+    fun onBiometricError() {
+        _biometricRequest.postValue(null)
+        showMessage("Аутентификация отменена")
+    }
+
+    fun clearMessage() = showMessage(null)
 
     fun createNewNote() {
         viewModelScope.launch {
@@ -95,7 +128,7 @@ class NoteListViewModel(
                 val newNote = createNoteUseCase(notebookPath)
                 _navigateToCreatedNote.postValue(newNote.id)
             } catch (e: Exception) {
-                _message.postValue("Ошибка создания заметки: ${e.message}")
+                showMessage("Ошибка создания заметки: ${e.message}")
             }
         }
     }
@@ -106,7 +139,7 @@ class NoteListViewModel(
                 deleteNoteUseCase(note)
                 loadNotes()
             } catch (e: Exception) {
-                _message.postValue("Ошибка удаления заметки: ${e.message}")
+                showMessage("Ошибка удаления заметки: ${e.message}")
             }
         }
     }
@@ -117,7 +150,7 @@ class NoteListViewModel(
                 moveNoteUseCase(note, targetNotebookPath)
                 loadNotes()
             } catch (e: Exception) {
-                _message.postValue("Ошибка перемещения заметки: ${e.message}")
+                showMessage("Ошибка перемещения заметки: ${e.message}")
             }
         }
     }
@@ -128,11 +161,11 @@ class NoteListViewModel(
                 if (newTitle != note.title) {
                     renameNoteUseCase(note, newTitle)
                     loadNotes()
-                    _message.postValue("Название заметки изменено")
+                    showMessage("Название заметки изменено")
                     reloadNotes()
                 }
             } catch (e: Exception) {
-                _message.postValue("Ошибка переименования: ${e.message}")
+                showMessage("Ошибка переименования: ${e.message}")
             }
         }
     }
@@ -142,11 +175,75 @@ class NoteListViewModel(
             try {
                 if (newName != notebookPath && notebookPath != null) {
                     renameNotebookUseCase(notebookPath, newName)
-                    _message.postValue("Название записной книжки изменено")
-                    _notebookRenamed.postValue(newName)
-                } else _message.postValue("Ошибка переименования")
+                    showMessage("Название записной книжки изменено")
+                    _navigateToRenamed.postValue(newName)
+                } else showMessage("Ошибка переименования")
             } catch (e: Exception) {
-                _message.postValue("Ошибка переименования: ${e.message}")
+                showMessage("Ошибка переименования: ${e.message}")
+            }
+        }
+    }
+
+    fun protectNotebook(notebookPath: String) {
+        viewModelScope.launch {
+            _protectionState.value = ProtectionState.Protecting(notebookPath)
+
+            try {
+                // Генерируем уникальный ключ для книжки
+                val keyAlias = configManager.generateKeyAlias(notebookPath)
+
+                // Создаем ключ в Keystore
+                val keyCreated = encryptionManager.createKeyForNotebook(keyAlias)
+                if (!keyCreated) {
+                    _protectionState.value = ProtectionState.Error("Не удалось создать ключ безопасности")
+                    return@launch
+                }
+
+                // Сохраняем конфигурацию
+                configManager.setNotebookProtected(notebookPath, keyAlias)
+
+                // Шифруем существующие заметки в этой книжке
+                reencryptExistingNotes(notebookPath, keyAlias)
+
+                _protectionState.value = ProtectionState.Success("Записная книжка защищена")
+
+            } catch (e: Exception) {
+                _protectionState.value = ProtectionState.Error("Ошибка защиты: ${e.message}")
+            } finally {
+                // Автоматически сбрасываем состояние через 3 секунды
+                viewModelScope.launch {
+                    kotlinx.coroutines.delay(3000)
+                    _protectionState.value = null
+                }
+            }
+        }
+    }
+
+    fun unprotectNotebook(notebookPath: String) {
+        viewModelScope.launch {
+            _protectionState.value = ProtectionState.Unprotecting(notebookPath)
+
+            try {
+                val keyAlias = configManager.getKeyAliasForNotebook(notebookPath)
+                if (keyAlias != null) {
+                    // Расшифровываем заметки
+                    decryptExistingNotes(notebookPath, keyAlias)
+                    // Удаляем ключ
+                    encryptionManager.deleteKey(keyAlias)
+                }
+
+                // Удаляем из конфигурации
+                configManager.setNotebookUnprotected(notebookPath)
+
+                _protectionState.value = ProtectionState.Success("Защита снята")
+
+            } catch (e: Exception) {
+                _protectionState.value = ProtectionState.Error("Ошибка снятия защиты: ${e.message}")
+            } finally {
+                viewModelScope.launch {
+                    kotlinx.coroutines.delay(3000)
+                    _protectionState.value = null
+                }
             }
         }
     }
@@ -168,7 +265,7 @@ class NoteListViewModel(
                         )
 
                 } catch (e: Exception) {
-                    _message.postValue("Ошибка передачи файла записной книжки: ${e.message}")
+                    showMessage("Ошибка передачи файла записной книжки: ${e.message}")
                 }
         }
     }
@@ -178,11 +275,11 @@ class NoteListViewModel(
             try {
                 if (notebookPath != null) {
                     deleteNotebookUseCase(notebookPath)
-                    _notebookDeleted.postValue(true)
-                    _message.postValue("Записная книжка удалена")
-                } else _message.postValue("Ошибка удаления записной книжки: путь не задан")
+                    _navigateUpAfterDelete.postValue(true)
+                    showMessage("Записная книжка удалена")
+                } else showMessage("Ошибка удаления записной книжки: путь не задан")
             } catch (e: Exception) {
-                _message.postValue("Ошибка удаления записной книжки: ${e.message}")
+                showMessage("Ошибка удаления записной книжки: ${e.message}")
             }
         }
     }
@@ -193,7 +290,36 @@ class NoteListViewModel(
 
     fun onNoteCreatedNavigated() = _navigateToCreatedNote.postValue(null)
 
-    fun clearMessage() = _message.postValue(null)
+
+    private fun handleBiometricRequired() {
+        // Проверяем что книжка действительно защищена
+        if (!isProtected) {
+            showMessage("Ошибка: книжка не защищена")
+            return
+        }
+
+        val keyAlias = keyAlias
+        if (keyAlias == null) {
+            showMessage("Ошибка: ключ шифрования не найден")
+            return
+        }
+
+        try {
+            val cipher = encryptionManager.getCipherForDecryption(keyAlias)
+
+            _biometricRequest.value = BiometricRequest(
+                notebookPath = notebookPath,
+                keyAlias = keyAlias,
+                cipher = cipher,
+                onSuccess = { loadNotes() },
+                onError = { showMessage("Аутентификация не пройдена") }
+            )
+        } catch (e: Exception) {
+            showMessage("Ошибка безопасности: ${e.message}")
+        }
+    }
+
+    private fun showMessage(s: String?) = _message.postValue(s)
 
     private fun saveLastOpenNotebook() {
         preferences.edit {

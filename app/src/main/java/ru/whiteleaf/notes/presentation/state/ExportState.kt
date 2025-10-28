@@ -1,4 +1,4 @@
-package ru.whiteleaf.notes.presentation.settings
+package ru.whiteleaf.notes.presentation.state
 
 import android.net.Uri
 

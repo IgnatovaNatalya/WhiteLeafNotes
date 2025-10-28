@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.databinding.FragmentSettingsBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.presentation.state.ExportState
+import ru.whiteleaf.notes.presentation.state.ImportState
 
 class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
 

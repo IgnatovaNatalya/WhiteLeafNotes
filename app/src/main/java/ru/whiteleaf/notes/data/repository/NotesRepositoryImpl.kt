@@ -17,62 +17,16 @@ import java.io.IOException
 
 class NoteRepositoryImpl(
     private val context: Context,
-    private val noteDataSource: FileNoteDataSource,
-    private val configManager: NotebookConfigManager
+    private val noteDataSource: FileNoteDataSource
 ) : NotesRepository {
 
-//    override suspend fun getNotes(notebookPath: String?): List<Note> {
-//        return withContext(Dispatchers.IO) {
-//            val dir =
-//                notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
-//
-//            noteDataSource.listFilesInDirectory(dir)
-//                ?.filter { it.isFile && it.name.endsWith(".txt") }
-//                ?.mapNotNull { file ->
-//                    try {
-//                        val name = file.nameWithoutExtension
-//                        val content = noteDataSource.readNoteContent(file)
-//                        Note(
-//                            id = name,
-//                            title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
-//                            content = content,
-//                            modifiedAt = file.lastModified(),
-//                            notebookPath = notebookPath
-//                        )
-//                    } catch (_: Exception) {
-//                        null
-//                    }
-//                }?.sortedByDescending { it.modifiedAt } ?: emptyList()
-//
-//        }
-//    }
-
     override suspend fun getNotes(notebookPath: String?): List<Note> {
-        return try {
-            // Просто делегируем DataSource
-            // Если нужна биометрия - получим SecurityException
-            loadNotesFromDataSource(notebookPath)
-        } catch (e: SecurityException) {
-            // Сообщаем UI, что нужна биометрия
-            throw BiometricRequiredException(notebookPath, e)
-        } catch (e: Exception) {
-            // Другие ошибки
-
-            throw NotesLoadingException("Failed to load notes", e)
-                //emptyList<Note>()
-        }
-    }
-
-    private suspend fun loadNotesFromDataSource(notebookPath: String?): List<Note> {
         return withContext(Dispatchers.IO) {
+            val dir =
+                notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
 
-            val directory = if (!notebookPath.isNullOrEmpty()) {
-                File(noteDataSource.baseDir, notebookPath)
-            } else {
-                noteDataSource.baseDir
-            }
-
-            val files =  noteDataSource.listFilesInDirectory(directory) ?:return@withContext emptyList()
+            val files =
+                noteDataSource.listFilesInDirectory(dir) ?: return@withContext emptyList()
 
             files.filter { it.isFile && it.name.endsWith(".txt") }
                 .mapNotNull { file ->
@@ -81,26 +35,64 @@ class NoteRepositoryImpl(
                         val content = noteDataSource.readNoteContent(file, notebookPath ?: "")
                         val lastModified = file.lastModified()
 
-                        Note( // Явно создаем объект Note
+                        Note(
                             id = name,
                             title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
                             content = content,
                             notebookPath = notebookPath,
                             modifiedAt = lastModified
                         )
+                    } catch (e: SecurityException) {
+                        throw e
                     } catch (e: Exception) {
+                        Log.e("NotesRepository", "Error reading note from file: ${file.name}", e)
                         null
                     }
-                }.sortedByDescending { it.id }
+                }
         }
     }
+
+//    private suspend fun loadNotesFromDataSource(notebookPath: String?): List<Note> {
+//        return withContext(Dispatchers.IO) {
+//
+//            val directory = if (!notebookPath.isNullOrEmpty()) {
+//                File(noteDataSource.baseDir, notebookPath)
+//            } else {
+//                noteDataSource.baseDir
+//            }
+//
+//            val files =
+//                noteDataSource.listFilesInDirectory(directory) ?: return@withContext emptyList()
+//
+//            files.filter { it.isFile && it.name.endsWith(".txt") }
+//                .mapNotNull { file ->
+//                    try {
+//                        val name = file.nameWithoutExtension
+//                        val content = noteDataSource.readNoteContent(file, notebookPath ?: "")
+//                        val lastModified = file.lastModified()
+//
+//                        Note( // Явно создаем объект Note
+//                            id = name,
+//                            title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
+//                            content = content,
+//                            notebookPath = notebookPath,
+//                            modifiedAt = lastModified
+//                        )
+//                    } catch (e: Exception) {
+//                        null
+//                    }
+//                }.sortedByDescending { it.id }
+//        }
+//    }
 
 
     override suspend fun saveNote(note: Note) {
         withContext(Dispatchers.IO) {
             try {
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                noteDataSource.writeNoteContent(noteFile, note.content)
+                noteDataSource.writeNoteContent(noteFile, note.content,
+                    note.notebookPath.toString()
+                )
 
                 if (note.modifiedAt > 0) noteDataSource.setFileLastModified(
                     noteFile,
