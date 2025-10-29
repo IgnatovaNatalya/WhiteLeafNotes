@@ -140,6 +140,8 @@ val koinModule = module {
             notebookPath = notebookPath,
             configManager = get(),
             encryptionManager = get(),
+            reEncryptExistingNotes = get(),
+            decryptExistingNotes = get(),
         )
     }
 

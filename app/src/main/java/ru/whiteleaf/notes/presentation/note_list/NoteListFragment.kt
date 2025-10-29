@@ -22,10 +22,11 @@ import ru.whiteleaf.notes.common.utils.DialogHelper
 import ru.whiteleaf.notes.common.utils.ShareHelper
 import ru.whiteleaf.notes.databinding.FragmentNoteListBinding
 import ru.whiteleaf.notes.domain.model.Note
-import ru.whiteleaf.notes.presentation.state.ExportState
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.domain.model.BiometricRequest
+import ru.whiteleaf.notes.presentation.state.NavigationEvent
+import ru.whiteleaf.notes.presentation.state.NoteListState
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
@@ -59,66 +60,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun setupObservers() {
 
-        viewModel.notes.observe(viewLifecycleOwner) { notes ->
-            toggleEmptyState(notes.isEmpty())
-            (binding.recyclerView.adapter as NoteAdapter).submitList(notes)
-        }
+        viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
+
+        viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> navigateEvent(event) }
 
         viewModel.biometricRequest.observe(viewLifecycleOwner) { request ->
             request?.let { showBiometricPrompt(it) }
-        }
-
-        viewModel.navigateToNote.observe(viewLifecycleOwner) { noteId ->
-            noteId?.let {
-                navigateToNoteEdit(noteId)
-                viewModel.onNoteNavigated()
-            }
-        }
-
-        viewModel.navigateToCreatedNote.observe(viewLifecycleOwner) { noteId ->
-            noteId?.let {
-                navigateToNoteCreated(noteId)
-                viewModel.onNoteCreatedNavigated()
-            }
-        }
-
-        viewModel.navigateToRenamed.observe(viewLifecycleOwner) { path ->
-            val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
-            findNavController().navigate(action)
-        }
-
-        viewModel.navigateUpAfterDelete.observe(viewLifecycleOwner) {
-            findNavController().navigateUp()
-        }
-
-        viewModel.shareNotebookState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is ExportState.Idle -> {
-                    hideProgress()
-                }
-
-                is ExportState.Loading -> {
-                    showProgress()
-                    Toast.makeText(requireContext(), "Создание архива...", Toast.LENGTH_SHORT)
-                        .show()
-                }
-
-                is ExportState.Success -> {
-                    hideProgress()
-                    Toast.makeText(requireContext(), "Архив создан успешно", Toast.LENGTH_SHORT)
-                        .show()
-                    shareExportFile(state.fileUri)
-                }
-
-                is ExportState.Error -> {
-                    hideProgress()
-                    Toast.makeText(requireContext(), "Ошибка экспорта", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.message.observe(viewLifecycleOwner) { error ->
@@ -127,6 +74,31 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 viewModel.clearMessage()
             }
         }
+    }
+
+    private fun navigateEvent(event: NavigationEvent) {
+
+        when (event) {
+            NavigationEvent.Idle -> {}
+
+            is NavigationEvent.ExportLink -> {
+                shareExportFile(event.uri)
+            }
+
+            is NavigationEvent.NavigateToNote -> {
+                navigateToNoteEdit(event.noteId)
+            }
+
+            is NavigationEvent.NavigateToNotebook -> {
+                navigateToNotebook(event.path)
+            }
+
+            NavigationEvent.NavigateUp -> {
+                findNavController().navigateUp()
+            }
+        }
+
+        viewModel.onNavigated()
     }
 
     private fun setupRecyclerView() {
@@ -149,11 +121,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             ContextMenuHelper.showPopupMenu(
                 context = requireContext(),
                 anchorView = optionsButton,
-                items = ContextMenuHelper.getOptionsMenuItemsNoteList(optionsButton.context),
+                items = ContextMenuHelper.getOptionsMenuItemsNoteList(optionsButton.context, true),
+                //todo определение зашифрована ли она
                 onItemSelected = { itemId ->
                     when (itemId) {
                         R.id.options_create_note -> onOptionsCreateNote()
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
+                        R.id.options_protect_notebook -> omOptionsProtectNotebook()
+                        R.id.options_protect_notebook -> omOptionsUnProtectNotebook()
                         R.id.options_share_notebook -> onOptionsShareNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()
                     }
@@ -174,6 +149,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
         { newName -> viewModel.renameNotebook(newName) }.show()
     }
+
+    private fun omOptionsProtectNotebook() = viewModel.protectNotebook(notebookTitle)
+
+    private fun omOptionsUnProtectNotebook() = viewModel.unprotectNotebook(notebookTitle)
 
     private fun onOptionsShareNotebook() = viewModel.shareNotebook()
 
@@ -218,18 +197,17 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             .setNegativeButtonText("Отмена")
             .build()
 
-        val biometricPrompt = BiometricPrompt(this, object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                viewModel.onBiometricSuccess()
-                viewModel.onBiometricSuccess()
-                request.onSuccess()
-            }
+        val biometricPrompt =
+            BiometricPrompt(this, object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    viewModel.reloadNotes()
+                }
 
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                viewModel.onBiometricError()
-                request.onError()
-            }
-        })
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    Toast.makeText(requireContext(), "Аутентификация отменена", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            })
 
         val cryptoObject = BiometricPrompt.CryptoObject(request.cipher)
         biometricPrompt.authenticate(promptInfo, cryptoObject)
@@ -249,32 +227,60 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             noteId = noteId,
             notebookPath = args.notebookPath
         )
+        viewModel.onNavigated()
         findNavController().navigate(action)
     }
 
-    private fun navigateToNoteCreated(noteId: String) {
-        val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
-            noteId = noteId,
-            notebookPath = args.notebookPath
-        )
+    private fun navigateToNotebook(path: String) {
+        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
         findNavController().navigate(action)
     }
 
-    private fun showProgress() {
-        binding.noteListProgressBar.visibility = View.VISIBLE
-    }
+//    private fun navigateToNoteCreated(noteId: String) {
+//        val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
+//            noteId = noteId,
+//            notebookPath = args.notebookPath
+//        )
+//        findNavController().navigate(action)
+//    }
 
-    private fun hideProgress() {
-        binding.noteListProgressBar.visibility = View.GONE
-    }
+    private fun renderState(state: NoteListState) {
+        when (state) {
+            NoteListState.Blocked -> {
+                binding.noteListProgressBar.visibility = View.GONE
+                binding.emptyList.visibility = View.GONE
+                binding.notebookProtected.visibility = View.VISIBLE
+                binding.createNote.visibility = View.GONE
+                binding.recyclerView.visibility = View.GONE
+            }
 
-    private fun toggleEmptyState(isEmpty: Boolean) {
-        if (isEmpty) {
-            binding.emptyList.visibility = View.VISIBLE
-            binding.recyclerView.visibility = View.GONE
-        } else {
-            binding.emptyList.visibility = View.GONE
-            binding.recyclerView.visibility = View.VISIBLE
+            is NoteListState.Error -> {
+                binding.noteListProgressBar.visibility = View.GONE
+                binding.emptyList.visibility = View.VISIBLE
+                binding.notebookProtected.visibility = View.GONE
+                binding.createNote.visibility = View.GONE
+                binding.recyclerView.visibility = View.GONE
+
+                binding.emptyList.text = state.message
+            }
+
+            NoteListState.Loading -> {
+                binding.noteListProgressBar.visibility = View.VISIBLE
+                binding.emptyList.visibility = View.GONE
+                binding.notebookProtected.visibility = View.GONE
+                binding.createNote.visibility = View.GONE
+                binding.recyclerView.visibility = View.GONE
+            }
+
+            is NoteListState.Success -> {
+                binding.noteListProgressBar.visibility = View.GONE
+                binding.emptyList.visibility = View.GONE
+                binding.notebookProtected.visibility = View.GONE
+                binding.createNote.visibility = View.VISIBLE
+                binding.recyclerView.visibility = View.VISIBLE
+
+                (binding.recyclerView.adapter as NoteAdapter).submitList(state.notes)
+            }
         }
     }
 

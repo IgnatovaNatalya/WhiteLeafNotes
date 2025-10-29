@@ -11,7 +11,6 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.whiteleaf.notes.data.config.NotebookConfigManager
 import java.io.File
 import java.io.IOException
 
@@ -51,39 +50,6 @@ class NoteRepositoryImpl(
                 }
         }
     }
-
-//    private suspend fun loadNotesFromDataSource(notebookPath: String?): List<Note> {
-//        return withContext(Dispatchers.IO) {
-//
-//            val directory = if (!notebookPath.isNullOrEmpty()) {
-//                File(noteDataSource.baseDir, notebookPath)
-//            } else {
-//                noteDataSource.baseDir
-//            }
-//
-//            val files =
-//                noteDataSource.listFilesInDirectory(directory) ?: return@withContext emptyList()
-//
-//            files.filter { it.isFile && it.name.endsWith(".txt") }
-//                .mapNotNull { file ->
-//                    try {
-//                        val name = file.nameWithoutExtension
-//                        val content = noteDataSource.readNoteContent(file, notebookPath ?: "")
-//                        val lastModified = file.lastModified()
-//
-//                        Note( // Явно создаем объект Note
-//                            id = name,
-//                            title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
-//                            content = content,
-//                            notebookPath = notebookPath,
-//                            modifiedAt = lastModified
-//                        )
-//                    } catch (e: Exception) {
-//                        null
-//                    }
-//                }.sortedByDescending { it.id }
-//        }
-//    }
 
 
     override suspend fun saveNote(note: Note) {

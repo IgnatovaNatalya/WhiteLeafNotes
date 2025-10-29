@@ -31,6 +31,9 @@
     <item android:id="@+id/options_protect_notebook"
         android:title="@string/protect"/>
 
+    <item android:id="@+id/options_unprotect_notebook"
+        android:title="@string/unprotect"/>
+
     <item android:id="@+id/options_share_notebook"
         android:title="@string/share" />
 
