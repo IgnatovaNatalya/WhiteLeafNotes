@@ -40,6 +40,8 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import ru.whiteleaf.notes.data.config.NotebookConfigManager
 import ru.whiteleaf.notes.data.datasource.EncryptionManager
+import ru.whiteleaf.notes.domain.use_case.DecryptExistingNotes
+import ru.whiteleaf.notes.domain.use_case.ReEncryptExistingNotes
 
 val koinModule = module {
 
@@ -97,6 +99,9 @@ val koinModule = module {
 
     factory { GetSharedContentUseCase(get()) }
     factory { InsertNoteUseCase(get()) }
+
+    factory { ReEncryptExistingNotes(get()) }
+    factory { DecryptExistingNotes( get()) }
 
     // ViewModels
     viewModel {
