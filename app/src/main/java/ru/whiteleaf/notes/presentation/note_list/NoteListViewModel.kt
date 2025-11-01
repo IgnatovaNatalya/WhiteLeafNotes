@@ -20,6 +20,7 @@ import ru.whiteleaf.notes.data.config.NotebookConfigManager
 import ru.whiteleaf.notes.data.datasource.EncryptionManager
 import ru.whiteleaf.notes.domain.model.BiometricRequest
 import ru.whiteleaf.notes.domain.use_case.DecryptExistingNotes
+import ru.whiteleaf.notes.domain.use_case.GetEncryptedContentSampleUseCase
 import ru.whiteleaf.notes.domain.use_case.ReEncryptExistingNotes
 import ru.whiteleaf.notes.presentation.state.NavigationEvent
 import ru.whiteleaf.notes.presentation.state.NoteListState
@@ -39,7 +40,8 @@ class NoteListViewModel(
     private val configManager: NotebookConfigManager,
     private val encryptionManager: EncryptionManager,
     private val reEncryptExistingNotes: ReEncryptExistingNotes,
-    private val decryptExistingNotes: DecryptExistingNotes
+    private val decryptExistingNotes: DecryptExistingNotes,
+    private val getEncryptedContentSample: GetEncryptedContentSampleUseCase
 
 ) : ViewModel() {
 
@@ -55,8 +57,8 @@ class NoteListViewModel(
     private val _biometricRequest = MutableLiveData<BiometricRequest?>(null)
     val biometricRequest: LiveData<BiometricRequest?> = _biometricRequest
 
-    private val isProtected = configManager.isNotebookProtected(notebookPath ?: "")
-    private val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
+    private var isProtected = configManager.isNotebookProtected(notebookPath ?: "")
+    private var keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
 
     init {
         loadNotes()
@@ -64,11 +66,16 @@ class NoteListViewModel(
     }
 
     fun loadNotes() {
-        _noteListState.postValue(NoteListState.Loading)
+
+        println("🔄 ViewModel.loadNotes START - notebook: $notebookPath")
 
         viewModelScope.launch {
             try {
-                val notesList = getNotesUseCase(notebookPath) //если защищенная то будет секьюрити эксепшн
+                _noteListState.postValue(NoteListState.Loading)
+                val notesList =
+                    getNotesUseCase(notebookPath) //если защищенная то будет секьюрити эксепшн
+
+                println("✅ ViewModel got notes: ${notesList.size}")
 
                 notesList.forEach { note ->
                     if (note.isEmpty()) {
@@ -76,31 +83,151 @@ class NoteListViewModel(
                         showMessage("Пустая заметка удалена")
                     }
                 }
-                _noteListState.postValue(NoteListState.Success(notesList.filter { it.isNotEmpty() }))
+                isProtected = configManager.isNotebookProtected(notebookPath ?: "")
+
+                _noteListState.postValue(
+                    NoteListState.Success(
+                        isProtected,
+                        notesList.filter { it.isNotEmpty() })
+                )
 
             } catch (e: SecurityException) {
-                if (isProtected) {
-                    handleBiometricRequired()
-                } else {
-                    // Неожиданная ошибка - книжка не защищена, но запросила биометрию
-                    _noteListState.postValue(NoteListState.Error("Ошибка безопасности"))
-                }
+                println("🔐 ViewModel caught SecurityException: ${e.message}")
+                //_noteListState.postValue(NoteListState.Blocked)
+                //if (isProtected) {
+                requestBiometricAuthentication(notebookPath)
+                //} else {
+                // Неожиданная ошибка - книжка не защищена, но запросила биометрию
+                //    _noteListState.postValue(NoteListState.Error("Ошибка безопасности"))
+                //}
             } catch (e: IOException) {
+                println("❌ ViewModel caught other exception: ${e.message}")
                 _noteListState.postValue(NoteListState.Error("Ошибка загрузки заметок: ${e.message}"))
             } catch (e: Exception) {
                 _noteListState.postValue(NoteListState.Error("Неизвестная ошибка: ${e.message}"))
+            } finally {
+                println("🔄 ViewModel.loadNotes END")
             }
         }
     }
 
-//    fun onBiometricSuccess() {
-//        _biometricRequest.postValue(null)
+    private suspend fun requestBiometricAuthentication(notebookPath: String?) {
+        println("🔐 ViewModel.requestBiometricAuthentication START")
+        try {
+            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
+            println("🔐 Key alias: $keyAlias")
+
+            if (keyAlias != null) {
+                // Нужно получить зашифрованный текст для создания Cipher с IV
+
+                val encryptedContent = getEncryptedContentSample(notebookPath ?: "")
+                if (encryptedContent != null) {
+                    val cipher = encryptionManager.getCipherForAccess(encryptedContent, keyAlias)
+                    println("🔐 Cipher created successfully with IV")
+
+                    val biometricRequest = BiometricRequest(
+                        notebookPath = notebookPath,
+                        keyAlias = keyAlias,
+                        cipher = cipher,
+                        onSuccess = {
+                            println("🔐 Biometric success - reloading notes")
+                            loadNotes()
+                        },
+                        onError = {
+                            println("🔐 Biometric error")
+                            _noteListState.value = NoteListState.Error("Аутентификация не пройдена")
+                        }
+                    )
+                    _noteListState.postValue(NoteListState.Blocked(biometricRequest))
+                    println("✅ BiometricRequest sent to Fragment")
+                } else {
+                    println("❌ Could not get encrypted content")
+                    _noteListState.value = NoteListState.Error("Ошибка: не найдены зашифрованные данные")
+                }
+            } else {
+                println("❌ No key alias found")
+                _noteListState.value = NoteListState.Error("Ошибка безопасности: ключ не найден")
+            }
+        } catch (e: Exception) {
+            println("❌ Error in requestBiometricAuthentication: ${e.message}")
+            _noteListState.value = NoteListState.Error("Ошибка безопасности: ${e.message}")
+        } finally {
+            println("🔐 ViewModel.requestBiometricAuthentication END")
+        }
+    }
+
+
+//    private fun requestBiometricAuthenticationLast1(notebookPath: String?) {
+//        println("🔐 ViewModel.requestBiometricAuthentication START")
+//        try {
+//            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
+//            println("🔐 Key alias: $keyAlias")
+//
+//            if (keyAlias != null) {
+//                val cipher = encryptionManager.getCipherForAccess(keyAlias)
+//                println("🔐 Cipher created successfully")
+//
+//                _biometricRequest.value = BiometricRequest(
+//                    notebookPath = notebookPath,
+//                    keyAlias = keyAlias,
+//                    cipher = cipher,
+//                    onSuccess = {
+//                        println("🔐 Biometric success - reloading notes")
+//                        loadNotes()
+//                    },
+//                    onError = {
+//                        println("🔐 Biometric error")
+//                        _noteListState.value = NoteListState.Error("Аутентификация не пройдена")
+//                    }
+//                )
+//                println("✅ BiometricRequest sent to Fragment")
+//            } else {
+//                println("❌ No key alias found")
+//                _noteListState.value = NoteListState.Error("Ошибка безопасности: ключ не найден")
+//            }
+//        } catch (e: Exception) {
+//            println("❌ Error in requestBiometricAuthentication: ${e.message}")
+//            _noteListState.value = NoteListState.Error("Ошибка безопасности: ${e.message}")
+//        } finally {
+//            println("🔐 ViewModel.requestBiometricAuthentication END")
+//        }
 //    }
 
-//    fun onBiometricError() {
-//        _biometricRequest.postValue(null)
-//        showMessage("Аутентификация отменена")
+
+//    private fun requestBiometricAuthenticationLast(notebookPath: String?) {
+//        try {
+//            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
+//            if (keyAlias != null) {
+//                val cipher = encryptionManager.getCipherForAccess(keyAlias)
+//
+//                _biometricRequest.value = BiometricRequest(
+//                    notebookPath = notebookPath,
+//                    keyAlias = keyAlias,
+//                    cipher = cipher,
+//                    onSuccess = {
+//                        // После успешной биометрии снова загружаем заметки
+//                        loadNotes()
+//                    },
+//                    onError = {
+//                        _noteListState.value = NoteListState.Error("Аутентификация не пройдена")
+//                    }
+//                )
+//            } else {
+//                _noteListState.value = NoteListState.Error("Ошибка безопасности: ключ не найден")
+//            }
+//        } catch (e: Exception) {
+//            _noteListState.value = NoteListState.Error("Ошибка безопасности: ${e.message}")
+//        }
 //    }
+
+    fun onBiometricSuccess() {
+        _biometricRequest.postValue(null)
+    }
+
+    fun onBiometricError() {
+        _biometricRequest.postValue(null)
+        showMessage("Аутентификация отменена")
+    }
 
     fun clearMessage() = showMessage(null)
 
@@ -166,39 +293,223 @@ class NoteListViewModel(
         }
     }
 
+    fun testKeyCreation(notebookPath: String) {
+        viewModelScope.launch {
+            try {
+                val keyAlias = configManager.generateKeyAlias(notebookPath)
+                println("🧪 Creating both keys...")
+
+                val keysCreated = encryptionManager.createNotebookKeys(keyAlias)
+                println("🧪 Keys creation result: $keysCreated")
+
+                if (keysCreated) {
+                    val testText = "Test encryption"
+                    val encrypted = encryptionManager.encryptContent(testText, keyAlias)
+                    println("🧪 Encryption test - original: '$testText', result: '$encrypted'")
+                    println("🧪 Test successful: ${testText != encrypted}")
+                }
+
+            } catch (e: Exception) {
+                println("🧪 TEST FAILED: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun testKeyCreationLast(notebookPath: String) {
+        viewModelScope.launch {
+            try {
+                val keyAlias = configManager.generateKeyAlias(notebookPath)
+                println("🧪 TEST KEY CREATION")
+                println("🧪 Key alias: $keyAlias")
+
+                // Проверяем до создания
+                println("🧪 Checking if key exists before creation...")
+                val existsBefore = encryptionManager.keyExists(keyAlias)
+                println("🧪 Key exists before: $existsBefore")
+
+                // Создаем ключ
+                println("🧪 Creating key...")
+                val created = encryptionManager.createKeyForNotebook(keyAlias)
+                println("🧪 Key creation result: $created")
+
+                // Проверяем после создания
+                println("🧪 Checking if key exists after creation...")
+                val existsAfter = encryptionManager.keyExists(keyAlias)
+                println("🧪 Key exists after: $existsAfter")
+
+                // Пробуем использовать ключ
+                if (existsAfter) {
+                    println("🧪 Testing key usage...")
+                    val testText = "Test encryption"
+                    val encrypted = encryptionManager.encryptContent(testText, keyAlias)
+                    println("🧪 Encryption test - original: '$testText', result: '$encrypted'")
+                    println("🧪 Test successful: ${testText != encrypted}")
+                }
+
+            } catch (e: Exception) {
+                println("🧪 TEST FAILED: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun protectNotebook(notebookPath: String) {
+        viewModelScope.launch {
+            //_protectionState.value = ProtectionState.Protecting(notebookPath)
+
+            try {
+                val keyAlias = configManager.generateKeyAlias(notebookPath)
+
+                // Создаем ОБА ключа
+                val keysCreated = encryptionManager.createNotebookKeys(keyAlias)
+                if (!keysCreated) {
+                    showMessage("Не удалось создать ключи безопасности")
+                    //_protectionState.value = ProtectionState.Error("Не удалось создать ключи безопасности")
+                    return@launch
+                }
+
+                configManager.setNotebookProtected(notebookPath, keyAlias)
+                reEncryptExistingNotes(notebookPath)
+
+                //_protectionState.value = ProtectionState.Success("Записная книжка защищена")
+                showMessage("Записная книжка защищена")
+                loadNotes()
+
+            } catch (e: Exception) {
+                showMessage("Ошибка защиты: ${e.message}")
+                //_protectionState.value = ProtectionState.Error("Ошибка защиты: ${e.message}")
+            }
+        }
+    }
+
+    fun protectNotebookLast2(notebookPath: String) {
+        viewModelScope.launch {
+            try {
+                val keyAlias = configManager.generateKeyAlias(notebookPath)
+                println("🛡️ DEBUG protectNotebook START")
+                println("🛡️ Notebook: $notebookPath")
+                println("🛡️ Generated key alias: $keyAlias")
+
+                // Проверяем ДО создания
+                val keyExistsBefore = encryptionManager.keyExists(keyAlias)
+                println("🛡️ Key exists before creation: $keyExistsBefore")
+
+                // Создаем ключ
+                println("🛡️ Creating key...")
+                val keyCreated = encryptionManager.createKeyForNotebook(keyAlias)
+                println("🛡️ Key creation result: $keyCreated")
+
+                // Проверяем ПОСЛЕ создания
+                val keyExistsAfter = encryptionManager.keyExists(keyAlias)
+                println("🛡️ Key exists after creation: $keyExistsAfter")
+
+                if (!keyExistsAfter) {
+                    println("❌ KEY CREATION FAILED!")
+                    return@launch
+                }
+
+                // Сохраняем конфигурацию
+                configManager.setNotebookProtected(notebookPath, keyAlias)
+                println("✅ Notebook marked as protected")
+
+                // Перешифровываем
+                reEncryptExistingNotes(notebookPath)
+
+            } catch (e: Exception) {
+                println("❌ Error in protectNotebook: ${e.message}")
+                e.printStackTrace()
+            } finally {
+                println("🛡️ DEBUG protectNotebook END\n")
+            }
+        }
+    }
+
+    fun protectNotebookLast(notebookPath: String) {
         viewModelScope.launch {
             try {
                 // Генерируем уникальный ключ для книжки
                 val keyAlias = configManager.generateKeyAlias(notebookPath)
+                println("DEBUG: Generated key alias: $keyAlias")
 
-                // Создаем ключ в Keystore
-                val keyCreated = encryptionManager.getOrCreateKey(keyAlias)
+                // Проверяем существует ли ключ ДО создания
+//                val keyExistsBefore = encryptionManager.keyExists(keyAlias)
+//                println("DEBUG: Key exists before creation: $keyExistsBefore")
 
+                // Создаем ключ
+                val keyCreated = encryptionManager.createKeyForNotebook(keyAlias)
+                //val keyTestCreated = encryptionManager.createTestKey(keyAlias)
+                println("DEBUG: Key creation result: $keyCreated")
+
+                if (!keyCreated) {
+                    showMessage("Ошибка создания ключа")
+                    return@launch
+                }
+                // Проверяем существует ли ключ ПОСЛЕ создания
+                val keyExistsAfter = encryptionManager.keyExists(keyAlias)
+                println("DEBUG: Key exists after creation: $keyExistsAfter")
+
+                if (!keyExistsAfter) {
+                    println("DEBUG: KEY WAS NOT CREATED SUCCESSFULLY!")
+                    return@launch
+                }
                 // Сохраняем конфигурацию
                 configManager.setNotebookProtected(notebookPath, keyAlias)
+                println("DEBUG: Notebook marked as protected")
 
-                // Шифруем существующие заметки в этой книжке
+                // Перешифровываем  существующие заметки в этой книжке
                 reEncryptExistingNotes(notebookPath)
+
+                isProtected = configManager.isNotebookProtected(notebookPath)
+
+                val currentState = _noteListState.value
+                if (currentState is NoteListState.Success) _noteListState.postValue(
+                    currentState.copy(isProtected = isProtected)
+                )
                 showMessage("Записная книжка защищена")
 
             } catch (e: Exception) {
+                println("DEBUG: Error in protectNotebook: ${e.message}")
+                e.printStackTrace()
                 showMessage("Ошибка защиты: ${e.message}")
             }
         }
     }
 
+
     fun unprotectNotebook(notebookPath: String) {
         viewModelScope.launch {
             try {
                 val keyAlias = configManager.getKeyAliasForNotebook(notebookPath)
-                if (keyAlias != null) {
-                    decryptExistingNotes(notebookPath)
-                    encryptionManager.deleteKey(keyAlias)
+
+                if (keyAlias == null) {
+                    showMessage("Ключ шифрования не найден")
+                    return@launch
                 }
+
+                val decryptionSuccess = decryptExistingNotes(notebookPath)
+
+                if (!decryptionSuccess) {
+                    showMessage("Не удалось расшифровать заметки")
+                    return@launch
+                }
+
+                val keyDeleted = encryptionManager.deleteKey(keyAlias)
+
+                if (!keyDeleted) showMessage("Warning: Failed to delete key from Keystore, but continuing...")
+
+
                 configManager.setNotebookUnprotected(notebookPath)
+                isProtected = configManager.isNotebookProtected(notebookPath)
+
+                val currentState = _noteListState.value
+                if (currentState is NoteListState.Success) _noteListState.postValue(
+                    currentState.copy(isProtected = isProtected)
+                )
                 showMessage("Защита снята")
 
+            } catch (e: SecurityException) {
+                showMessage("Требуется биометрическая аутентификация для снятия защиты")
             } catch (e: Exception) {
                 showMessage("Ошибка снятия защиты: ${e.message}")
             }
@@ -213,7 +524,6 @@ class NoteListViewModel(
 
                     if (result.isSuccess)
                         _navigationEvent.postValue(NavigationEvent.ExportLink(result.getOrNull()))
-
                     else
                         showMessage(result.exceptionOrNull()?.message ?: "Unknown error")
 
@@ -237,7 +547,8 @@ class NoteListViewModel(
         }
     }
 
-    fun onNoteClicked(noteId: String) = _navigationEvent.postValue(NavigationEvent.NavigateToNote(noteId))
+    fun onNoteClicked(noteId: String) =
+        _navigationEvent.postValue(NavigationEvent.NavigateToNote(noteId))
 
     fun onNavigated() = _navigationEvent.postValue(NavigationEvent.Idle)
 
@@ -262,9 +573,16 @@ class NoteListViewModel(
                 notebookPath = notebookPath,
                 keyAlias = keyAlias,
                 cipher = cipher,
+                {
+                    // После успешной биометрии снова загружаем заметки
+                    loadNotes()
+                },
+            ) {
+                _noteListState.postValue(NoteListState.Error("Аутентификация не пройдена"))
+            }
 //                onSuccess = { loadNotes() },
 //                onError = { showMessage("Аутентификация не пройдена") }
-            )
+
         } catch (e: Exception) {
             showMessage("Ошибка безопасности: ${e.message}")
         }

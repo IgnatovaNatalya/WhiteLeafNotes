@@ -49,36 +49,52 @@ class FileNoteDataSource(
         return file.exists()
     }
 
-    // Чтение содержимого файла
-    //fun readNoteContent(file: File): String {
-    //return file.readText()
-    //}
-
     fun readNoteContent(file: File, notebookPath: String): String {
         val content = file.readText()
+        println("📖 readNoteContent - notebook: $notebookPath")
 
         return if (configManager.isNotebookProtected(notebookPath) && encryptionManager != null) {
             val keyAlias = configManager.getKeyAliasForNotebook(notebookPath)!!
-            // Просто пытаемся расшифровать - если нужна биометрия, будет исключение
-            encryptionManager.decryptContent(content, keyAlias)
+            println("🔓 Notebook is protected, key: $keyAlias")
+
+            // Проверяем формат - зашифрованы ли уже данные?
+            val isEncryptedFormat = content.contains("|") && content.split("|").size == 2
+            println("🔓 Is encrypted format: $isEncryptedFormat")
+
+            if (isEncryptedFormat) {
+                // Данные зашифрованы - пытаемся расшифровать (может потребовать биометрию)
+                println("🔓 Attempting to decrypt encrypted content")
+                try {
+                    val decrypted = encryptionManager.decryptContent(content, keyAlias)
+                    if (decrypted != content) {
+                        println("✅ Successfully decrypted")
+                        decrypted
+                    } else {
+                        println("❌ Decryption failed but format was encrypted")
+                        throw SecurityException("Biometric authentication required")
+                    }
+                } catch (e: SecurityException) {
+                    println("🔐 SecurityException - biometric required for decryption")
+                    throw e
+                }
+            } else {
+                // Данные НЕ зашифрованы - возвращаем как есть
+                println("📝 Content is not encrypted, returning as-is")
+                content
+            }
         } else {
+            println("📝 Notebook not protected, returning plain text")
             content
         }
     }
 
-    // Запись содержимого в файл
-    //fun writeNoteContent(file: File, content: String) {
-    //file.writeText(content)
-    //}
-
     fun writeNoteContent(file: File, content: String, notebookPath: String) {
-        val contentToWrite =
-            if (configManager.isNotebookProtected(notebookPath) && encryptionManager != null) {
-                val keyAlias = configManager.getKeyAliasForNotebook(notebookPath)!!
-                encryptionManager.encryptContent(content, keyAlias)
-            } else {
-                content
-            }
+        val contentToWrite = if (configManager.isNotebookProtected(notebookPath) && encryptionManager != null) {
+            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath)!!
+            encryptionManager.encryptContent(content, keyAlias)
+        } else {
+            content
+        }
 
         file.writeText(contentToWrite)
     }

@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -34,6 +35,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookTitle = ""
+    private var isProtected = false
+    private lateinit var btnUnlocked: ImageButton
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -51,9 +54,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
         notebookTitle = args.notebookPath.toString()
+        btnUnlocked = (requireActivity() as AppCompatActivity).findViewById<ImageButton>(R.id.btn_unlocked)
 
-        setupOptionsMenu()
         setupObservers()
+        setupOptionsMenu()
         setupRecyclerView()
         setupFab()
     }
@@ -64,16 +68,48 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> navigateEvent(event) }
 
-        viewModel.biometricRequest.observe(viewLifecycleOwner) { request ->
-            request?.let { showBiometricPrompt(it) }
-        }
+//        viewModel.biometricRequest.observe(viewLifecycleOwner) { request ->
+//            {
+//                println("👀 Fragment observed biometricRequest: ${request != null}")
+//                request?.let {
+//                    println("🔐 Fragment showing BiometricPrompt")
+//                    showBiometricPrompt(it) }
+//            }
+//        }
 
-        viewModel.message.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+        viewModel.message.observe(viewLifecycleOwner) { message ->
+            message?.let {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
                 viewModel.clearMessage()
             }
         }
+    }
+
+    private fun showBiometricPrompt(request: BiometricRequest) {
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Доступ к защищенным заметкам")
+            .setSubtitle("Подтвердите отпечаток пальца")
+            .setNegativeButtonText("Отмена")
+            .build()
+
+        val biometricPrompt = BiometricPrompt(
+            this,
+            ContextCompat.getMainExecutor(requireContext()),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    viewModel.onBiometricSuccess()
+                    request.onSuccess()
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    viewModel.onBiometricError()
+                    request.onError()
+                }
+            }
+        )
+
+        val cryptoObject = BiometricPrompt.CryptoObject(request.cipher)
+        biometricPrompt.authenticate(promptInfo, cryptoObject)
     }
 
     private fun navigateEvent(event: NavigationEvent) {
@@ -121,14 +157,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             ContextMenuHelper.showPopupMenu(
                 context = requireContext(),
                 anchorView = optionsButton,
-                items = ContextMenuHelper.getOptionsMenuItemsNoteList(optionsButton.context, true),
+                items = ContextMenuHelper.getOptionsMenuItemsNoteList(optionsButton.context, isProtected),
                 //todo определение зашифрована ли она
                 onItemSelected = { itemId ->
                     when (itemId) {
                         R.id.options_create_note -> onOptionsCreateNote()
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
-                        R.id.options_protect_notebook -> omOptionsProtectNotebook()
-                        R.id.options_protect_notebook -> omOptionsUnProtectNotebook()
+                        R.id.options_protect_notebook -> onOptionsProtectNotebook()
+                        R.id.options_unprotect_notebook -> onOptionsUnprotectNotebook()
                         R.id.options_share_notebook -> onOptionsShareNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()
                     }
@@ -140,6 +176,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun setupFab() {
         binding.createNote.setOnClickListener {
             viewModel.createNewNote()
+            //viewModel.testKeyCreation(notebookTitle)
         }
     }
 
@@ -150,9 +187,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         { newName -> viewModel.renameNotebook(newName) }.show()
     }
 
-    private fun omOptionsProtectNotebook() = viewModel.protectNotebook(notebookTitle)
+    private fun onOptionsProtectNotebook() =
+        viewModel.protectNotebook(notebookTitle)
 
-    private fun omOptionsUnProtectNotebook() = viewModel.unprotectNotebook(notebookTitle)
+    private fun onOptionsUnprotectNotebook() = viewModel.unprotectNotebook(notebookTitle)
 
     private fun onOptionsShareNotebook() = viewModel.shareNotebook()
 
@@ -190,27 +228,24 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
 
-    private fun showBiometricPrompt(request: BiometricRequest) {
+    private fun showBiometricPromptForKeyCreation(notebookPath: String) {
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Доступ к защищенным заметкам")
-            .setSubtitle("Подтвердите отпечаток пальца")
+            .setTitle("Включить защиту")
+            .setSubtitle("Подтвердите отпечаток для создания ключа безопасности")
             .setNegativeButtonText("Отмена")
             .build()
 
-        val biometricPrompt =
-            BiometricPrompt(this, object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    viewModel.reloadNotes()
-                }
+        val biometricPrompt = BiometricPrompt(this, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                viewModel.protectNotebook(notebookPath)
+            }
 
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    Toast.makeText(requireContext(), "Аутентификация отменена", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            })
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                Toast.makeText(requireContext(),"Создание защиты отменено: $errString", Toast.LENGTH_SHORT).show()
+            }
+        })
 
-        val cryptoObject = BiometricPrompt.CryptoObject(request.cipher)
-        biometricPrompt.authenticate(promptInfo, cryptoObject)
+        biometricPrompt.authenticate(promptInfo)
     }
 
     private fun shareExportFile(uri: Uri?) {
@@ -245,39 +280,55 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 //    }
 
     private fun renderState(state: NoteListState) {
+        println("👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
-            NoteListState.Blocked -> {
+            is NoteListState.Blocked -> {
+                println("⏳ Fragment showing Blocked")
+                isProtected = true
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.VISIBLE
                 binding.createNote.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
+                btnUnlocked.setImageResource(R.drawable.ic_locked)
+                btnUnlocked.visibility = View.VISIBLE
+                showBiometricPrompt(state.request)
             }
 
             is NoteListState.Error -> {
+                println("❌ Fragment showing error: ${state.message}")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.VISIBLE
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
-
+                btnUnlocked.visibility = View.GONE
                 binding.emptyList.text = state.message
             }
 
             NoteListState.Loading -> {
+                println("⏳ Fragment showing loading")
                 binding.noteListProgressBar.visibility = View.VISIBLE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
                 binding.recyclerView.visibility = View.GONE
+                btnUnlocked.visibility = View.GONE
             }
 
             is NoteListState.Success -> {
+                println("✅ Fragment showing ${state.notes.size} notes")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.VISIBLE
+                isProtected = state.isProtected
+                if (state.isProtected) {
+                    btnUnlocked.setImageResource(R.drawable.ic_unlocked)
+                    btnUnlocked.visibility = View.VISIBLE
+                }
+                else btnUnlocked.visibility = View.GONE
 
                 (binding.recyclerView.adapter as NoteAdapter).submitList(state.notes)
             }
