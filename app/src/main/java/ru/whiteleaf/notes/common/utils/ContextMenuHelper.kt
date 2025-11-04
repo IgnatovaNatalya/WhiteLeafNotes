@@ -39,11 +39,19 @@ object ContextMenuHelper {
         listPopupWindow.show()
     }
 
-    // Пункты меню опций при просмотре записной книжки
-    fun getOptionsMenuItemsNoteList(context: Context): List<ContextMenuItem> {
-        return listOf(
+    // Пункты меню опций записной книжки
+    fun getOptionsMenuItemsNoteList(context: Context, isProtected:Boolean): List<ContextMenuItem> {
+        return if (isProtected) listOf(
             createMenuItem(context, R.id.options_create_note),
             createMenuItem(context, R.id.options_rename_notebook),
+            createMenuItem(context, R.id.options_unprotect_notebook),
+            createMenuItem(context, R.id.options_share_notebook),
+            createMenuItem(context, R.id.options_delete_notebook)
+        )
+        else listOf(
+            createMenuItem(context, R.id.options_create_note),
+            createMenuItem(context, R.id.options_rename_notebook),
+            createMenuItem(context, R.id.options_protect_notebook),
             createMenuItem(context, R.id.options_share_notebook),
             createMenuItem(context, R.id.options_delete_notebook)
         )
@@ -104,5 +112,4 @@ object ContextMenuHelper {
     fun Int.dpToPx(context: Context): Int {
         return (this * context.resources.displayMetrics.density).toInt()
     }
-
 }

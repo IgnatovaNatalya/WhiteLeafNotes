@@ -20,28 +20,48 @@ class NoteRepositoryImpl(
 ) : NotesRepository {
 
     override suspend fun getNotes(notebookPath: String?): List<Note> {
+        println("📚 Repository.getNotes START - notebook: $notebookPath")
         return withContext(Dispatchers.IO) {
-            val dir =
-                notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
+            try {
+                val dir =
+                    notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
 
-            noteDataSource.listFilesInDirectory(dir)
-                ?.filter { it.isFile && it.name.endsWith(".txt") }
-                ?.mapNotNull { file ->
-                    try {
-                        val name = file.nameWithoutExtension
-                        val content = noteDataSource.readNoteContent(file)
-                        Note(
-                            id = name,
-                            title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
-                            content = content,
-                            modifiedAt = file.lastModified(),
-                            notebookPath = notebookPath
-                        )
-                    } catch (_: Exception) {
-                        null
+                val files =
+                    noteDataSource.listFilesInDirectory(dir) ?: return@withContext emptyList()
+
+                files.filter { it.isFile && it.name.endsWith(".txt") }
+                    .mapNotNull { file ->
+                        try {
+                            val name = file.nameWithoutExtension
+                            println("📖 Reading note: $name")
+                            val content = noteDataSource.readNoteContent(file, notebookPath ?: "")
+                            val lastModified = file.lastModified()
+                            Note(
+                                id = name,
+                                title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
+                                content = content,
+                                notebookPath = notebookPath,
+                                modifiedAt = lastModified
+                            )
+                        } catch (e: SecurityException) {
+                            // Пробрасываем SecurityException дальше
+                            println("🔐 Repository caught SecurityException: ${e.message}")
+                            throw e
+                        } catch (e: Exception) {
+                            println("❌ Repository caught other exception: ${e.message}")
+                            null
+                        }
                     }
-                }?.sortedByDescending { it.modifiedAt } ?: emptyList()
-
+            } catch (e: SecurityException) {
+                // Пробрасываем SecurityException для биометрии
+                println("🔐 Repository re-throwing SecurityException to ViewModel")
+                throw e
+            } catch (e: Exception) {
+                println("❌ Repository caught exception: ${e.message}")
+                throw Exception("Failed to load notes", e)
+            } finally {
+                println("📚 Repository.getNotes END")
+            }
         }
     }
 
@@ -49,7 +69,10 @@ class NoteRepositoryImpl(
         withContext(Dispatchers.IO) {
             try {
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                noteDataSource.writeNoteContent(noteFile, note.content)
+                noteDataSource.writeNoteContent(
+                    noteFile, note.content,
+                    note.notebookPath.toString()
+                )
 
                 if (note.modifiedAt > 0) noteDataSource.setFileLastModified(
                     noteFile,
@@ -171,6 +194,31 @@ class NoteRepositoryImpl(
         } catch (_: Exception) {
             // Если произошла ошибка считаем что заметки нет
             false
+        }
+    }
+
+    override suspend fun getEncryptedContentSample(notebookPath: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val directory = if (notebookPath.isNotEmpty()) {
+                    File(noteDataSource.baseDir, notebookPath)
+                } else {
+                    noteDataSource.baseDir
+                }
+
+                val files = directory.listFiles { file ->
+                    file.isFile && file.name.endsWith(".txt")
+                } ?: emptyArray()
+
+                if (files.isNotEmpty()) {
+                    // Читаем первый файл (он уже зашифрован)
+                    files.first().readText()
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 }

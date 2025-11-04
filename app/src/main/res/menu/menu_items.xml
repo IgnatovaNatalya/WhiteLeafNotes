@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+<!--конекстное меню-->
+
     <item
         android:id="@+id/note_menu_rename"
         android:title="@string/rename"/>
@@ -17,17 +19,28 @@
         android:id="@+id/note_menu_delete"
         android:title="@string/delete" />
 
+
+    <!-- меню опций записной книжки-->
+
     <item android:id="@+id/options_create_note"
         android:title="@string/create_note" />
 
     <item android:id="@+id/options_rename_notebook"
         android:title="@string/rename"/>
 
+    <item android:id="@+id/options_protect_notebook"
+        android:title="@string/protect"/>
+
+    <item android:id="@+id/options_unprotect_notebook"
+        android:title="@string/unprotect"/>
+
     <item android:id="@+id/options_share_notebook"
         android:title="@string/share" />
 
     <item android:id="@+id/options_delete_notebook"
         android:title="@string/delete" />
+
+    <!-- меню опций заметки-->
 
     <item android:id="@+id/options_rename_note"
         android:title="@string/rename" />

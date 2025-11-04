@@ -50,6 +50,10 @@
     <string name="saveNewNote">Сохранить заметку</string>
     <string name="appendNote">Добавить к заметке</string>
     <string name="cancel">Закрыть</string>
+    <string name="protect">Зашифровать</string>
+    <string name="unprotect">Расшифровать</string>
+    <string name="is_protected">Записная книжка защищена</string>
+    <string name="unlock">Разблокировать</string>
 
     <string name="is_protected">Записная книжка защищена</string>
     <string name="unlock">Разблокировать</string>
