@@ -66,7 +66,7 @@
             android:background="@drawable/bg_button_round"
             android:padding="0dp"
             android:textColor="?attr/colorOnPrimary"
-            tools:text="@string/unlock" />
+            android:text="@string/unlock" />
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

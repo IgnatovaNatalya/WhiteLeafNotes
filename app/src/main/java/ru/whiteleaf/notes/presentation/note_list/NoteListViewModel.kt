@@ -54,8 +54,8 @@ class NoteListViewModel(
     private val _message = MutableLiveData<String?>()
     val message: LiveData<String?> = _message
 
-    private val _biometricRequest = MutableLiveData<BiometricRequest?>(null)
-    val biometricRequest: LiveData<BiometricRequest?> = _biometricRequest
+    private val _biometricRequest = MutableLiveData<BiometricRequest>()
+    val biometricRequest: LiveData<BiometricRequest> = _biometricRequest
 
     private var isProtected = configManager.isNotebookProtected(notebookPath ?: "")
     private var keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
@@ -95,7 +95,8 @@ class NoteListViewModel(
                 println("🔐 ViewModel caught SecurityException: ${e.message}")
                 //_noteListState.postValue(NoteListState.Blocked)
                 //if (isProtected) {
-                requestBiometricAuthentication(notebookPath)
+                _noteListState.postValue(NoteListState.Blocked)
+                //requestBiometricAuthentication()
                 //} else {
                 // Неожиданная ошибка - книжка не защищена, но запросила биометрию
                 //    _noteListState.postValue(NoteListState.Error("Ошибка безопасности"))
@@ -111,122 +112,67 @@ class NoteListViewModel(
         }
     }
 
-    private suspend fun requestBiometricAuthentication(notebookPath: String?) {
-        println("🔐 ViewModel.requestBiometricAuthentication START")
-        try {
-            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
-            println("🔐 Key alias: $keyAlias")
+    fun requestBiometricAuthentication() {
+        viewModelScope.launch {
+            println("🔐 ViewModel.requestBiometricAuthentication START")
+            try {
+                val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
+                println("🔐 Key alias: $keyAlias")
 
-            if (keyAlias != null) {
-                // Нужно получить зашифрованный текст для создания Cipher с IV
+                if (keyAlias != null) {
+                    // Нужно получить зашифрованный текст для создания Cipher с IV
 
-                val encryptedContent = getEncryptedContentSample(notebookPath ?: "")
-                if (encryptedContent != null) {
-                    val cipher = encryptionManager.getCipherForAccess(encryptedContent, keyAlias)
-                    println("🔐 Cipher created successfully with IV")
+                    val encryptedContent = getEncryptedContentSample(notebookPath ?: "")
+                    if (encryptedContent != null) {
+                        val cipher =
+                            encryptionManager.getCipherForAccess(encryptedContent, keyAlias)
+                        println("🔐 Cipher created successfully with IV")
 
-                    val biometricRequest = BiometricRequest(
-                        notebookPath = notebookPath,
-                        keyAlias = keyAlias,
-                        cipher = cipher,
-                        onSuccess = {
-                            println("🔐 Biometric success - reloading notes")
-                            loadNotes()
-                        },
-                        onError = {
-                            println("🔐 Biometric error")
-                            _noteListState.value = NoteListState.Error("Аутентификация не пройдена")
-                        }
-                    )
-                    _noteListState.postValue(NoteListState.Blocked(biometricRequest))
-                    println("✅ BiometricRequest sent to Fragment")
+                        val biometricRequest = BiometricRequest(
+                            notebookPath = notebookPath,
+                            keyAlias = keyAlias,
+                            cipher = cipher,
+                            onSuccess = {
+                                println("🔐 Biometric success - reloading notes")
+                                loadNotes()
+                            },
+                            onError = {
+                                println("🔐 Biometric error")
+                                _noteListState.value =
+                                    NoteListState.Error("Аутентификация не пройдена")
+                            }
+                        )
+                        //_noteListState.postValue(NoteListState.Blocked(biometricRequest))
+                        _biometricRequest.postValue(biometricRequest)
+                        _message.postValue("✅ BiometricRequest sent to Fragment")
+                        println("✅ BiometricRequest sent to Fragment")
+                    } else {
+                        println("❌ Could not get encrypted content")
+                        _noteListState.value =
+                            NoteListState.Error("Ошибка: не найдены зашифрованные данные")
+                    }
                 } else {
-                    println("❌ Could not get encrypted content")
-                    _noteListState.value = NoteListState.Error("Ошибка: не найдены зашифрованные данные")
+                    println("❌ No key alias found")
+                    _noteListState.value =
+                        NoteListState.Error("Ошибка безопасности: ключ не найден")
                 }
-            } else {
-                println("❌ No key alias found")
-                _noteListState.value = NoteListState.Error("Ошибка безопасности: ключ не найден")
+            } catch (e: Exception) {
+                println("❌ Error in requestBiometricAuthentication: ${e.message}")
+                _noteListState.value = NoteListState.Error("Ошибка безопасности: ${e.message}")
+            } finally {
+                println("🔐 ViewModel.requestBiometricAuthentication END")
             }
-        } catch (e: Exception) {
-            println("❌ Error in requestBiometricAuthentication: ${e.message}")
-            _noteListState.value = NoteListState.Error("Ошибка безопасности: ${e.message}")
-        } finally {
-            println("🔐 ViewModel.requestBiometricAuthentication END")
         }
     }
 
-
-//    private fun requestBiometricAuthenticationLast1(notebookPath: String?) {
-//        println("🔐 ViewModel.requestBiometricAuthentication START")
-//        try {
-//            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
-//            println("🔐 Key alias: $keyAlias")
-//
-//            if (keyAlias != null) {
-//                val cipher = encryptionManager.getCipherForAccess(keyAlias)
-//                println("🔐 Cipher created successfully")
-//
-//                _biometricRequest.value = BiometricRequest(
-//                    notebookPath = notebookPath,
-//                    keyAlias = keyAlias,
-//                    cipher = cipher,
-//                    onSuccess = {
-//                        println("🔐 Biometric success - reloading notes")
-//                        loadNotes()
-//                    },
-//                    onError = {
-//                        println("🔐 Biometric error")
-//                        _noteListState.value = NoteListState.Error("Аутентификация не пройдена")
-//                    }
-//                )
-//                println("✅ BiometricRequest sent to Fragment")
-//            } else {
-//                println("❌ No key alias found")
-//                _noteListState.value = NoteListState.Error("Ошибка безопасности: ключ не найден")
-//            }
-//        } catch (e: Exception) {
-//            println("❌ Error in requestBiometricAuthentication: ${e.message}")
-//            _noteListState.value = NoteListState.Error("Ошибка безопасности: ${e.message}")
-//        } finally {
-//            println("🔐 ViewModel.requestBiometricAuthentication END")
-//        }
-//    }
-
-
-//    private fun requestBiometricAuthenticationLast(notebookPath: String?) {
-//        try {
-//            val keyAlias = configManager.getKeyAliasForNotebook(notebookPath ?: "")
-//            if (keyAlias != null) {
-//                val cipher = encryptionManager.getCipherForAccess(keyAlias)
-//
-//                _biometricRequest.value = BiometricRequest(
-//                    notebookPath = notebookPath,
-//                    keyAlias = keyAlias,
-//                    cipher = cipher,
-//                    onSuccess = {
-//                        // После успешной биометрии снова загружаем заметки
-//                        loadNotes()
-//                    },
-//                    onError = {
-//                        _noteListState.value = NoteListState.Error("Аутентификация не пройдена")
-//                    }
-//                )
-//            } else {
-//                _noteListState.value = NoteListState.Error("Ошибка безопасности: ключ не найден")
-//            }
-//        } catch (e: Exception) {
-//            _noteListState.value = NoteListState.Error("Ошибка безопасности: ${e.message}")
-//        }
-//    }
-
     fun onBiometricSuccess() {
-        _biometricRequest.postValue(null)
+       // _biometricRequest.postValue(null)
+        loadNotes()
     }
 
     fun onBiometricError() {
-        _biometricRequest.postValue(null)
-        showMessage("Аутентификация отменена")
+        //_biometricRequest.postValue(null)
+        showMessage("Аутентификация не пройдена")
     }
 
     fun clearMessage() = showMessage(null)
@@ -553,40 +499,40 @@ class NoteListViewModel(
     fun onNavigated() = _navigationEvent.postValue(NavigationEvent.Idle)
 
 
-    private fun handleBiometricRequired() {
-        // Проверяем что книжка действительно защищена
-        if (!isProtected) {
-            showMessage("Ошибка: книжка не защищена")
-            return
-        }
-
-        val keyAlias = keyAlias
-        if (keyAlias == null) {
-            showMessage("Ошибка: ключ шифрования не найден")
-            return
-        }
-
-        try {
-            val cipher = encryptionManager.getCipherForDecryption(keyAlias)
-
-            _biometricRequest.value = BiometricRequest(
-                notebookPath = notebookPath,
-                keyAlias = keyAlias,
-                cipher = cipher,
-                {
-                    // После успешной биометрии снова загружаем заметки
-                    loadNotes()
-                },
-            ) {
-                _noteListState.postValue(NoteListState.Error("Аутентификация не пройдена"))
-            }
-//                onSuccess = { loadNotes() },
-//                onError = { showMessage("Аутентификация не пройдена") }
-
-        } catch (e: Exception) {
-            showMessage("Ошибка безопасности: ${e.message}")
-        }
-    }
+//    private fun handleBiometricRequired() {
+//        // Проверяем что книжка действительно защищена
+//        if (!isProtected) {
+//            showMessage("Ошибка: книжка не защищена")
+//            return
+//        }
+//
+//        val keyAlias = keyAlias
+//        if (keyAlias == null) {
+//            showMessage("Ошибка: ключ шифрования не найден")
+//            return
+//        }
+//
+//        try {
+//            val cipher = encryptionManager.getCipherForDecryption(keyAlias)
+//
+//            _biometricRequest.value = BiometricRequest(
+//                notebookPath = notebookPath,
+//                keyAlias = keyAlias,
+//                cipher = cipher,
+//                {
+//                    // После успешной биометрии снова загружаем заметки
+//                    loadNotes()
+//                },
+//            ) {
+//                _noteListState.postValue(NoteListState.Error("Аутентификация не пройдена"))
+//            }
+////                onSuccess = { loadNotes() },
+////                onError = { showMessage("Аутентификация не пройдена") }
+//
+//        } catch (e: Exception) {
+//            showMessage("Ошибка безопасности: ${e.message}")
+//        }
+//    }
 
 
     private fun showMessage(s: String?) = _message.postValue(s)
