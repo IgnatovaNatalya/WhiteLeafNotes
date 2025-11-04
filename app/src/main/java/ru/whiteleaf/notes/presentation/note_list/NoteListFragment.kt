@@ -23,7 +23,6 @@ import ru.whiteleaf.notes.common.utils.DialogHelper
 import ru.whiteleaf.notes.common.utils.ShareHelper
 import ru.whiteleaf.notes.databinding.FragmentNoteListBinding
 import ru.whiteleaf.notes.domain.model.Note
-import ru.whiteleaf.notes.presentation.settings.ExportState
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
