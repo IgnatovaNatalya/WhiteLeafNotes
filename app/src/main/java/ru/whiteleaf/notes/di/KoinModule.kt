@@ -1,5 +1,7 @@
 package ru.whiteleaf.notes.di
 
+import BiometricRepositoryImpl
+import SecurityPreferencesImpl
 import android.content.ContentResolver
 import android.content.Context
 import ru.whiteleaf.notes.data.repository.NoteRepositoryImpl
@@ -38,6 +40,15 @@ import ru.whiteleaf.notes.presentation.start.StartViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import ru.whiteleaf.notes.common.AppConstants.WHITE_LEAF_PREFS
+import ru.whiteleaf.notes.data.repository.EncryptionRepositoryImpl
+import ru.whiteleaf.notes.domain.repository.BiometricRepository
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.SecurityPreferences
+import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
+import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 
 val koinModule = module {
 
@@ -52,6 +63,12 @@ val koinModule = module {
     single<NotesRepository> { NoteRepositoryImpl(get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get()) }
     single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
+
+    single<BiometricRepository> { BiometricRepositoryImpl(get()) }
+    single<EncryptionRepository> { EncryptionRepositoryImpl(get(), get(), get()) }
+    single<SecurityPreferences> { SecurityPreferencesImpl(androidContext().getSharedPreferences(
+        WHITE_LEAF_PREFS,
+        Context.MODE_PRIVATE)) }
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -76,6 +93,11 @@ val koinModule = module {
 
     factory { GetSharedContentUseCase(get()) }
     factory { InsertNoteUseCase(get()) }
+
+    factory { EncryptNotebookUseCase(get(), get()) }
+    factory { UnlockNotebookUseCase(get(), get(), get()) }
+    factory { CheckNotebookAccessUseCase(get(), get()) }
+    factory { LockNotebookUseCase(get(), get()) }
 
     // ViewModels
 
@@ -113,11 +135,18 @@ val koinModule = module {
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
+
+            encryptNotebookUseCase = get(),
+            unlockNotebookUseCase = get(),
+            checkNotebookAccessUseCase = get(),
+            lockNotebookUseCase = get(),
+
             preferences = androidContext().getSharedPreferences(
-                "txt_notes_prefs",
+                WHITE_LEAF_PREFS,
                 Context.MODE_PRIVATE
             ),
             notebookPath = notebookPath,
+            securityPreferences = get(),
         )
     }
 

@@ -9,10 +9,12 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
@@ -31,6 +33,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookTitle = ""
+    private lateinit var btnProtectNotebook: ImageButton
+    private lateinit var btnLockIndicator: ImageButton
+
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -39,9 +44,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         return FragmentNoteListBinding.inflate(inflater, container, false)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,17 +54,55 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
         notebookTitle = args.notebookPath.toString()
 
+        btnProtectNotebook = (requireActivity() as AppCompatActivity).findViewById(R.id.btn_protect)
+        btnLockIndicator = (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
+
+
         setupOptionsMenu()
         setupObservers()
         setupRecyclerView()
         setupFab()
+        setupSecurityUI()
+    }
+
+    private fun setupSecurityUI() {
+        btnProtectNotebook.setOnClickListener { viewModel.encryptNotebook() }
+        //btnLockIndicator.setOnClickListener { viewModel.unlockNotebook() }
+        binding.unlockButton.setOnClickListener { viewModel.unlockNotebook(requireActivity() as FragmentActivity) }
     }
 
     private fun setupObservers() {
 
+        viewModel.message.observe(viewLifecycleOwner) { message ->
+            message?.let {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                viewModel.clearMessage()
+            }
+        }
+
+        viewModel.notebookSecurityState.observe(viewLifecycleOwner) { state ->
+            updateSecurityUI(state)
+        }
+
+
         viewModel.notes.observe(viewLifecycleOwner) { notes ->
             toggleEmptyState(notes.isEmpty())
             (binding.recyclerView.adapter as NoteAdapter).submitList(notes)
+        }
+
+
+        viewModel.authenticationRequired.observe(viewLifecycleOwner) { requiresAuth ->
+            if (requiresAuth) {
+                showAuthenticationDialog()
+            }
+        }
+
+        viewModel.encryptionResult.observe(viewLifecycleOwner) { result ->
+            result?.onSuccess {
+                Toast.makeText(requireContext(), "Записная книжка зашифрована", Toast.LENGTH_SHORT).show()
+            }?.onFailure {
+                Toast.makeText(requireContext(), "Ошибка шифрования: ${it.message}", Toast.LENGTH_LONG).show()
+            }
         }
 
         viewModel.navigateToNote.observe(viewLifecycleOwner) { noteId ->
@@ -115,12 +158,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        viewModel.message.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                viewModel.clearMessage()
-            }
-        }
+
     }
 
     private fun setupRecyclerView() {
@@ -236,6 +274,44 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun hideProgress() {
         binding.noteListProgressBar.visibility = View.GONE
+    }
+
+    private fun updateSecurityUI(state: NotebookSecurityState) {
+        btnLockIndicator.visibility = View.VISIBLE
+        btnProtectNotebook.visibility = View.VISIBLE
+
+        if (state.isEncrypted) {
+            if (state.isUnlocked)  {
+                btnLockIndicator.setImageResource(R.drawable.ic_unlocked)
+                btnProtectNotebook.visibility = View.VISIBLE }
+            else  {
+                btnLockIndicator.setImageResource(R.drawable.ic_locked)
+                btnProtectNotebook.visibility = View.GONE
+            }
+
+            if (!state.isUnlocked) {
+                btnLockIndicator.setImageResource(R.drawable.ic_locked)
+                binding.notebookProtected.visibility = View.VISIBLE
+                binding.recyclerView.visibility = View.GONE
+            }
+        } else {
+            btnLockIndicator.setImageResource(R.drawable.ic_unlocked)
+        }
+    }
+
+    private fun showAuthenticationDialog() {
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Требуется аутентификация")
+            .setMessage("Для доступа к защищенному блокноту требуется отпечаток пальца")
+            .setPositiveButton("Разблокировать") { _, _ ->
+                viewModel.unlockNotebook(requireActivity() as FragmentActivity)
+            }
+            .setNegativeButton("Отмена") { _, _ ->
+                findNavController().navigateUp()
+            }
+            .setCancelable(false)
+            .create()
+        dialog.show()
     }
 
     private fun toggleEmptyState(isEmpty: Boolean) {

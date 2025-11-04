@@ -19,22 +19,47 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
             android:fitsSystemWindows="false"
             app:navigationIcon="@drawable/ic_menu"
-            android:layout_marginTop="0dp"
             app:subtitle="Записная книжка"
             app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
             app:title="Белый лист"
-            app:titleTextAppearance="@style/toolbarTitleStyle" >
+            app:titleTextAppearance="@style/toolbarTitleStyle">
+
             <ImageButton
                 android:id="@+id/btn_options_menu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_options"
+                app:tint="?attr/android:textColorPrimary" />
+
+
+            <ImageButton
+                android:id="@+id/btn_lock_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                app:tint="?attr/android:textColorPrimary"
-                android:layout_gravity="end" />
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_unlocked"
+                android:visibility="visible"
+                app:tint="?attr/android:textColorPrimary" />
+
+            <ImageButton
+                android:id="@+id/btn_protect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_finger"
+                android:visibility="visible"
+                app:tint="?attr/android:textColorPrimary" />
+
         </com.google.android.material.appbar.MaterialToolbar>
 
         <androidx.fragment.app.FragmentContainerView
@@ -53,8 +78,8 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:layout_marginTop="0dp"
+        android:background="?attr/android:windowBackground"
         android:fitsSystemWindows="false"
-        app:headerLayout="@layout/nav_header"
-        android:background="?attr/android:windowBackground"/>
+        app:headerLayout="@layout/nav_header" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

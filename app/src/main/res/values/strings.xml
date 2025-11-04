@@ -51,6 +51,9 @@
     <string name="appendNote">Добавить к заметке</string>
     <string name="cancel">Закрыть</string>
 
+    <string name="is_protected">Записная книжка защищена</string>
+    <string name="unlock">Разблокировать</string>
+
     <plurals name="notes_count">
         <item quantity="one">%d заметка</item>
         <item quantity="few">%d заметки</item>

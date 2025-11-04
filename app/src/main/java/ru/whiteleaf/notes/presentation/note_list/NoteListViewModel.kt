@@ -2,6 +2,7 @@ package ru.whiteleaf.notes.presentation.note_list
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,6 +18,11 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookByPathUseCase
 import ru.whiteleaf.notes.presentation.settings.ExportState
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.repository.SecurityPreferences
+import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
+import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import java.io.IOException
 
 class NoteListViewModel(
@@ -28,12 +34,28 @@ class NoteListViewModel(
     private val renameNotebookUseCase: RenameNotebookByPathUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
+    private val encryptNotebookUseCase: EncryptNotebookUseCase,
+    private val unlockNotebookUseCase: UnlockNotebookUseCase,
+    private val checkNotebookAccessUseCase: CheckNotebookAccessUseCase,
+    private val lockNotebookUseCase: LockNotebookUseCase,
+    private val securityPreferences: SecurityPreferences,
     private val preferences: SharedPreferences,
     private val notebookPath: String?
 ) : ViewModel() {
 
     private val _notes = MutableLiveData<List<Note>>()
     val notes: LiveData<List<Note>> = _notes
+
+    // Новые LiveData для безопасности
+    private val _notebookSecurityState = MutableLiveData<NotebookSecurityState>()
+    val notebookSecurityState: LiveData<NotebookSecurityState> = _notebookSecurityState
+
+    private val _authenticationRequired = MutableLiveData<Boolean>()
+    val authenticationRequired: LiveData<Boolean> = _authenticationRequired
+
+    private val _encryptionResult = MutableLiveData<Result<Unit>>()
+    val encryptionResult: LiveData<Result<Unit>> = _encryptionResult
+
 
     private val _shareNotebookState = MutableLiveData<ExportState>()
     val shareNotebookState: LiveData<ExportState> = _shareNotebookState
@@ -59,13 +81,37 @@ class NoteListViewModel(
     init {
         loadNotes()
         saveLastOpenNotebook()
+        checkSecurityState()
+    }
+
+    private fun checkSecurityState() {
+        showMessage("checkSecurityState")
+        viewModelScope.launch {
+            val isEncrypted = notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } ?: false
+            val hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } ?: true
+
+            _notebookSecurityState.postValue(
+                NotebookSecurityState(
+                    isEncrypted = isEncrypted,
+                    isUnlocked = hasAccess,
+                    requiresAuthentication = isEncrypted && !hasAccess
+                )
+            )
+
+            _authenticationRequired.postValue(isEncrypted && !hasAccess)
+        }
     }
 
     fun loadNotes() {
-        _isLoading.postValue(true)
-        _message.postValue(null)
-
         viewModelScope.launch {
+            if (notebookPath != null) {
+                val hasAccess = checkNotebookAccessUseCase(notebookPath)
+                if (!hasAccess) {
+                    _notes.postValue(emptyList())
+                    return@launch
+                }
+            }
+
             try {
                 val notesList = getNotesUseCase(notebookPath)
 
@@ -88,6 +134,71 @@ class NoteListViewModel(
         }
     }
 
+    fun encryptNotebook() {
+        viewModelScope.launch {
+            if (notebookPath != null) {
+                // Проверяем, не зашифрован ли уже блокнот
+                if (securityPreferences.isNotebookEncrypted(notebookPath)) {
+                    _message.postValue("Блокнот уже зашифрован")
+                    return@launch
+                }
+
+                _isLoading.postValue(true)
+
+                encryptNotebookUseCase(notebookPath).onSuccess {
+                    _isLoading.postValue(false)
+                    _message.postValue("Блокнот успешно зашифрован")
+                    checkSecurityState()
+                    loadNotes() // Перезагружаем чтобы показать заблокированное состояние
+                }.onFailure { error ->
+                    _isLoading.postValue(false)
+                    val errorMessage = error.message ?: "Неизвестная ошибка"
+                    _message.postValue("Ошибка шифрования: $errorMessage")
+                    println("❌ Ошибка в ViewModel: $errorMessage")
+                    error.printStackTrace()
+                }
+            }
+        }
+    }
+
+    fun unlockNotebook(activity: FragmentActivity) {
+        viewModelScope.launch {
+            if (notebookPath != null) {
+                _isLoading.postValue(true)
+
+                unlockNotebookUseCase(notebookPath, activity).onSuccess {
+                    _isLoading.postValue(false)
+                    _message.postValue("Блокнот разблокирован")
+                    checkSecurityState()
+                    loadNotes() // Загружаем расшифрованные заметки
+                }.onFailure { error ->
+                    _isLoading.postValue(false)
+                    val errorMessage = when {
+                        error.message?.contains("Биометрия недоступна") == true -> "Биометрия недоступна на устройстве"
+                        error.message?.contains("отменена") == true -> "Аутентификация отменена"
+                        else -> "Ошибка разблокировки: ${error.localizedMessage}"
+                    }
+                    _message.postValue(errorMessage)
+                    println("❌ Ошибка разблокировки: ${error.message}")
+                    error.printStackTrace()
+                }
+            }
+        }
+    }
+
+    fun lockNotebook() {
+        showMessage("Шифруем")
+        if (notebookPath != null) {
+            lockNotebookUseCase(notebookPath)
+            showMessage("Записная книжка зашифрована")
+            checkSecurityState()
+            loadNotes() // Обновляем список заметок (должен стать пустым)
+        }
+    }
+
+    private fun showMessage(msg:String) {
+        _message.postValue(msg)
+    }
 
     fun createNewNote() {
         viewModelScope.launch {
@@ -95,7 +206,7 @@ class NoteListViewModel(
                 val newNote = createNoteUseCase(notebookPath)
                 _navigateToCreatedNote.postValue(newNote.id)
             } catch (e: Exception) {
-                _message.postValue("Ошибка создания заметки: ${e.message}")
+                showMessage("Ошибка создания заметки: ${e.message}")
             }
         }
     }
