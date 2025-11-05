@@ -7,14 +7,11 @@ import ru.whiteleaf.notes.domain.repository.BiometricRepository
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import java.util.concurrent.CancellationException
-import android.os.Build
-import androidx.annotation.RequiresApi
 
 class BiometricRepositoryImpl(
     private val context: Context
 ) : BiometricRepository {
 
-    @RequiresApi(Build.VERSION_CODES.P)
     override suspend fun authenticate(activity: FragmentActivity): Result<Unit> = suspendCoroutine { continuation ->
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Аутентификация")
@@ -51,9 +48,9 @@ class BiometricRepositoryImpl(
         }
 
         try {
-            val activity = context as? FragmentActivity
+            //val activity = context as? FragmentActivity
             if (activity == null) {
-                continuation.resume(Result.failure(IllegalStateException("Context is not a FragmentActivity")))
+                continuation.resume(Result.failure(IllegalStateException("activity is not a FragmentActivity")))
                 return@suspendCoroutine
             }
 
