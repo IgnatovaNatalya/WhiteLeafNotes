@@ -65,14 +65,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun setupObservers() {
-        viewModel.note.observe(viewLifecycleOwner) { note ->
-            binding.noteTitle.setText(note.title)
-            binding.noteDate.text = formatDate(note.modifiedAt)
+        viewModel.noteEditState.observe(viewLifecycleOwner) { state -> renderNote(state) }
 
-            if (binding.noteText.text.toString() != note.content) {
-                isEditing = false
-                binding.noteText.setText(note.content)
-                isEditing = true
+        viewModel.message.observe(viewLifecycleOwner) { message ->
+            message?.let {
+                renderMessage(message)
+                viewModel.clearMessage()
             }
         }
 
@@ -83,17 +81,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         viewModel.noteMoved.observe(viewLifecycleOwner) {
             isMoved = true
             findNavController().navigateUp()
-        }
-
-        viewModel.message.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-                viewModel.clearMessage()
-            }
-        }
-
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
     }
 
@@ -142,6 +129,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
     }
 
+
     private fun onOptionsRenameNote() {
         titleEditText.requestFocus()
 
@@ -189,6 +177,36 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         { viewModel.deleteNote() }.show()
     }
 
+    private fun renderNote(state: NoteEditState) {
+        when (state) {
+
+            NoteEditState.Loading -> {
+                binding.progressBar.visibility = View.VISIBLE
+            }
+
+            is NoteEditState.Error -> {
+                binding.progressBar.visibility = View.GONE
+                renderMessage(state.message)
+            }
+
+            is NoteEditState.Success -> {
+                binding.progressBar.visibility = View.GONE
+                val note = state.note
+                binding.noteTitle.setText(note.title)
+                binding.noteDate.text = formatDate(note.modifiedAt)
+
+                if (binding.noteText.text.toString() != note.content) {
+                    isEditing = false
+                    binding.noteText.setText(note.content)
+                    isEditing = true
+                }
+            }
+        }
+    }
+
+    private fun renderMessage(msg: String) =
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
+
     override fun onPause() {
         if (!isMoved) {
             viewModel.updateFullNote(
@@ -197,6 +215,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             )
         }
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Финальное сохранение и шифрование
+        viewModel.saveAndEncryptOnExit()
     }
 
     @OptIn(ExperimentalTime::class)

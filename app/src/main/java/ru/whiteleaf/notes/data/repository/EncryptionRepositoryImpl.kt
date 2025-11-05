@@ -293,27 +293,28 @@ class EncryptionRepositoryImpl(
         }
     }
 
-    fun getDecryptedContent(noteId: String): String? {
+    // Добавляем методы для работы с кэшем
+    override fun getDecryptedContent(noteId: String): String? {
         return noteContentCache[noteId]?.first
     }
 
-    fun getDecryptedTitle(noteId: String): String? {
+    override fun getDecryptedTitle(noteId: String): String? {
         return noteContentCache[noteId]?.second
     }
 
-    fun cacheDecryptedContent(noteId: String, content: String, title: String) {
+    override fun cacheDecryptedContent(noteId: String, content: String, title: String) {
         noteContentCache[noteId] = content to title
     }
 
-    fun removeFromCache(noteId: String) {
+    override fun removeFromCache(noteId: String) {
         noteContentCache.remove(noteId)
     }
 
     override fun clearAllKeys() {
         unlockedKeys.clear()
         noteContentCache.clear()
+        securityPreferences.clearUnlockedState()
     }
-
 
 
     override fun isNotebookUnlocked(notebookPath: String): Boolean {
@@ -327,8 +328,6 @@ class EncryptionRepositoryImpl(
             key.startsWith("$notebookPath/")
         }
     }
-
-
 
     // Вспомогательные методы
     private fun generateKeyForNotebook(notebookPath: String): SecretKey {

@@ -159,8 +159,11 @@ val koinModule = module {
             saveNoteUseCase = get(),
             shareNoteFileUseCase = get(),
             createNoteUseCase = get(),
+            encryptionRepository = get(),
+            securityPreferences = get(),
             noteId = noteId,
-            notebookPath = notebookPath
+            notebookPath = notebookPath,
+            checkNotebookAccessUseCase = get()
         )
     }
 

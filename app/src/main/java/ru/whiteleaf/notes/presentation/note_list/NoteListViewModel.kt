@@ -61,7 +61,7 @@ class NoteListViewModel(
     val encryptionResult: LiveData<Result<Unit>> = _encryptionResult
 
     private var isEncrypted =
-        notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } ?: false
+        notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
     private var hasAccess = true
 
     init {
@@ -74,8 +74,8 @@ class NoteListViewModel(
 
         viewModelScope.launch {
             isEncrypted =
-                notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } ?: false
-            hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } ?: true
+                notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
+            hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } != false
 
             _notebookSecurityState.postValue(
                 NotebookSecurityState(
@@ -287,7 +287,17 @@ class NoteListViewModel(
         }
     }
 
-    fun reloadNotes() {
-        loadNotes()
+
+
+    fun onNotebookExited() {
+
+        if (notebookPath != null) {
+            lockNotebookUseCase(notebookPath)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        onNotebookExited()
     }
 }

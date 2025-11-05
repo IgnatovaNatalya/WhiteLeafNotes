@@ -64,6 +64,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun setupSecurityUI() {
         btnProtectNotebook.setOnClickListener { viewModel.encryptNotebook() }
+        binding.unlockButton.setOnClickListener { viewModel.unlockNotebook(requireActivity()) }
     }
 
     private fun setupObservers() {
@@ -138,7 +139,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             ContextMenuHelper.showPopupMenu(
                 context = requireContext(),
                 anchorView = optionsButton,
-                items = ContextMenuHelper.getOptionsMenuItemsNoteList(optionsButton.context, isEncrypted),
+                items = ContextMenuHelper.getOptionsMenuItemsNoteList(
+                    optionsButton.context,
+                    isEncrypted
+                ),
                 onItemSelected = { itemId ->
                     when (itemId) {
                         R.id.options_create_note -> onOptionsCreateNote()
@@ -251,7 +255,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-                showAuthenticationDialog()
+                //showAuthenticationDialog()
             }
 
             is NoteListState.Error -> {
@@ -295,6 +299,16 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onResume() {
         super.onResume()
-        viewModel.reloadNotes()
+        viewModel.loadNotes()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.onNotebookExited()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.onNotebookExited()
     }
 }
