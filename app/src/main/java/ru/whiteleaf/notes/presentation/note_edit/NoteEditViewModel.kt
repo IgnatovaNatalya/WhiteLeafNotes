@@ -76,71 +76,42 @@ class NoteEditViewModel(
     private val _isSaved = MutableLiveData<Boolean>()
     val isSaved: LiveData<Boolean> = _isSaved //todo сделать индикатор сохранения
 
-    private val _notebookSecurityState = MutableLiveData<NotebookSecurityState>()
-
-    private var isEncrypted = false
-    private var hasAccess = true
 
     init {
 
         loadNoteWithSecurityCheck()
     }
-//
-//        viewModelScope.launch {
-//            isEncrypted =
-//                notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
-//
-//            hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } != false
-//
-//            _notebookSecurityState.postValue(
-//                NotebookSecurityState(
-//                    isEncrypted = isEncrypted,
-//                    isUnlocked = hasAccess,
-//                    requiresAuthentication = isEncrypted && !hasAccess
-//                )
-//            )
-//        }
-//
-//        loadNote()
-//    }
+
 
     private fun loadNoteWithSecurityCheck() {
-        viewModelScope.launch {
-            isEncrypted = notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
-            hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } != false
-
-            _notebookSecurityState.postValue(
-                NotebookSecurityState(
-                    isEncrypted = isEncrypted,
-                    isUnlocked = hasAccess,
-                    requiresAuthentication = isEncrypted && !hasAccess
-                )
-            )
-
-            loadNote()
-        }
-    }
-
-    fun loadNote() {
         if (noteId != null) viewModelScope.launch {
             try {
+
+                // ВСЕГДА проверяем актуальное состояние при загрузке
+                val isEncrypted = notebookPath?.let {
+                    checkNotebookAccessUseCase.isNotebookEncrypted(it)
+                } ?: false
+
+                val hasAccess = notebookPath?.let {
+                    checkNotebookAccessUseCase(it)
+                } ?: true
+
                 val note = getNoteUseCase(noteId, notebookPath)
                 if (note == null) return@launch
 
-                _note.postValue(note)
 
-                // Заблокированный блокнот
-                if (!hasAccess)
-                    _noteEditState.postValue(NoteEditState.Error("Разблокируйте записную книжку для редактирования"))
-
-                else if (isEncrypted) {  // Разблокированный защищенный блокнот
+                if (!hasAccess) {
+                    _noteEditState.postValue(NoteEditState.Error("Заметка заблокирована. Разблокируйте записную книжку для редактирования."))
+                } else if (isEncrypted) {
+                    // Разблокированный защищенный блокнот
                     encryptionRepository.decryptNote(noteId, notebookPath)
-                    val decryptedContent =
-                        encryptionRepository.getDecryptedContent(noteId) ?: note.content
-
+                    val decryptedContent = encryptionRepository.getDecryptedContent(noteId) ?: note.content
                     _noteEditState.postValue(NoteEditState.Success(note.copy(content = decryptedContent)))
-                } else { // Обычный блокнот
+                    _note.postValue(note.copy(content = decryptedContent))
+                } else {
+                    // Обычный блокнот
                     _noteEditState.postValue(NoteEditState.Success(note))
+                    _note.postValue(note)
                 }
             } catch (e: Exception) {
                 _noteEditState.postValue(NoteEditState.Error("Ошибка загрузки заметки: ${e.message}"))
@@ -148,15 +119,49 @@ class NoteEditViewModel(
         }
     }
 
-    fun refreshSecurityState() = loadNoteWithSecurityCheck()
+//    fun loadNote() {
+//        if (noteId != null) viewModelScope.launch {
+//            try {
+//                val note = getNoteUseCase(noteId, notebookPath)
+//                if (note == null) return@launch
+//
+//                _note.postValue(note)
+//
+//                // Заблокированный блокнот
+//                if (!hasAccess)
+//                    _noteEditState.postValue(NoteEditState.Error("Разблокируйте записную книжку для редактирования"))
+//
+//                else if (isEncrypted) {  // Разблокированный защищенный блокнот
+//                    encryptionRepository.decryptNote(noteId, notebookPath)
+//                    val decryptedContent =
+//                        encryptionRepository.getDecryptedContent(noteId) ?: note.content
+//
+//                    _noteEditState.postValue(NoteEditState.Success(note.copy(content = decryptedContent)))
+//                } else { // Обычный блокнот
+//                    _noteEditState.postValue(NoteEditState.Success(note))
+//                }
+//            } catch (e: Exception) {
+//                _noteEditState.postValue(NoteEditState.Error("Ошибка загрузки заметки: ${e.message}"))
+//            }
+//        }
+//    }
+
+
 
     fun updateNoteTitle(newTitle: String) {
         if (_isLocked.value == true) return
 
         val currentNote = _note.value ?: return
 
+
         viewModelScope.launch {
             try {
+                val isEncrypted = notebookPath?.let {
+                    checkNotebookAccessUseCase.isNotebookEncrypted(it)
+                } ?: false
+
+
+
                 if (isEncrypted) {
                     // Для защищенного блокнота - сохраняем в кэш
                     val currentContent = currentNote.content
@@ -193,6 +198,11 @@ class NoteEditViewModel(
 
         viewModelScope.launch {
             try {
+                val isEncrypted = notebookPath?.let {
+                    checkNotebookAccessUseCase.isNotebookEncrypted(it)
+                } ?: false
+
+
                 if (isEncrypted) {
                     // Для защищенного блокнота - сохраняем в кэш
                     val currentTitle = currentNote.title
@@ -215,6 +225,10 @@ class NoteEditViewModel(
     fun saveAndEncryptOnExit() {
         viewModelScope.launch {
             val currentNote = _note.value ?: return@launch
+            val isEncrypted = notebookPath?.let {
+                checkNotebookAccessUseCase.isNotebookEncrypted(it)
+            } ?: false
+
             if (isEncrypted) {
                 // Шифруем заметку при выходе
                 encryptionRepository.encryptNote(currentNote.id, notebookPath)
@@ -274,6 +288,8 @@ class NoteEditViewModel(
             }
         }
     }
+
+    fun refreshNote() = loadNoteWithSecurityCheck()
 
     private fun showMessage(msg: String) = _message.postValue(msg)
 

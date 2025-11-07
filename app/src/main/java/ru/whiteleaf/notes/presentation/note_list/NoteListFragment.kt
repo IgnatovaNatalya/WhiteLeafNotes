@@ -36,6 +36,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private lateinit var btnProtectNotebook: ImageButton
     private lateinit var btnLockIndicator: ImageButton
 
+    private var navigateToNote = false
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -104,6 +105,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             }
 
             is NavigationEvent.NavigateToNote -> {
+                navigateToNote = true
                 navigateToNoteEdit(event.noteId)
             }
 
@@ -161,7 +163,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         }
     }
 
-    private fun onOptionsCreateNote() = viewModel.createNewNote()
+    private fun onOptionsCreateNote() {
+        navigateToNote = true
+        viewModel.createNewNote()
+    }
 
     private fun onOptionsRenameNotebook() {
         DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
@@ -304,11 +309,11 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onPause() {
         super.onPause()
-        viewModel.onNotebookExited()
+        viewModel.onNotebookExited(navigateToNote)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.onNotebookExited()
+        viewModel.onNotebookExited(navigateToNote)
     }
 }

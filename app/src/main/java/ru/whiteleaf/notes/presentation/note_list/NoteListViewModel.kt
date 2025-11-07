@@ -77,14 +77,14 @@ class NoteListViewModel(
                 notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
             hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } != false
 
-            _notebookSecurityState.postValue(
+            _notebookSecurityState.postValue(///
                 NotebookSecurityState(
                     isEncrypted = isEncrypted,
                     isUnlocked = hasAccess,
                     requiresAuthentication = isEncrypted && !hasAccess
                 )
             )
-            _authenticationRequired.postValue(isEncrypted && !hasAccess)
+            _authenticationRequired.postValue(isEncrypted && !hasAccess)///
         }
     }
 
@@ -289,8 +289,8 @@ class NoteListViewModel(
 
 
 
-    fun onNotebookExited() {
-
+    fun onNotebookExited(toNote:Boolean) {
+        if (toNote) return
         if (notebookPath != null) {
             lockNotebookUseCase(notebookPath)
         }
@@ -298,6 +298,6 @@ class NoteListViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        onNotebookExited()
+        onNotebookExited(false)
     }
 }

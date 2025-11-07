@@ -13,8 +13,8 @@ class UnlockNotebookUseCase(
     suspend operator fun invoke(notebookPath: String, activity: FragmentActivity): Result<Unit> {
         return try {
             biometricRepository.authenticate(activity).map {
-                encryptionRepository.decryptNotebook(notebookPath)
-                securityPreferences.setNotebookUnlocked(notebookPath, true)
+                encryptionRepository.decryptNotebook(notebookPath) // ключ в памяти
+                securityPreferences.setNotebookUnlocked(notebookPath, true) // состояние в prefs
             }
         } catch (e: Exception) {
             Result.failure(Exception("Ошибка разблокировки: ${e.message}"))
