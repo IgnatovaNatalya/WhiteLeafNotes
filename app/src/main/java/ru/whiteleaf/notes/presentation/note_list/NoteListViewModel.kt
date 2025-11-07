@@ -117,7 +117,7 @@ class NoteListViewModel(
             } catch (e: IOException) {
                 _noteListState.postValue(NoteListState.Error("Ошибка загрузки заметок: ${e.message}"))
             } catch (e: Exception) {
-                _message.postValue("Неизвестная ошибка: ${e.message}")
+                showMessage("Неизвестная ошибка: ${e.message}")
                 _noteListState.postValue(NoteListState.Error("Неизвестная ошибка: ${e.message}"))
             } finally {
                 println("Окончание загрузки заметок")

@@ -76,20 +76,6 @@ class NoteEditViewModel(
     private val _isSaved = MutableLiveData<Boolean>()
     val isSaved: LiveData<Boolean> = _isSaved //todo сделать индикатор сохранения
 
-//    val isEncrypted =
-//        notebookPath?.let { securityPreferences.isNotebookEncrypted(it) }
-//
-//    val isUnlocked =
-//        notebookPath?.let { securityPreferences.isNotebookUnlocked(it)
-//                && encryptionRepository.isNotebookUnlocked(it)
-//    }
-
-//    private val shouldEncrypt =
-//        isEncrypted == true && isUnlocked == true
-//
-//    private val shouldShowEncrypted =
-//        isEncrypted == true && isUnlocked == false
-
     private val _notebookSecurityState = MutableLiveData<NotebookSecurityState>()
 
     private var isEncrypted = false
@@ -97,10 +83,30 @@ class NoteEditViewModel(
 
     init {
 
-        viewModelScope.launch {
-            isEncrypted =
-                notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
+        loadNoteWithSecurityCheck()
+    }
+//
+//        viewModelScope.launch {
+//            isEncrypted =
+//                notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
+//
+//            hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } != false
+//
+//            _notebookSecurityState.postValue(
+//                NotebookSecurityState(
+//                    isEncrypted = isEncrypted,
+//                    isUnlocked = hasAccess,
+//                    requiresAuthentication = isEncrypted && !hasAccess
+//                )
+//            )
+//        }
+//
+//        loadNote()
+//    }
 
+    private fun loadNoteWithSecurityCheck() {
+        viewModelScope.launch {
+            isEncrypted = notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
             hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } != false
 
             _notebookSecurityState.postValue(
@@ -110,9 +116,9 @@ class NoteEditViewModel(
                     requiresAuthentication = isEncrypted && !hasAccess
                 )
             )
-        }
 
-        loadNote()
+            loadNote()
+        }
     }
 
     fun loadNote() {
@@ -123,9 +129,9 @@ class NoteEditViewModel(
 
                 _note.postValue(note)
 
-               // if (shouldShowEncrypted) { // Заблокированный блокнот
+                // Заблокированный блокнот
                 if (!hasAccess)
-                    _noteEditState.postValue(NoteEditState.Error("Заметка заблокирована. Разблокируйте записную книжку для редактирования."))
+                    _noteEditState.postValue(NoteEditState.Error("Разблокируйте записную книжку для редактирования"))
 
                 else if (isEncrypted) {  // Разблокированный защищенный блокнот
                     encryptionRepository.decryptNote(noteId, notebookPath)
@@ -141,6 +147,8 @@ class NoteEditViewModel(
             }
         }
     }
+
+    fun refreshSecurityState() = loadNoteWithSecurityCheck()
 
     fun updateNoteTitle(newTitle: String) {
         if (_isLocked.value == true) return
@@ -226,36 +234,6 @@ class NoteEditViewModel(
             }
         }
     }
-
-//    fun updateNoteTitle(newTitle: String) { ///
-//        val currentNote = _note.value ?: return
-//
-//        viewModelScope.launch {
-//            try {
-//                if (newTitle != "") {
-//                    val newNoteId = renameNoteUseCase(currentNote, newTitle)
-//                    _note.postValue(currentNote.copy(id = newNoteId, title = newTitle))
-//                    showMessage("Название заметки изменено")
-//                }
-//            } catch (e: Exception) {
-//                showMessage("Ошибка переименования заметки: ${e.message}")
-//            }
-//        }
-//    }
-//
-//    fun updateNoteContent(content: String) { ///
-//        val currentNote = _note.value ?: return
-//        val updatedNote = currentNote.copy(content = content)
-//
-//        // Автосохранение при изменении
-//        viewModelScope.launch {
-//            try {
-//                saveNoteUseCase(updatedNote)
-//            } catch (e: Exception) {
-//                showMessage("Ошибка сохранения: ${e.message}")
-//            }
-//        }
-//    }
 
     fun shareNoteFile() { ///
         val currentNote = _note.value ?: return

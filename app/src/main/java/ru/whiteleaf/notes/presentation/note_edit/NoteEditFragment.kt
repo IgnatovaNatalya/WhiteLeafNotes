@@ -217,6 +217,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // При каждом входе на экран обновляем состояние безопасности
+        viewModel.refreshSecurityState()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         // Финальное сохранение и шифрование

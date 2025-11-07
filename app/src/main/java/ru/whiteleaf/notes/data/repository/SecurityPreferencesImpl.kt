@@ -24,6 +24,7 @@ class SecurityPreferencesImpl(
     override fun setNotebookUnlocked(notebookPath: String, unlocked: Boolean) {
         sharedPreferences.edit {
             putBoolean(PREFIX_UNLOCKED + notebookPath, unlocked)
+            apply() // Используем apply() для немедленного сохранения
         }
     }
 

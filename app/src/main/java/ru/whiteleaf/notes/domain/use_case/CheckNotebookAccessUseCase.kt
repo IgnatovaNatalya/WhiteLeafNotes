@@ -11,8 +11,12 @@ class CheckNotebookAccessUseCase(
         val isEncrypted = securityPreferences.isNotebookEncrypted(notebookPath)
         if (!isEncrypted) return true
 
-        return securityPreferences.isNotebookUnlocked(notebookPath) &&
-                encryptionRepository.isNotebookUnlocked(notebookPath)
+//        return securityPreferences.isNotebookUnlocked(notebookPath) &&
+//                encryptionRepository.isNotebookUnlocked(notebookPath)
+        val isUnlockedInPrefs = securityPreferences.isNotebookUnlocked(notebookPath)
+        val isUnlockedInMemory = encryptionRepository.isNotebookUnlocked(notebookPath)
+
+        return isUnlockedInPrefs && isUnlockedInMemory
     }
 
     fun isNotebookEncrypted(notebookPath: String): Boolean {
