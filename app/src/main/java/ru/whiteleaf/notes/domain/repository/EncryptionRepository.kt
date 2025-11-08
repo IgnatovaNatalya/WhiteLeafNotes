@@ -9,8 +9,10 @@ interface EncryptionRepository {
     fun lockNotebook(notebookPath: String)
     fun clearAllKeys()
 
+    fun debugKeyInfo(notebookPath: String?)
+
     fun getDecryptedContent(noteId: String): String?
-    fun getDecryptedTitle(noteId: String): String?
+   // fun getDecryptedTitle(noteId: String): String?
     fun cacheDecryptedContent(noteId: String, content: String, title: String)
     fun removeFromCache(noteId: String)
 }

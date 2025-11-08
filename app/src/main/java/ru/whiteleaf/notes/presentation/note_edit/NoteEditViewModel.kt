@@ -103,6 +103,9 @@ class NoteEditViewModel(
                 if (!hasAccess) {
                     _noteEditState.postValue(NoteEditState.Error("Заметка заблокирована. Разблокируйте записную книжку для редактирования."))
                 } else if (isEncrypted) {
+                    println("🔍 Проверяем ключ перед дешифровкой...")
+                    encryptionRepository.debugKeyInfo(notebookPath)
+
                     // Разблокированный защищенный блокнот
                     encryptionRepository.decryptNote(noteId, notebookPath)
                     val decryptedContent = encryptionRepository.getDecryptedContent(noteId) ?: note.content
