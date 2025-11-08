@@ -16,4 +16,6 @@ interface EncryptionRepository {
     fun cacheDecryptedContent(noteId: String, content: String, title: String)
     fun removeFromCache(noteId: String)
     fun debugKeyStoreState(notebookPath: String)
+
+    fun clearNotebookKeys(notebookPath: String)
 }

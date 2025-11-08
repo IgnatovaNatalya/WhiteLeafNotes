@@ -334,7 +334,6 @@ class EncryptionRepositoryImpl(
         securityPreferences.clearUnlockedState()
     }
 
-
     override fun isNotebookUnlocked(notebookPath: String): Boolean {
         val isUnlocked =  unlockedKeys.containsKey(notebookPath)
         println("🔍 Проверка ключа в памяти для $notebookPath: $isUnlocked")
@@ -343,7 +342,7 @@ class EncryptionRepositoryImpl(
     }
 
     override fun lockNotebook(notebookPath: String) {
-        println("🔒 Блокируем блокнот в репозитории: $notebookPath")
+        println("🔒 Блокируем записную книжку в репозитории: $notebookPath")
         println("📋 Ключи до блокировки: ${unlockedKeys.keys}")
         unlockedKeys.remove(notebookPath)
 
@@ -352,8 +351,32 @@ class EncryptionRepositoryImpl(
             key.startsWith("$notebookPath/") || key.contains(notebookPath)
         }
         println("📋 Ключи после блокировки: ${unlockedKeys.keys}")
-        println("✅ Блокнот заблокирован в репозитории")
+        println("✅ Записная книжка заблокирована в репозитории")
 
+    }
+
+    override fun clearNotebookKeys(notebookPath: String) {
+        try {
+            println("🗑️ Очищаем ключи для блокнота: $notebookPath")
+
+            val keyAlias = "notebook_key_${notebookPath.hashCode()}"
+            val tempAlias = "temp_key_${notebookPath.hashCode()}"
+            val permAlias = "perm_key_${notebookPath.hashCode()}"
+
+            listOf(keyAlias, tempAlias, permAlias).forEach { alias ->
+                if (keyStore.containsAlias(alias)) {
+                    keyStore.deleteEntry(alias)
+                    println("✅ Удален ключ: $alias")
+                }
+            }
+
+            // Удаляем из памяти
+            unlockedKeys.remove(notebookPath)
+            noteContentCache.keys.removeAll { it.contains(notebookPath) }
+
+        } catch (e: Exception) {
+            println("❌ Ошибка очистки ключей записной книжки: ${e.message}")
+        }
     }
 
     private fun encryptData(data: String, key: SecretKey): String {

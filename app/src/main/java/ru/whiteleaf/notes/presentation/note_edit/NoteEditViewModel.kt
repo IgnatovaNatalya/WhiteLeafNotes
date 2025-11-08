@@ -44,28 +44,28 @@ class NoteEditViewModel(
     val noteFile: LiveData<Uri?> = _noteFile
 
     private val _isLocked = MutableLiveData<Boolean>()
-    val isLocked: LiveData<Boolean> = _isLocked
-
-    private val _isEncryptedAndUnlocked = MutableLiveData<Boolean>()
-    val isEncryptedAndUnlocked: LiveData<Boolean> = _isEncryptedAndUnlocked
+//    val isLocked: LiveData<Boolean> = _isLocked
+//
+//    private val _isEncryptedAndUnlocked = MutableLiveData<Boolean>()
+//    val isEncryptedAndUnlocked: LiveData<Boolean> = _isEncryptedAndUnlocked
 
     // Вычисляем состояние один раз при создании
-    private val notebookSecurityState: NotebookSecurityState by lazy {
-        val isEncrypted = notebookPath?.let {
-            securityPreferences.isNotebookEncrypted(it)
-        } ?: false
+//    private val notebookSecurityState: NotebookSecurityState by lazy {
+//        val isEncrypted = notebookPath?.let {
+//            securityPreferences.isNotebookEncrypted(it)
+//        } ?: false
+//
+//        val isUnlocked = notebookPath?.let {
+//            securityPreferences.isNotebookUnlocked(it) &&
+//                    encryptionRepository.isNotebookUnlocked(it)
+//        } ?: true
 
-        val isUnlocked = notebookPath?.let {
-            securityPreferences.isNotebookUnlocked(it) &&
-                    encryptionRepository.isNotebookUnlocked(it)
-        } ?: true
-
-        NotebookSecurityState(
-            isEncrypted = isEncrypted,
-            isUnlocked = isUnlocked,
-            requiresAuthentication = isEncrypted && !isUnlocked
-        )
-    }
+//        NotebookSecurityState(
+//            isEncrypted = isEncrypted,
+//            isUnlocked = isUnlocked,
+//            requiresAuthentication = isEncrypted && !isUnlocked
+//        )
+//    }
 
     private val _noteMoved = MutableLiveData<Boolean>()
     val noteMoved: LiveData<Boolean> = _noteMoved
@@ -121,35 +121,6 @@ class NoteEditViewModel(
             }
         }
     }
-
-//    fun loadNote() {
-//        if (noteId != null) viewModelScope.launch {
-//            try {
-//                val note = getNoteUseCase(noteId, notebookPath)
-//                if (note == null) return@launch
-//
-//                _note.postValue(note)
-//
-//                // Заблокированный блокнот
-//                if (!hasAccess)
-//                    _noteEditState.postValue(NoteEditState.Error("Разблокируйте записную книжку для редактирования"))
-//
-//                else if (isEncrypted) {  // Разблокированный защищенный блокнот
-//                    encryptionRepository.decryptNote(noteId, notebookPath)
-//                    val decryptedContent =
-//                        encryptionRepository.getDecryptedContent(noteId) ?: note.content
-//
-//                    _noteEditState.postValue(NoteEditState.Success(note.copy(content = decryptedContent)))
-//                } else { // Обычный блокнот
-//                    _noteEditState.postValue(NoteEditState.Success(note))
-//                }
-//            } catch (e: Exception) {
-//                _noteEditState.postValue(NoteEditState.Error("Ошибка загрузки заметки: ${e.message}"))
-//            }
-//        }
-//    }
-
-
 
     fun updateNoteTitle(newTitle: String) {
         if (_isLocked.value == true) return

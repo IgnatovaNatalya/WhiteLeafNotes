@@ -19,6 +19,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNotebookByPathUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.repository.SecurityPreferences
 import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
+import ru.whiteleaf.notes.domain.use_case.ClearNotebookKeysUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
@@ -34,6 +35,7 @@ class NoteListViewModel(
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val encryptNotebookUseCase: EncryptNotebookUseCase,
+    private val clearNotebookKeys: ClearNotebookKeysUseCase,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
     private val checkNotebookAccessUseCase: CheckNotebookAccessUseCase,
     private val lockNotebookUseCase: LockNotebookUseCase,
@@ -263,6 +265,9 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 if (notebookPath != null) {
+                    clearNotebookKeys(notebookPath)
+                    securityPreferences.setNotebookEncrypted(notebookPath, false)
+
                     deleteNotebookUseCase(notebookPath)
                     _navigationEvent.postValue(NavigationEvent.NavigateUp)
                     showMessage("Записная книжка удалена")
