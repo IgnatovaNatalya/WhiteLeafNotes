@@ -8,7 +8,11 @@ class LockNotebookUseCase(
     private val securityPreferences: SecurityPreferences
 ) {
     operator fun invoke(notebookPath: String) {
+        println("🔒 Выполняем блокировку блокнота: $notebookPath")
+
         encryptionRepository.lockNotebook(notebookPath)
         securityPreferences.setNotebookUnlocked(notebookPath, false)
+
+        println("✅ Блокнот заблокирован")
     }
 }

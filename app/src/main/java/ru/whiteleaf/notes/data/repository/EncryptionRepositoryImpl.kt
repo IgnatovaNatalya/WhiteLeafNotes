@@ -30,9 +30,18 @@ class EncryptionRepositoryImpl(
     private val unlockedKeys = mutableMapOf<String, SecretKey>()
     private val noteContentCache = mutableMapOf<String, Pair<String, String>>()
 
+    companion object {
+        private fun getKeyAlias(notebookPath: String): String {
+            return "notebook_key_${notebookPath.hashCode()}"
+        }
+    }
+
     override suspend fun encryptNotebook(notebookPath: String): Result<Unit> =
         withContext(Dispatchers.IO) {
             return@withContext try {
+                println("🔐 Удаляем старые ключи: $notebookPath")
+                clearProblematicKeys(notebookPath)
+
                 println("🔐 Шифруем блокнот: $notebookPath")
 
                 // Создаем ОДИН ключ без аутентификации
@@ -74,8 +83,29 @@ class EncryptionRepositoryImpl(
             }
         }
 
+    override fun debugKeyStoreState(notebookPath: String) {
+        try {
+            val keyAlias = "notebook_key_${notebookPath.hashCode()}"
+            println("🔍 ДЕБАГ KEYSTORE ДЛЯ: $notebookPath")
+            println("🔑 ALIAS: $keyAlias")
+
+            val aliases = keyStore.aliases().toList()
+            println("📋 ВСЕ ALIASES В KEYSTORE: $aliases")
+            println("🔍 НАШ ALIAS СУЩЕСТВУЕТ: ${keyStore.containsAlias(keyAlias)}")
+
+            if (keyStore.containsAlias(keyAlias)) {
+                val key = (keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry).secretKey
+                println("✅ КЛЮЧ ДОСТУПЕН: ${key.algorithm}")
+            } else {
+                println("❌ КЛЮЧ НЕ ДОСТУПЕН")
+            }
+        } catch (e: Exception) {
+            println("❌ ОШИБКА ДЕБАГА KEYSTORE: ${e.message}")
+        }
+    }
+
     private fun generateKeyWithoutAuth(notebookPath: String): SecretKey {
-        val keyAlias = "notebook_key_${notebookPath.hashCode()}"
+        val keyAlias = getKeyAlias(notebookPath) //"notebook_key_${notebookPath.hashCode()}"
 
         val keyGenParameterSpec = KeyGenParameterSpec.Builder(
             keyAlias,
@@ -126,15 +156,50 @@ class EncryptionRepositoryImpl(
     }
 
     private fun getKeyForNotebook(notebookPath: String): SecretKey {
-        val keyAlias = "perm_key_${notebookPath.hashCode()}"
-        return (keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry).secretKey
+        val keyAlias = getKeyAlias(notebookPath) //"notebook_key_${notebookPath.hashCode()}"
+        println("🔑 ПОЛУЧАЕМ КЛЮЧ С ALIAS: $keyAlias")
+        //return (keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry).secretKey
+        try {
+            // Проверим существует ли alias
+            val aliases = keyStore.aliases().toList()
+            println("📋 Все aliases в KeyStore: $aliases")
+            println("🔍 Наш alias существует: ${keyStore.containsAlias(keyAlias)}")
+
+            if (!keyStore.containsAlias(keyAlias)) {
+                println("❌ ALIAS НЕ НАЙДЕН В KEYSTORE!")
+                throw IllegalStateException("Ключ не найден в KeyStore")
+            }
+
+            val key = (keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry).secretKey
+            println("✅ КЛЮЧ УСПЕШНО ПОЛУЧЕН ИЗ KEYSTORE")
+            return key
+        } catch (e: Exception) {
+            println("❌ ОШИБКА ПОЛУЧЕНИЯ КЛЮЧА: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
     }
 
+    fun clearProblematicKeys(notebookPath: String) {
+        try {
+            val tempAlias = "temp_key_${notebookPath.hashCode()}"
+            val permAlias = "perm_key_${notebookPath.hashCode()}"
+
+            keyStore.deleteEntry(tempAlias)
+            keyStore.deleteEntry(permAlias)
+            println("🗑️ Старые ключи удалены")
+        } catch (e: Exception) {
+            println("⚠️ Не удалось удалить старые ключи: ${e.message}")
+        }
+    }
 
     override suspend fun decryptNotebook(notebookPath: String): Result<Unit> =
         withContext(Dispatchers.IO) {
             return@withContext try {
+                println("🔓 ДЕШИФРУЕМ БЛОКНОТ: $notebookPath")
                 val key = getKeyForNotebook(notebookPath)
+                println("✅ Ключ получен из KeyStore")
+
 
                 // Получаем все заметки
                 val notes = notesRepository.getNotes(notebookPath)
@@ -157,9 +222,12 @@ class EncryptionRepositoryImpl(
 
                 // Сохраняем ключ в памяти
                 unlockedKeys[notebookPath] = key
+                println("✅ Ключ сохранен в памяти. Теперь unlockedKeys: ${unlockedKeys.keys}")
 
                 Result.success(Unit)
             } catch (e: Exception) {
+                println("❌ КРИТИЧЕСКАЯ ОШИБКА в decryptNotebook: ${e.message}")
+                e.printStackTrace()
                 Result.failure(e)
             }
         }
@@ -268,15 +336,24 @@ class EncryptionRepositoryImpl(
 
 
     override fun isNotebookUnlocked(notebookPath: String): Boolean {
-        return unlockedKeys.containsKey(notebookPath)
+        val isUnlocked =  unlockedKeys.containsKey(notebookPath)
+        println("🔍 Проверка ключа в памяти для $notebookPath: $isUnlocked")
+        println("📋 Все ключи в памяти: ${unlockedKeys.keys}")
+        return isUnlocked
     }
 
     override fun lockNotebook(notebookPath: String) {
+        println("🔒 Блокируем блокнот в репозитории: $notebookPath")
+        println("📋 Ключи до блокировки: ${unlockedKeys.keys}")
         unlockedKeys.remove(notebookPath)
+
         // Очищаем кэш контента для этого блокнота
         noteContentCache.keys.removeAll { key ->
-            key.startsWith("$notebookPath/")
+            key.startsWith("$notebookPath/") || key.contains(notebookPath)
         }
+        println("📋 Ключи после блокировки: ${unlockedKeys.keys}")
+        println("✅ Блокнот заблокирован в репозитории")
+
     }
 
     private fun encryptData(data: String, key: SecretKey): String {

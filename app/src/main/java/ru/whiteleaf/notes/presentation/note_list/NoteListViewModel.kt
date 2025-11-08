@@ -292,6 +292,7 @@ class NoteListViewModel(
     fun onNotebookExited(toNote:Boolean) {
         if (toNote) return
         if (notebookPath != null) {
+            println("🔒 Блокируем блокнот при выходе: $notebookPath")
             lockNotebookUseCase(notebookPath)
         }
     }
