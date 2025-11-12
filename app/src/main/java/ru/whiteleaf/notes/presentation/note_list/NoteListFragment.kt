@@ -55,7 +55,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-
         setupOptionsMenu()
         setupObservers()
         setupRecyclerView()

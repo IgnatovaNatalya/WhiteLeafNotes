@@ -46,6 +46,7 @@ import ru.whiteleaf.notes.domain.repository.BiometricRepository
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.SecurityPreferences
 import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
+import ru.whiteleaf.notes.domain.use_case.ClearNotebookKeysUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
@@ -85,7 +86,7 @@ val koinModule = module {
     factory { DeleteNotebookUseCase(get()) }
     factory { RenameNotebookUseCase(get()) }
     factory { RenameNotebookByPathUseCase(get()) }
-    factory { DeleteNotebookByPathUseCase(get()) }
+    factory { DeleteNotebookByPathUseCase(get(), get(), get()) }
     factory { ShareNotebookUseCase(get(), get(), get()) }
 
     factory { ExportAllNotesUseCase(get(), get(), get()) }
@@ -98,6 +99,8 @@ val koinModule = module {
     factory { UnlockNotebookUseCase(get(), get(), get()) }
     factory { CheckNotebookAccessUseCase(get(), get()) }
     factory { LockNotebookUseCase(get(), get()) }
+
+    factory { ClearNotebookKeysUseCase(get()) }
 
     // ViewModels
 
@@ -147,6 +150,7 @@ val koinModule = module {
             ),
             notebookPath = notebookPath,
             securityPreferences = get(),
+            clearNotebookKeys = get(),
         )
     }
 

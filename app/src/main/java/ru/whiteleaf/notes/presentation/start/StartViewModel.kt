@@ -10,7 +10,6 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.use_case.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.CreateNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteNoteUseCase
-import ru.whiteleaf.notes.domain.use_case.DeleteNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.GetNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
@@ -18,6 +17,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import kotlin.collections.forEach
 
 class StartViewModel(
@@ -29,7 +29,7 @@ class StartViewModel(
     private val renameNoteUseCase: RenameNoteUseCase,
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
-    private val deleteNotebookUseCase: DeleteNotebookUseCase,
+    private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase
 ) : ViewModel() {
 
@@ -210,7 +210,7 @@ class StartViewModel(
     fun deleteNotebook(notebook: Notebook) {
         viewModelScope.launch {
             try {
-                deleteNotebookUseCase(notebook)
+                deleteNotebookUseCase(notebook.path)
                 loadData()
             } catch (e: Exception) {
                 _message.postValue("Ошибка удаления записной книжки: ${e.message}")

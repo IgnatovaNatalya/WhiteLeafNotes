@@ -265,12 +265,21 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 if (notebookPath != null) {
-                    clearNotebookKeys(notebookPath)
-                    securityPreferences.setNotebookEncrypted(notebookPath, false)
+//                    println("🗑️ НАЧАЛО УДАЛЕНИЯ БЛОКНОТА: $notebookPath")
+//                    println("🔑 Очищаем ключи...")
+//                    clearNotebookKeys(notebookPath)
+//
+//                    println("📊 Сбрасываем состояние безопасности...")
+//                    securityPreferences.setNotebookEncrypted(notebookPath, false)
+//                    securityPreferences.setNotebookUnlocked(notebookPath, false)
+//
+//                    println("📁 Удаляем файлы блокнота...")
 
                     deleteNotebookUseCase(notebookPath)
+                    //println("✅ Блокнот полностью удален")
                     _navigationEvent.postValue(NavigationEvent.NavigateUp)
                     showMessage("Записная книжка удалена")
+
                 } else showMessage("Ошибка удаления записной книжки: путь не задан")
             } catch (e: Exception) {
                 showMessage("Ошибка удаления записной книжки: ${e.message}")

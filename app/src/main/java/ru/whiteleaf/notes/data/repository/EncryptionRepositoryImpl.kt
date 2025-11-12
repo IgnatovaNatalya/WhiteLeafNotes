@@ -335,7 +335,7 @@ class EncryptionRepositoryImpl(
     }
 
     override fun isNotebookUnlocked(notebookPath: String): Boolean {
-        val isUnlocked =  unlockedKeys.containsKey(notebookPath)
+        val isUnlocked = unlockedKeys.containsKey(notebookPath)
         println("🔍 Проверка ключа в памяти для $notebookPath: $isUnlocked")
         println("📋 Все ключи в памяти: ${unlockedKeys.keys}")
         return isUnlocked
@@ -363,19 +363,33 @@ class EncryptionRepositoryImpl(
             val tempAlias = "temp_key_${notebookPath.hashCode()}"
             val permAlias = "perm_key_${notebookPath.hashCode()}"
 
+            val aliasesToDelete = listOf(keyAlias, tempAlias, permAlias)
+            println("🔑 Ключи для удаления: $aliasesToDelete")
+
+            // Проверим что есть до удаления
+            val existingAliases = keyStore.aliases().toList()
+            println("📋 Ключи до удаления: $existingAliases")
+
+
             listOf(keyAlias, tempAlias, permAlias).forEach { alias ->
                 if (keyStore.containsAlias(alias)) {
                     keyStore.deleteEntry(alias)
                     println("✅ Удален ключ: $alias")
+                } else {
+                    println("⚠️ Ключ не найден: $alias")
                 }
             }
+
+            val remainingAliases = keyStore.aliases().toList()
+            println("📋 Ключи после удаления: $remainingAliases")
 
             // Удаляем из памяти
             unlockedKeys.remove(notebookPath)
             noteContentCache.keys.removeAll { it.contains(notebookPath) }
-
+            println("🎯 Очистка ключей завершена")
         } catch (e: Exception) {
             println("❌ Ошибка очистки ключей записной книжки: ${e.message}")
+            e.printStackTrace()
         }
     }
 
