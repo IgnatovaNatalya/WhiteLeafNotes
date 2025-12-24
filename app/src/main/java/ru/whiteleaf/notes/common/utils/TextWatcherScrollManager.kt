@@ -60,10 +60,12 @@ private fun scrollToNextParagraph(editText: EditText, scrollView: NestedScrollVi
     }
 
     if (nextParagraphPosition != -1) {
-        val targetPosition = nextParagraphPosition + 1
+        //nextParagraphPosition это где начинается паттерн нового абзаца  + 2 это чтобы чуть ниже сместиться
+        val targetPosition = nextParagraphPosition + 2
 
-        // 1. Устанавливаем курсор
-        editText.setSelection(targetPosition)
+        // 1. Устанавливаем курсор там где начинается сам текст
+        val targetCursorPosition = nextParagraphPosition + nextParagraphPattern.length
+        editText.setSelection(targetCursorPosition)
         editText.requestFocus()
 
         // 2. Даем время на обновление layout

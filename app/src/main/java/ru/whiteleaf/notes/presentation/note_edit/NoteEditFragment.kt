@@ -2,6 +2,8 @@ package ru.whiteleaf.notes.presentation.note_edit
 
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,12 +38,18 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private val args: NoteEditFragmentArgs by navArgs()
+
     private var isEditing = false
     private var isMoved = false
+    private var wasInterruptedByNotification = false
+    private var lastCursorPosition = 0
+
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
     private lateinit var buttonScroll: ImageButton
     private lateinit var scrollView: NestedScrollView
+
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -58,10 +66,29 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         buttonScroll = binding.noteScrollDown
         scrollView = binding.scrollView
 
+        setupWindowFocusChangeListener(view)
         setupOptionsMenu()
         setupObservers()
         setupEditTexts()
         setupScrollDown()
+    }
+
+    private fun setupWindowFocusChangeListener(view: View) {
+        view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
+            if (!hasFocus) {
+                wasInterruptedByNotification = true
+                saveCursorPosition()
+            } else if (wasInterruptedByNotification) {
+                wasInterruptedByNotification = false
+                handler.postDelayed({
+                    if (isAdded && !isDetached) {
+                        titleEditText.requestFocus()
+                        contentEditText.requestFocus()
+                        restoreCursorPosition()
+                    }
+                }, 200)
+            }
+        }
     }
 
     private fun setupObservers() {
@@ -99,12 +126,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             onAfterTextChanged = { text -> viewModel.updateNoteContent(text) }
         )
 
-        binding.noteTitle.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+        titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val textInput = binding.noteTitle.text.toString()
                 viewModel.updateNoteTitle(textInput)
             }
-
         }
     }
 
@@ -128,7 +154,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             )
         }
     }
-
 
     private fun onOptionsRenameNote() {
         titleEditText.requestFocus()
@@ -207,7 +232,46 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun renderMessage(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
 
+    private fun saveCursorPosition() {
+        lastCursorPosition = contentEditText.selectionStart
+    }
+
+    private fun restoreCursorPosition() {
+        contentEditText.post {
+            try {
+                val textLength = contentEditText.text.length
+
+                // Проверяем, чтобы позиция была в пределах текста
+                val safePosition = when {
+                    lastCursorPosition < 0 -> 0
+                    lastCursorPosition > textLength -> textLength
+                    else -> lastCursorPosition
+                }
+                contentEditText.setSelection(safePosition)
+            } catch (e: Exception) {
+                contentEditText.setSelection(contentEditText.text.length)
+            }
+        }
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        // При каждом входе на экран обновляем состояние безопасности
+        viewModel.refreshNote()
+
+        handler.postDelayed({
+            if (isAdded && !isDetached) {
+                titleEditText.requestFocus()
+                contentEditText.requestFocus()
+                restoreCursorPosition()
+            }
+        }, 200)
+    }
+
     override fun onPause() {
+        saveCursorPosition()
+
         if (!isMoved) {
             viewModel.updateFullNote(
                 binding.noteTitle.text.toString(),
@@ -217,16 +281,16 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
     }
 
-    override fun onResume() {
-        super.onResume()
-        // При каждом входе на экран обновляем состояние безопасности
-        viewModel.refreshNote()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         // Финальное сохранение и шифрование
         viewModel.saveAndEncryptOnExit()
+    }
+
+    override fun onStop() {
+        // Дополнительно сохраняем при остановке фрагмента
+        saveCursorPosition()
+        super.onStop()
     }
 
     @OptIn(ExperimentalTime::class)

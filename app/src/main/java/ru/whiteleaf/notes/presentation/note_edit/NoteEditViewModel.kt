@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.repository.SecurityPreferences
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
-import ru.whiteleaf.notes.presentation.note_list.NotebookSecurityState
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
@@ -78,10 +77,8 @@ class NoteEditViewModel(
 
 
     init {
-
         loadNoteWithSecurityCheck()
     }
-
 
     private fun loadNoteWithSecurityCheck() {
         if (noteId != null) viewModelScope.launch {
@@ -133,7 +130,6 @@ class NoteEditViewModel(
                 val isEncrypted = notebookPath?.let {
                     checkNotebookAccessUseCase.isNotebookEncrypted(it)
                 } ?: false
-
 
 
                 if (isEncrypted) {
