@@ -157,7 +157,7 @@ class NoteListViewModel(
             if (notebookPath != null) {
 
                 unlockNotebookUseCase(notebookPath, activity).onSuccess {
-                    showMessage("Блокнот разблокирован")
+                    showMessage("Записная книжка разблокирована")
                     checkSecurityState()
                     loadNotes() // Загружаем расшифрованные заметки
                 }.onFailure { error ->

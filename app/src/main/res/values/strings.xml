@@ -52,7 +52,7 @@
     <string name="cancel">Закрыть</string>
 
     <string name="protect">Зашифровать</string>
-    <string name="unprotect">Расшифровать</string>
+    <string name="unprotect">Снять защиту</string>
     <string name="is_protected">Записная книжка защищена</string>
     <string name="unlock">Разблокировать</string>
 

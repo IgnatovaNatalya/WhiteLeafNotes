@@ -76,17 +76,18 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun setupWindowFocusChangeListener(view: View) {
         view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
             if (!hasFocus) {
+                //при переходе фокуса, клавиатура скрывается системой
                 wasInterruptedByNotification = true
-                saveCursorPosition()
+                println("DEBUG: Window focus gone")
+
             } else if (wasInterruptedByNotification) {
+
                 wasInterruptedByNotification = false
-                handler.postDelayed({
-                    if (isAdded && !isDetached) {
-                        titleEditText.requestFocus()
-                        contentEditText.requestFocus()
-                        restoreCursorPosition()
-                    }
-                }, 200)
+                titleEditText.requestFocus()
+                titleEditText.setSelection(0)
+
+                println("DEBUG: Window focus recieved")
+                // убрали фокус на заголовок, пользователь сам нажмет на текст и клавиатура появится
             }
         }
     }
