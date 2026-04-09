@@ -84,7 +84,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
                 wasInterruptedByNotification = false
                 titleEditText.requestFocus()
-                titleEditText.setSelection(0)
+
+                //titleEditText.setSelection(0)
 
                 println("DEBUG: Window focus recieved")
                 // убрали фокус на заголовок, пользователь сам нажмет на текст и клавиатура появится
