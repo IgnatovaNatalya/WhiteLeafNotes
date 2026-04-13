@@ -5,6 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.use_case.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteNoteUseCase
@@ -17,6 +20,10 @@ import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.repository.SecurityPreferences
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
+import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
@@ -28,6 +35,7 @@ class NoteEditViewModel(
     private val createNoteUseCase: CreateNoteUseCase,
     private val encryptionRepository: EncryptionRepository,
     private val securityPreferences: SecurityPreferences,
+    private val updateNoteDateUseCase: UpdateNoteDateUseCase,
     private val noteId: String?,
     private val notebookPath: String?,
     private val checkNotebookAccessUseCase: CheckNotebookAccessUseCase,
@@ -43,28 +51,6 @@ class NoteEditViewModel(
     val noteFile: LiveData<Uri?> = _noteFile
 
     private val _isLocked = MutableLiveData<Boolean>()
-//    val isLocked: LiveData<Boolean> = _isLocked
-//
-//    private val _isEncryptedAndUnlocked = MutableLiveData<Boolean>()
-//    val isEncryptedAndUnlocked: LiveData<Boolean> = _isEncryptedAndUnlocked
-
-    // Вычисляем состояние один раз при создании
-//    private val notebookSecurityState: NotebookSecurityState by lazy {
-//        val isEncrypted = notebookPath?.let {
-//            securityPreferences.isNotebookEncrypted(it)
-//        } ?: false
-//
-//        val isUnlocked = notebookPath?.let {
-//            securityPreferences.isNotebookUnlocked(it) &&
-//                    encryptionRepository.isNotebookUnlocked(it)
-//        } ?: true
-
-//        NotebookSecurityState(
-//            isEncrypted = isEncrypted,
-//            isUnlocked = isUnlocked,
-//            requiresAuthentication = isEncrypted && !isUnlocked
-//        )
-//    }
 
     private val _noteMoved = MutableLiveData<Boolean>()
     val noteMoved: LiveData<Boolean> = _noteMoved
@@ -75,6 +61,8 @@ class NoteEditViewModel(
     private val _isSaved = MutableLiveData<Boolean>()
     val isSaved: LiveData<Boolean> = _isSaved //todo сделать индикатор сохранения
 
+    private val _isDateUpdating = MutableStateFlow(false)
+    val isDateUpdating: StateFlow<Boolean> = _isDateUpdating.asStateFlow()
 
     init {
         loadNoteWithSecurityCheck()
@@ -96,7 +84,6 @@ class NoteEditViewModel(
                 val note = getNoteUseCase(noteId, notebookPath)
                 if (note == null) return@launch
 
-
                 if (!hasAccess) {
                     _noteEditState.postValue(NoteEditState.Error("Заметка заблокирована. Разблокируйте записную книжку для редактирования."))
                 } else if (isEncrypted) {
@@ -105,7 +92,8 @@ class NoteEditViewModel(
 
                     // Разблокированный защищенный блокнот
                     encryptionRepository.decryptNote(noteId, notebookPath)
-                    val decryptedContent = encryptionRepository.getDecryptedContent(noteId) ?: note.content
+                    val decryptedContent =
+                        encryptionRepository.getDecryptedContent(noteId) ?: note.content
                     _noteEditState.postValue(NoteEditState.Success(note.copy(content = decryptedContent)))
                     _note.postValue(note.copy(content = decryptedContent))
                 } else {
@@ -192,6 +180,42 @@ class NoteEditViewModel(
         }
     }
 
+    fun updateNoteDate(newDate: Long) {
+
+        viewModelScope.launch {
+
+            val currentNote = _note.value ?: return@launch
+            val updatedNote = currentNote.copy(modifiedAt = newDate)
+
+            _isDateUpdating.value = true
+
+            try {
+                updateNoteDateUseCase(currentNote, newDate)
+
+                _note.value = updatedNote
+                _noteEditState.postValue(NoteEditState.Success(updatedNote))
+
+                _message.postValue("Дата заметки обновлена")
+
+            } catch (e: Exception) {
+                _message.postValue("Ошибка обновления даты: ${e.message}")
+            } finally {
+                _isDateUpdating.value = false
+            }
+        }
+    }
+
+    // Форматирует дату для отображения
+    fun formatDate(timestamp: Long): String {
+        return try {
+            val date = Date(timestamp)
+            val formatter = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("ru"))
+            formatter.format(date)
+        } catch (e: Exception) {
+            "Дата не указана"
+        }
+    }
+
     fun saveAndEncryptOnExit() {
         viewModelScope.launch {
             val currentNote = _note.value ?: return@launch
@@ -230,7 +254,6 @@ class NoteEditViewModel(
             }
         }
     }
-
 
     fun moveNote(notebookTitle: String) { ///
         val currentNote = _note.value ?: return

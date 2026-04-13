@@ -50,6 +50,7 @@ import ru.whiteleaf.notes.domain.use_case.ClearNotebookKeysUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
 
 val koinModule = module {
 
@@ -67,9 +68,14 @@ val koinModule = module {
 
     single<BiometricRepository> { BiometricRepositoryImpl(get()) }
     single<EncryptionRepository> { EncryptionRepositoryImpl(get(), get(), get()) }
-    single<SecurityPreferences> { SecurityPreferencesImpl(androidContext().getSharedPreferences(
-        WHITE_LEAF_PREFS,
-        Context.MODE_PRIVATE)) }
+    single<SecurityPreferences> {
+        SecurityPreferencesImpl(
+            androidContext().getSharedPreferences(
+                WHITE_LEAF_PREFS,
+                Context.MODE_PRIVATE
+            )
+        )
+    }
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -101,6 +107,8 @@ val koinModule = module {
     factory { LockNotebookUseCase(get(), get()) }
 
     factory { ClearNotebookKeysUseCase(get()) }
+
+    factory { UpdateNoteDateUseCase(get()) }
 
     // ViewModels
 
@@ -165,6 +173,7 @@ val koinModule = module {
             createNoteUseCase = get(),
             encryptionRepository = get(),
             securityPreferences = get(),
+            updateNoteDateUseCase = get(),
             noteId = noteId,
             notebookPath = notebookPath,
             checkNotebookAccessUseCase = get()

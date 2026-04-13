@@ -14,4 +14,7 @@ interface NotesRepository {
     suspend fun getAllNotes(notebooks: List<Notebook>): List<Note>
     suspend fun existsNote(notebookPath: String, noteId: String): Boolean
     //suspend fun getEncryptedContentSample(notebookPath: String): String?
+
+    suspend fun updateNoteDate(note: Note, newTimestamp: Long)
+    suspend fun moveNoteToMonth(note: Note, year: Int, month: Int)
 }

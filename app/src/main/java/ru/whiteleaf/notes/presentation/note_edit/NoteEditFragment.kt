@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.note_edit
 
+import android.app.DatePickerDialog
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.os.Handler
@@ -29,6 +30,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
 import ru.whiteleaf.notes.common.utils.DateHelper
+import java.util.Calendar
 import kotlin.time.ExperimentalTime
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
@@ -71,6 +73,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         setupObservers()
         setupEditTexts()
         setupScrollDown()
+        setupClickListeners()
     }
 
     private fun setupWindowFocusChangeListener(view: View) {
@@ -94,7 +97,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun setupObservers() {
-        viewModel.noteEditState.observe(viewLifecycleOwner) { state -> renderNote(state) }
+        viewModel.noteEditState.observe(viewLifecycleOwner) {
+            state -> renderNote(state)
+        }
 
         viewModel.message.observe(viewLifecycleOwner) { message ->
             message?.let {
@@ -135,6 +140,51 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             }
         }
     }
+
+    private fun setupClickListeners() {
+        binding.noteDate.setOnClickListener {
+            showDatePickerDialog()
+        }
+    }
+
+    private fun showDatePickerDialog() {
+        val currentNote = viewModel.note.value ?: return
+
+        // Получаем текущую дату из заметки
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = currentNote.modifiedAt
+        }
+
+        // Создаем DatePickerDialog
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                // Пользователь выбрал дату
+                val selectedCalendar = Calendar.getInstance().apply {
+                    set(
+                        year,
+                        month,
+                        dayOfMonth,
+                        calendar.get(Calendar.HOUR_OF_DAY),
+                        calendar.get(Calendar.MINUTE)
+                    )
+                }
+                viewModel.updateNoteDate(selectedCalendar.timeInMillis)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        // Дополнительные настройки диалога
+        datePickerDialog.setTitle("Установите дату заметки")
+
+        // Ограничения (опционально)
+        // datePickerDialog.datePicker.maxDate = System.currentTimeMillis() // нельзя выбрать будущее
+
+        datePickerDialog.show()
+    }
+
 
     private fun setupOptionsMenu() {
         val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
@@ -207,15 +257,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun renderNote(state: NoteEditState) {
         when (state) {
 
-            NoteEditState.Loading -> {
-                binding.progressBar.visibility = View.VISIBLE
-            }
-
-            is NoteEditState.Error -> {
-                binding.progressBar.visibility = View.GONE
-                renderMessage(state.message)
-            }
-
             is NoteEditState.Success -> {
                 binding.progressBar.visibility = View.GONE
                 val note = state.note
@@ -227,6 +268,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                     binding.noteText.setText(note.content)
                     isEditing = true
                 }
+            }
+
+            NoteEditState.Loading -> {
+                binding.progressBar.visibility = View.VISIBLE
+            }
+
+            is NoteEditState.Error -> {
+                binding.progressBar.visibility = View.GONE
+                renderMessage(state.message)
             }
         }
     }
