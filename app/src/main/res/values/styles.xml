@@ -107,4 +107,21 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
+    <style name="CustomDatePickerHeader" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/nunito_bold</item>
+    </style>
+
+    <style name="CustomMaterialCalendarTheme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="materialCalendarHeaderTitle">@style/CustomDatePickerHeader</item>
+
+    </style>
+
+    <style name="CustomDatePickerDialog" parent="ThemeOverlay.MaterialComponents.Dialog">
+        <!-- Изменяем размер шрифта даты (работает нестабильно) -->
+        <item name="android:textSize">14sp</item>
+        <!-- Изменяем цвет текста -->
+        <item name="android:fontFamily">@font/nunito_medium</item>
+    </style>
+
 </resources>

@@ -41,7 +41,6 @@ class NoteRepositoryImpl(
                         null
                     }
                 }?.sortedByDescending { it.modifiedAt } ?: emptyList()
-
         }
     }
 
@@ -102,27 +101,27 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun renameNote(note: Note, newId: String): String {
+    override suspend fun renameNote(note: Note, newName: String): String {
         return withContext(Dispatchers.IO) {
             try {
-                if (newId == "") {
+                if (newName == "") {
                     throw IOException("Недопустимое имя файла")
                 }
 
                 // Используем noteDataSource для проверки существования файла
-                if (noteDataSource.existsNote(note.notebookPath ?: "", newId)) {
+                if (noteDataSource.existsNote(note.notebookPath ?: "", newName)) {
                     throw IOException("Файл с таким именем уже существует")
                 }
 
                 // Получаем файлы через noteDataSource
                 val oldFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newId)
+                val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newName)
 
                 // Используем noteDataSource для операции переименования/перемещения
                 if (oldFile.exists()) {
                     noteDataSource.moveFile(oldFile, newFile)
                 }
-                newId
+                newName
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка переименования заметки: ${e.message}")
                 throw IOException("Ошибка переименования заметки: ${e.message}")
