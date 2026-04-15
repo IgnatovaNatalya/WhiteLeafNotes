@@ -62,5 +62,9 @@
         <item quantity="many">%d заметок</item>
         <item quantity="other">%d заметок</item>
     </plurals>
+
+    <string name="view_mode">Режим отображения</string>
+    <string name="view_list">Список</string>
+    <string name="view_planner">Планер</string>
 </resources>
 

@@ -142,11 +142,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 anchorView = optionsButton,
                 items = ContextMenuHelper.getOptionsMenuItemsNoteList(
                     optionsButton.context,
-                    isEncrypted
+                    isProtected = isEncrypted,
+                    isPlannerView = true ///
                 ),
                 onItemSelected = { itemId ->
                     when (itemId) {
                         R.id.options_create_note -> onOptionsCreateNote()
+                        R.id.options_view_list -> Toast.makeText(requireContext(),"Переключились на список", Toast.LENGTH_SHORT).show()
+                        R.id.options_view_planner -> Toast.makeText(requireContext(),"Переключились на планер", Toast.LENGTH_SHORT).show()
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
                         R.id.options_share_notebook -> onOptionsShareNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()

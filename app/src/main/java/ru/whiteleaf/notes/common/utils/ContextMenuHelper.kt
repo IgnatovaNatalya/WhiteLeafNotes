@@ -19,39 +19,56 @@ object ContextMenuHelper {
         items: List<ContextMenuItem>,
         onItemSelected: (itemId: Int) -> Unit
     ) {
+        val mutableItems = items.toMutableList()
+        val adapter = ContextMenuAdapter(context, mutableItems)
+
         val listPopupWindow = ListPopupWindow(context).apply {
 
-            setAdapter(ContextMenuAdapter(context, items))
+            setAdapter(adapter)
 
             this.anchorView = anchorView
-            setDropDownGravity(Gravity.START)
-            width = 170.dpToPx(context)
+            setDropDownGravity(Gravity.END)
+            //setDropDownGravity(Gravity.START)
+            width = 195.dpToPx(context)
             setBackgroundDrawable(ContextCompat.getDrawable(context, R.drawable.popup_background))
-            verticalOffset = -anchorView.height/2
-            horizontalOffset = 1.dpToPx(context)
+            verticalOffset = -anchorView.height / 2
+            horizontalOffset = 12.dpToPx(context)
 
-            setOnItemClickListener { parent, view, position, id ->
-                val item = items[position]
-                if (item.isEnabled) onItemSelected(item.id)
-                dismiss()
+            setOnItemClickListener { _, _, position, _ ->
+                val item = adapter.getItem(position)
+                if (item.subItems != null) {
+                    adapter.toggleExpand(item)
+                } else {
+                    onItemSelected(item.id)
+                    dismiss()
+                }
             }
         }
         listPopupWindow.show()
     }
 
     // Пункты меню опций записной книжки
-    fun getOptionsMenuItemsNoteList(context: Context, isProtected:Boolean): List<ContextMenuItem> {
-        return if (isProtected) listOf(
-            createMenuItem(context, R.id.options_create_note),
+    fun getOptionsMenuItemsNoteList(
+        context: Context,
+        isProtected: Boolean,
+        isPlannerView: Boolean
+    ): List<ContextMenuItem> {
+
+        return listOf(
+            createMenuItem(context, R.id.options_create_note, true),
+            createSubMenu(
+                context, R.id.options_view_mode, listOf(
+                    createCheckableMenuItem(context, R.id.options_view_list, !isPlannerView),
+                    createCheckableMenuItem(context, R.id.options_view_planner, isPlannerView, true )
+                ),
+                true
+            ),
             createMenuItem(context, R.id.options_rename_notebook),
-            createMenuItem(context, R.id.options_unprotect_notebook),
-            createMenuItem(context, R.id.options_share_notebook),
-            createMenuItem(context, R.id.options_delete_notebook)
-        )
-        else listOf(
-            createMenuItem(context, R.id.options_create_note),
-            createMenuItem(context, R.id.options_rename_notebook),
-            createMenuItem(context, R.id.options_protect_notebook),
+
+            if (isProtected)
+                createMenuItem(context, R.id.options_unprotect_notebook)
+            else
+                createMenuItem(context, R.id.options_protect_notebook),
             createMenuItem(context, R.id.options_share_notebook),
             createMenuItem(context, R.id.options_delete_notebook)
         )
@@ -97,7 +114,11 @@ object ContextMenuHelper {
     }
 
     @SuppressLint("RestrictedApi")
-    private fun createMenuItem(context: Context, menuItemId: Int): ContextMenuItem {
+    private fun createMenuItem(
+        context: Context,
+        menuItemId: Int,
+        isLastInGroup: Boolean = false
+    ): ContextMenuItem {
         val menu = MenuBuilder(context)
         MenuInflater(context).inflate(R.menu.menu_items, menu)
         val item = menu.findItem(menuItemId)
@@ -105,9 +126,53 @@ object ContextMenuHelper {
         return ContextMenuItem(
             id = menuItemId,
             title = item.title.toString(),
-            isEnabled = item.isEnabled
+            isEnabled = item.isEnabled,
+            iconRes = item.icon,
+            isLastInGroup = isLastInGroup
         )
     }
+
+    @SuppressLint("RestrictedApi")
+    private fun createCheckableMenuItem(
+        context: Context,
+        menuItemId: Int,
+        isChecked: Boolean,
+        isLastInGroup: Boolean = false
+    ): ContextMenuItem {
+        val menu = MenuBuilder(context)
+        MenuInflater(context).inflate(R.menu.menu_items, menu)
+        val item = menu.findItem(menuItemId)
+
+        return ContextMenuItem(
+            id = menuItemId,
+            title = item.title.toString(),
+            isEnabled = item.isEnabled,
+            isChecked = isChecked,
+            isLastInGroup = isLastInGroup
+        )
+    }
+
+
+    @SuppressLint("RestrictedApi")
+    private fun createSubMenu(
+        context: Context,
+        menuItemId: Int,
+        items: List<ContextMenuItem>,
+        isLastInGroup: Boolean = false
+    ): ContextMenuItem {
+        val menu = MenuBuilder(context)
+        MenuInflater(context).inflate(R.menu.menu_items, menu)
+        val item = menu.findItem(menuItemId)
+
+        return ContextMenuItem(
+            id = menuItemId,
+            title = item.title.toString(),
+            isEnabled = item.isEnabled,
+            subItems = items,
+            isLastInGroup = isLastInGroup
+        )
+    }
+
 
     fun Int.dpToPx(context: Context): Int {
         return (this * context.resources.displayMetrics.density).toInt()
