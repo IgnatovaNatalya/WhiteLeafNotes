@@ -1,7 +1,5 @@
 package ru.whiteleaf.notes.presentation.note_list
 
-import android.content.SharedPreferences
-import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -17,6 +15,7 @@ import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookByPathUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
 import ru.whiteleaf.notes.domain.repository.SecurityPreferences
 import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
 import ru.whiteleaf.notes.domain.use_case.ClearNotebookKeysUseCase
@@ -40,7 +39,7 @@ class NoteListViewModel(
     private val checkNotebookAccessUseCase: CheckNotebookAccessUseCase,
     private val lockNotebookUseCase: LockNotebookUseCase,
     private val securityPreferences: SecurityPreferences,
-    private val preferences: SharedPreferences,
+    private val preferencesInteractor: PreferencesInteractor,
     private val notebookPath: String?
 ) : ViewModel() {
 
@@ -66,10 +65,26 @@ class NoteListViewModel(
         notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
     private var hasAccess = true
 
+    private val _isPlannerView = MutableLiveData<Boolean>(false)
+
     init {
+        loadViewMode()
         loadNotes()
-        saveLastOpenNotebook()
+        saveLastOpenedNotebook()
         checkSecurityState()
+    }
+
+    private fun loadViewMode() {
+        if (notebookPath == null) return
+        val savedMode = preferencesInteractor.getViewMode(notebookPath)
+        _isPlannerView.value = savedMode
+        updateScreenState()
+    }
+
+    fun setViewMode(isPlanner: Boolean) {
+        if (notebookPath == null) return
+        _isPlannerView.value = isPlanner
+        preferencesInteractor.saveViewMode(notebookPath, isPlanner)
     }
 
     private fun checkSecurityState() {
@@ -113,7 +128,7 @@ class NoteListViewModel(
                 _noteListState.postValue(
                     NoteListState.Success(
                         isEncrypted,
-                        notesList.filter { it.isNotEmpty() })
+                        notesList.filter { it.isNotEmpty() }, _isPlannerView.value?:false)
                 )
 
             } catch (e: IOException) {
@@ -292,18 +307,21 @@ class NoteListViewModel(
 
     fun onNavigated() = _navigationEvent.postValue(NavigationEvent.Idle)
 
-
     fun clearMessage() = _message.postValue(null)
 
-    private fun saveLastOpenNotebook() {
-        preferences.edit {
-            putString("last_notebook_path", notebookPath)
+    private fun saveLastOpenedNotebook() {
+        notebookPath?.let { preferencesInteractor.saveLastOpenedNotebook(notebookPath) }
+    }
+
+    fun updateScreenState() {
+        val currentState = _noteListState.value
+        if (currentState is NoteListState.Success) {
+            val notes = currentState.notes
+            _noteListState.postValue(NoteListState.Success(isEncrypted, notes, _isPlannerView.value?:false))
         }
     }
 
-
-
-    fun onNotebookExited(toNote:Boolean) {
+    fun onNotebookExited(toNote: Boolean) {
         if (toNote) return
         if (notebookPath != null) {
             println("🔒 Блокируем блокнот при выходе: $notebookPath")

@@ -37,6 +37,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private lateinit var btnLockIndicator: ImageButton
 
     private var navigateToNote = false
+    private var isPlannerView = false
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -49,14 +50,15 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         super.onViewCreated(view, savedInstanceState)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
+
         notebookTitle = args.notebookPath.toString()
 
         btnProtectNotebook = (requireActivity() as AppCompatActivity).findViewById(R.id.btn_protect)
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-        setupOptionsMenu()
         setupObservers()
+        setupOptionsMenu()
         setupRecyclerView()
         setupFab()
         setupSecurityUI()
@@ -143,13 +145,13 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 items = ContextMenuHelper.getOptionsMenuItemsNoteList(
                     optionsButton.context,
                     isProtected = isEncrypted,
-                    isPlannerView = true ///
+                    isPlannerView = isPlannerView
                 ),
                 onItemSelected = { itemId ->
                     when (itemId) {
                         R.id.options_create_note -> onOptionsCreateNote()
-                        R.id.options_view_list -> Toast.makeText(requireContext(),"Переключились на список", Toast.LENGTH_SHORT).show()
-                        R.id.options_view_planner -> Toast.makeText(requireContext(),"Переключились на планер", Toast.LENGTH_SHORT).show()
+                        R.id.options_view_list -> switchViewMode(false)
+                        R.id.options_view_planner -> switchViewMode(true)
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
                         R.id.options_share_notebook -> onOptionsShareNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()
@@ -157,6 +159,16 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 }
             )
         }
+    }
+
+    private fun switchViewMode(mode:Boolean) {
+        isPlannerView = mode
+        viewModel.setViewMode(mode)
+
+        if (isPlannerView)
+            Toast.makeText(requireContext(),"Переключились на планер", Toast.LENGTH_SHORT).show()
+        else
+            Toast.makeText(requireContext(),"Переключились на список", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupFab() {
@@ -287,6 +299,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             }
 
             is NoteListState.Success -> {
+                isPlannerView = state.isPlannerView
+                (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
+                    if (isPlannerView) "Планирование" else "Записная книжка"
+
                 println("✅ Fragment showing ${state.notes.size} notes")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
@@ -299,6 +315,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                     btnLockIndicator.visibility = View.VISIBLE
                 } else btnLockIndicator.visibility = View.GONE
 
+                requireActivity()
                 (binding.recyclerView.adapter as NoteAdapter).submitList(state.notes)
             }
         }
