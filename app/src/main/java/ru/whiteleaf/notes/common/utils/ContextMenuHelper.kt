@@ -39,8 +39,10 @@ object ContextMenuHelper {
                 if (item.subItems != null) {
                     adapter.toggleExpand(item)
                 } else {
-                    onItemSelected(item.id)
-                    dismiss()
+                    if (item.isEnabled) {
+                        onItemSelected(item.id)
+                        dismiss()
+                    }
                 }
             }
         }
@@ -56,10 +58,11 @@ object ContextMenuHelper {
 
         return listOf(
             createMenuItem(context, R.id.options_create_note, true),
+
             createSubMenu(
                 context, R.id.options_view_mode, listOf(
                     createCheckableMenuItem(context, R.id.options_view_list, !isPlannerView),
-                    createCheckableMenuItem(context, R.id.options_view_planner, isPlannerView, true )
+                    createCheckableMenuItem(context, R.id.options_view_planner, isPlannerView, true)
                 ),
                 true
             ),
@@ -146,7 +149,7 @@ object ContextMenuHelper {
         return ContextMenuItem(
             id = menuItemId,
             title = item.title.toString(),
-            isEnabled = item.isEnabled,
+            isEnabled = !isChecked, //item.isEnabled, просто делаем неактивным если он уже выбран
             isChecked = isChecked,
             isLastInGroup = isLastInGroup
         )

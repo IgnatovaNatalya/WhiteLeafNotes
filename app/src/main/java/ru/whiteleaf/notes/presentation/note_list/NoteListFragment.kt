@@ -66,8 +66,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         setupObservers()
         setupOptionsMenu()
-        //if (viewModel.getViewMode())
-        setupListRecyclerView() //else
+        setupListRecyclerView()
         setupPlannerRecyclerView()
         setupFab()
         setupSecurityUI()
@@ -199,11 +198,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun switchViewMode(mode: Boolean) {
         isPlannerView = mode
         viewModel.setViewMode(mode)
-
-        if (isPlannerView)
-            Toast.makeText(requireContext(), "Переключились на планер", Toast.LENGTH_SHORT).show()
-        else
-            Toast.makeText(requireContext(), "Переключились на список", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupFab() {

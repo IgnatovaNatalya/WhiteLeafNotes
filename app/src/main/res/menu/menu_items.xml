@@ -34,7 +34,7 @@
                 <item
                     android:id="@+id/options_view_list"
                     android:title="@string/view_list"
-                    android:checked="true" />
+                    android:checked="true"/>
                 <item
                     android:id="@+id/options_view_planner"
                     android:title="@string/view_planner" />
