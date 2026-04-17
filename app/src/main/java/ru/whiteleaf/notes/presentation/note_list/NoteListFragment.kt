@@ -147,7 +147,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         plannerAdapter = NotesGridAdapter(
             onNoteClickListener = { note -> viewModel.onNoteClicked(note.id) },
-            onNoteLongClickListener = { },
             contextActionHandler = this,
         )
 
