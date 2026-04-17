@@ -8,7 +8,7 @@ import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
 import ru.whiteleaf.notes.databinding.ItemNoteBinding
 import ru.whiteleaf.notes.domain.model.Note
 
-class NoteAdapter(
+class NotesLinearAdapter(
     private val onNoteClicked: (Note) -> Unit,
     private val contextActionHandler: ContextNoteActionHandler
 ) : ListAdapter<Note, NoteViewHolder>(NoteDiffCallback()) {

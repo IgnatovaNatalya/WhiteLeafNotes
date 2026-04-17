@@ -78,13 +78,17 @@ class NoteListViewModel(
         if (notebookPath == null) return
         val savedMode = preferencesInteractor.getViewMode(notebookPath)
         _isPlannerView.value = savedMode
-        updateScreenState()
     }
 
     fun setViewMode(isPlanner: Boolean) {
         if (notebookPath == null) return
         _isPlannerView.value = isPlanner
         preferencesInteractor.saveViewMode(notebookPath, isPlanner)
+        _navigationEvent.postValue(NavigationEvent.NavigateToNotebook(notebookPath))
+    }
+
+    fun getViewMode():Boolean {
+        return _isPlannerView.value?:false
     }
 
     private fun checkSecurityState() {
@@ -128,7 +132,7 @@ class NoteListViewModel(
                 _noteListState.postValue(
                     NoteListState.Success(
                         isEncrypted,
-                        notesList.filter { it.isNotEmpty() }, _isPlannerView.value?:false)
+                        notesList.filter { it.isNotEmpty() })
                 )
 
             } catch (e: IOException) {
@@ -311,14 +315,6 @@ class NoteListViewModel(
 
     private fun saveLastOpenedNotebook() {
         notebookPath?.let { preferencesInteractor.saveLastOpenedNotebook(notebookPath) }
-    }
-
-    fun updateScreenState() {
-        val currentState = _noteListState.value
-        if (currentState is NoteListState.Success) {
-            val notes = currentState.notes
-            _noteListState.postValue(NoteListState.Success(isEncrypted, notes, _isPlannerView.value?:false))
-        }
     }
 
     fun onNotebookExited(toNote: Boolean) {

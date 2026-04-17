@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.whiteleaf.notes.R
@@ -32,6 +33,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookTitle = ""
     private var isEncrypted = false
+
+    private lateinit var noteLinearAdapter: NotesLinearAdapter
+    private lateinit var plannerAdapter: NotesGridAdapter
 
     private lateinit var btnProtectNotebook: ImageButton
     private lateinit var btnLockIndicator: ImageButton
@@ -57,9 +61,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
+        isPlannerView = viewModel.getViewMode()
+        println("DEBUG: Fragment onViewCreated viewMode is planner = $isPlannerView")
+
         setupObservers()
         setupOptionsMenu()
-        setupRecyclerView()
+        //if (viewModel.getViewMode())
+        setupListRecyclerView() //else
+        setupPlannerRecyclerView()
         setupFab()
         setupSecurityUI()
     }
@@ -121,19 +130,45 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         viewModel.onNavigated()
     }
 
-
-    private fun setupRecyclerView() {
-        val adapter = NoteAdapter(
+    private fun setupListRecyclerView() {
+        noteLinearAdapter = NotesLinearAdapter(
             onNoteClicked = { note -> viewModel.onNoteClicked(note.id) },
             contextActionHandler = this
         )
 
-        binding.recyclerView.adapter = adapter
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerViewList.adapter = noteLinearAdapter
+        binding.recyclerViewList.layoutManager = LinearLayoutManager(requireContext())
 
-        binding.recyclerView.addItemDecoration(
+        binding.recyclerViewList.addItemDecoration(
             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
         )
+    }
+
+    private fun setupPlannerRecyclerView() {
+
+        plannerAdapter = NotesGridAdapter(
+            onNoteClickListener = { note -> viewModel.onNoteClicked(note.id) },
+            onNoteLongClickListener = { },
+            contextActionHandler = this,
+        )
+
+        val spanCount = 4
+        val layoutManager = GridLayoutManager(requireContext(), spanCount)
+
+        // Управляем шириной header'ов (они должны занимать всю ширину)
+        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return when (plannerAdapter.getItemViewType(position)) {
+                    plannerAdapter.TYPE_HEADER -> spanCount // header на всю ширину
+                    else -> 1 // заметка занимает 1 колонку
+                }
+            }
+        }
+
+        binding.recyclerViewPlanner.apply {
+            this.layoutManager = layoutManager
+            adapter = plannerAdapter
+        }
     }
 
     private fun setupOptionsMenu() {
@@ -161,14 +196,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         }
     }
 
-    private fun switchViewMode(mode:Boolean) {
+    private fun switchViewMode(mode: Boolean) {
         isPlannerView = mode
         viewModel.setViewMode(mode)
 
         if (isPlannerView)
-            Toast.makeText(requireContext(),"Переключились на планер", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Переключились на планер", Toast.LENGTH_SHORT).show()
         else
-            Toast.makeText(requireContext(),"Переключились на список", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Переключились на список", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupFab() {
@@ -263,6 +298,39 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun renderState(state: NoteListState) {
         println("👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
+            is NoteListState.Success -> {
+
+                (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
+                    if (isPlannerView) "Планирование" else "Записная книжка"
+
+                if (isPlannerView) {
+                    (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
+                        "Планирование"
+                    binding.recyclerViewList.visibility = View.GONE
+                    binding.recyclerViewPlanner.visibility = View.VISIBLE
+                    plannerAdapter.submitList(state.notes)
+                } else {
+                    (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
+                        "Записная книжка"
+                    binding.recyclerViewList.visibility = View.VISIBLE
+                    binding.recyclerViewPlanner.visibility = View.GONE
+                    noteLinearAdapter.submitList(state.notes)
+                }
+
+                println("✅ Fragment showing ${state.notes.size} notes")
+                binding.noteListProgressBar.visibility = View.GONE
+                binding.emptyList.visibility = View.GONE
+                binding.notebookProtected.visibility = View.GONE
+
+                isEncrypted = state.isEncrypted
+                if (state.isEncrypted) {
+                    btnLockIndicator.setImageResource(R.drawable.ic_unlocked)
+                    btnLockIndicator.visibility = View.VISIBLE
+                } else btnLockIndicator.visibility = View.GONE
+
+                binding.createNote.visibility = View.VISIBLE
+            }
+
             is NoteListState.Blocked -> {
                 println("⏳ Fragment showing Blocked")
                 isEncrypted = true
@@ -271,7 +339,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.VISIBLE
                 binding.createNote.visibility = View.GONE
-                binding.recyclerView.visibility = View.GONE
+                binding.recyclerViewList.visibility = View.GONE
+                binding.recyclerViewPlanner.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_locked)
                 btnLockIndicator.visibility = View.VISIBLE
                 //showAuthenticationDialog()
@@ -283,7 +352,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.emptyList.visibility = View.VISIBLE
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
-                binding.recyclerView.visibility = View.GONE
+                binding.recyclerViewList.visibility = View.GONE
+                binding.recyclerViewPlanner.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
                 binding.emptyList.text = state.message
             }
@@ -294,29 +364,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
-                binding.recyclerView.visibility = View.GONE
+                binding.recyclerViewList.visibility = View.GONE
+                binding.recyclerViewPlanner.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
-            }
-
-            is NoteListState.Success -> {
-                isPlannerView = state.isPlannerView
-                (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
-                    if (isPlannerView) "Планирование" else "Записная книжка"
-
-                println("✅ Fragment showing ${state.notes.size} notes")
-                binding.noteListProgressBar.visibility = View.GONE
-                binding.emptyList.visibility = View.GONE
-                binding.notebookProtected.visibility = View.GONE
-                binding.createNote.visibility = View.VISIBLE
-                binding.recyclerView.visibility = View.VISIBLE
-                isEncrypted = state.isEncrypted
-                if (state.isEncrypted) {
-                    btnLockIndicator.setImageResource(R.drawable.ic_unlocked)
-                    btnLockIndicator.visibility = View.VISIBLE
-                } else btnLockIndicator.visibility = View.GONE
-
-                requireActivity()
-                (binding.recyclerView.adapter as NoteAdapter).submitList(state.notes)
             }
         }
     }

@@ -4,7 +4,7 @@ import ru.whiteleaf.notes.domain.model.Note
 
 sealed class NoteListState {
     object Loading : NoteListState()
-    data class Success(val isEncrypted: Boolean, val notes: List<Note>, val isPlannerView:Boolean) : NoteListState()
+    data class Success(val isEncrypted: Boolean, val notes: List<Note>) : NoteListState()
     data class Error(val message: String) : NoteListState()
     object Blocked : NoteListState()
 }

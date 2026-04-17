@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
 
 class HeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-    private val title: TextView = view.findViewById(R.id.title)
+    private val title: TextView = view.findViewById(R.id.start_header_title)
 
     fun bind(headerTitle: String) {
         title.text = headerTitle

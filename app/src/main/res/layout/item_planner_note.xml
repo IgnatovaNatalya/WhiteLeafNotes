@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="72dp"
+    android:layout_height="72dp"
+    android:background="@drawable/bg_planner_note"
+    android:orientation="vertical"
+    android:padding="6dp"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/tv_planer_note_date"
+        style="@style/NotePlanerDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        tools:text="01.01" />
+
+    <TextView
+        android:id="@+id/tv_planer_note_title"
+        android:layout_marginTop="6dp"
+        style="@style/NotePlanerTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:maxLines="2"
+        android:ellipsize="end"
+        tools:text="Начало 1 этапа ktn" />
+
+</LinearLayout>
+
+
