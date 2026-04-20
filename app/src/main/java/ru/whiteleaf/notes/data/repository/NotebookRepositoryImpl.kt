@@ -71,7 +71,7 @@ class NotebookRepositoryImpl(
         }
     }
 
-    override suspend fun renameNotebook(notebook: Notebook, newName: String) {//: Notebook {
+    override suspend fun renameNotebook(notebookPath: String, newName: String) {//: Notebook {
         return withContext(Dispatchers.IO) {
             try {
                 // Проверяем валидность нового имени
@@ -79,19 +79,19 @@ class NotebookRepositoryImpl(
                     throw IllegalArgumentException("Некорректное новое имя")
                 }
 
-                val oldDir = notebookDataSource.getNotebookDir(notebook.path)
+                val oldDir = notebookDataSource.getNotebookDir(notebookPath)
                 if (!notebookDataSource.renameNotebook(oldDir, newName)) {
                     throw IOException("Не удалось переименовать записную книжку")
                 }
 
                 // Возвращаем обновленную записную книжку
-                val newDir = notebookDataSource.getNotebookDir(newName)
-                Notebook(
-                    path = newName,
-                    createdAt = notebook.createdAt,
-                    noteCount = notebookDataSource.getNoteCount(newDir),
-                    //modifiedAt = System.currentTimeMillis()
-                )
+                //val newDir = notebookDataSource.getNotebookDir(newName)
+//                Notebook(
+//                    path = newName,
+//                    createdAt = notebook.createdAt,
+//                    noteCount = notebookDataSource.getNoteCount(newDir),
+//                    //modifiedAt = System.currentTimeMillis()
+//                )
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка переименования записной книжки: ${e.message}")
                 throw IOException("Не удалось переименовать записную книжку: ${e.message}")

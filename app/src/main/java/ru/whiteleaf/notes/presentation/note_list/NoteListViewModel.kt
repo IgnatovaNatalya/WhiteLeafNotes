@@ -13,7 +13,7 @@ import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
-import ru.whiteleaf.notes.domain.use_case.RenameNotebookByPathUseCase
+import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
 import ru.whiteleaf.notes.domain.repository.SecurityPreferences
@@ -30,7 +30,7 @@ class NoteListViewModel(
     private val createNoteUseCase: CreateNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
-    private val renameNotebookUseCase: RenameNotebookByPathUseCase,
+    private val renameNotebookUseCase: RenameNotebookUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val encryptNotebookUseCase: EncryptNotebookUseCase,

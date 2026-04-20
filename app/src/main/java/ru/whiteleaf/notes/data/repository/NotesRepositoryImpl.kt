@@ -51,7 +51,7 @@ class NoteRepositoryImpl(
                 noteDataSource.writeNoteContent(noteFile, note.content)
 
                 //записываем в дату обновления файла дату существующую заметки, чтобы даты не слетали при сохранении
-                if (note.modifiedAt > 0) noteDataSource.setFileLastModified(
+                if (note.modifiedAt > 0) noteDataSource.setNoteDate(
                     noteFile,
                     note.modifiedAt
                 )

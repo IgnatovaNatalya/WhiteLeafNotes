@@ -24,7 +24,6 @@ import ru.whiteleaf.notes.domain.use_case.GetSharedContentUseCase
 import ru.whiteleaf.notes.domain.use_case.InsertNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
-import ru.whiteleaf.notes.domain.use_case.RenameNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.ImportZipNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
@@ -97,7 +96,7 @@ val koinModule = module {
     factory { CreateNotebookUseCase(get()) }
     factory { DeleteNotebookUseCase(get()) }
     factory { RenameNotebookUseCase(get()) }
-    factory { RenameNotebookByPathUseCase(get()) }
+
     factory { DeleteNotebookByPathUseCase(get(), get(), get()) }
     factory { ShareNotebookUseCase(get(), get(), get()) }
 

@@ -159,7 +159,7 @@ class StartViewModel(
         viewModelScope.launch {
             try {
                 if (newName != notebook.name) {
-                    renameNotebookUseCase(notebook, newName)
+                    renameNotebookUseCase(notebook.path, newName)
                     loadData()
                     _message.postValue("Название записной книжки изменено")
                 }

@@ -47,7 +47,6 @@ class FileNoteDataSource(
         return file.exists()
     }
 
-
     // Чтение содержимого файла
     fun readNoteContent(file: File): String {
         return file.readText()
@@ -56,11 +55,6 @@ class FileNoteDataSource(
     // Запись содержимого в файл
     fun writeNoteContent(file: File, content: String) {
         file.writeText(content)
-    }
-
-    // Установка времени последнего изменения
-    fun setFileLastModified(file: File, timestamp: Long) {
-        file.setLastModified(timestamp)
     }
 
     // Получение списка файлов в директории
