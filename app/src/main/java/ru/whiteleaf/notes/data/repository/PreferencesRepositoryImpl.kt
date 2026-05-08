@@ -25,4 +25,13 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences) : Preferen
         val key = "$KEY_VIEW_MODE_PREFIX$notebookPath"
         return prefs.getBoolean(key, defaultIsPlanner)
     }
+
+    override fun saveNoteScrollPosition(noteId: String, scrollY: Int) {
+        ///TODO("Not yet implemented")
+    }
+
+    override fun getNoteScrollPosition(noteId: String): Int? {
+        ///TODO("Not yet implemented")
+        return null
+    }
 }

@@ -45,7 +45,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var isEditing = false
     private var isMoved = false
     private var wasInterruptedByNotification = false
-    private var lastCursorPosition = 0
+    private var lastScrollPosition = 0
 
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
@@ -81,6 +81,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
             if (!hasFocus) {
                 //при переходе фокуса, клавиатура скрывается системой
+                saveScrollPosition()
                 wasInterruptedByNotification = true
                 println("DEBUG: Window focus gone")
 
@@ -88,6 +89,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
                 wasInterruptedByNotification = false
                 titleEditText.requestFocus()
+                restoreScrollPosition()
 
                 //titleEditText.setSelection(0)
 
@@ -307,6 +309,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                     binding.noteText.setText(note.content)
                     isEditing = true
                 }
+                restoreScrollPosition()
             }
 
             NoteEditState.Loading -> {
@@ -323,26 +326,39 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun renderMessage(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
 
-    private fun saveCursorPosition() {
-        lastCursorPosition = contentEditText.selectionStart
+    private fun saveScrollPosition() {
+        //lastCursorPosition = contentEditText.selectionStart
+        lastScrollPosition = scrollView.scrollY
+        println("DEBUG: Saved scroll $lastScrollPosition")
     }
 
-    private fun restoreCursorPosition() {
-        contentEditText.post {
-            try {
-                val textLength = contentEditText.text.length
+    private fun restoreScrollPosition() {
 
-                // Проверяем, чтобы позиция была в пределах текста
-                val safePosition = when {
-                    lastCursorPosition < 0 -> 0
-                    lastCursorPosition > textLength -> textLength
-                    else -> lastCursorPosition
-                }
-                contentEditText.setSelection(safePosition)
-            } catch (e: Exception) {
-                contentEditText.setSelection(contentEditText.text.length)
-            }
+        binding.scrollView.post {
+            // восстанавливаем прокрутку
+            lastScrollPosition?.let { binding.scrollView.scrollTo(0, it) }
+            println("DEBUG: Set scroll position $lastScrollPosition")
         }
+//        contentEditText.post {
+//            try {
+//                val textLength = contentEditText.text.length
+//
+//                // Проверяем, чтобы позиция была в пределах текста
+//                val safePosition = when {
+//                    lastCursorPosition < 0 -> 0
+//                    lastCursorPosition > textLength -> textLength
+//                    else -> lastCursorPosition
+//                }
+//
+//
+//                //contentEditText.setSelection(safePosition)
+//                println("DEBUG: Set selection $safePosition")
+//            } catch (e: Exception) {
+//                contentEditText.requestFocus()
+//                contentEditText.setSelection(contentEditText.text.length)
+//                println("DEBUG: Catch Set selection  ${contentEditText.text.length}")
+//            }
+//        }
     }
 
 
@@ -351,17 +367,17 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         // При каждом входе на экран обновляем состояние безопасности
         viewModel.refreshNote()
 
-        handler.postDelayed({
-            if (isAdded && !isDetached) {
-                titleEditText.requestFocus()
-                contentEditText.requestFocus()
-                restoreCursorPosition()
-            }
-        }, 200)
+//        handler.postDelayed({
+//            if (isAdded && !isDetached) {
+//                titleEditText.requestFocus()
+//                contentEditText.requestFocus()
+//                restoreCursorPosition()
+//            }
+//        }, 200)
     }
 
     override fun onPause() {
-        saveCursorPosition()
+        saveScrollPosition()
 
         if (!isMoved) {
             viewModel.updateFullNote(
@@ -380,7 +396,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     override fun onStop() {
         // Дополнительно сохраняем при остановке фрагмента
-        saveCursorPosition()
+        saveScrollPosition()
         super.onStop()
     }
 
