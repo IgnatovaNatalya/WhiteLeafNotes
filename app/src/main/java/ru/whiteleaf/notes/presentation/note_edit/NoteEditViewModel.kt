@@ -19,8 +19,10 @@ import ru.whiteleaf.notes.domain.use_case.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.repository.SecurityPreferences
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
+import java.text.FieldPosition
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,6 +41,7 @@ class NoteEditViewModel(
     private val noteId: String?,
     private val notebookPath: String?,
     private val checkNotebookAccessUseCase: CheckNotebookAccessUseCase,
+    private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
 
     private val _noteEditState = MutableLiveData<NoteEditState>()
@@ -280,6 +283,19 @@ class NoteEditViewModel(
                 _message.postValue("Ошибка удаления: ${e.message}")
             }
         }
+    }
+
+    fun saveNoteScrollPosition(scrollPosition: Int) {
+        if (noteId != null && notebookPath != null)
+            preferencesRepository.saveNoteScrollPosition(noteId, notebookPath, scrollPosition)
+    }
+
+    fun getNoteScrollPosition():Int {
+        if (noteId != null && notebookPath != null) {
+            val pos = preferencesRepository.getNoteScrollPosition(noteId, notebookPath)
+            return pos ?: 0
+        }
+        else return 0
     }
 
     fun refreshNote() = loadNoteWithSecurityCheck()

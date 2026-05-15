@@ -8,7 +8,7 @@
     tools:context=".presentation.note_edit.NoteEditFragment">
 
     <ru.whiteleaf.notes.common.classes.CustomNestedScrollView
-        android:id="@+id/scroll_view"
+        android:id="@+id/note_edit_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
@@ -91,7 +91,7 @@
         android:paddingTop="3dp"
         android:scaleType="centerInside"
         android:src="@drawable/ic_down"
-        app:layout_anchor="@id/scroll_view"
+        app:layout_anchor="@id/note_edit_scroll_view"
         app:layout_anchorGravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -3,8 +3,6 @@ package ru.whiteleaf.notes.presentation.note_edit
 import android.app.DatePickerDialog
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -45,14 +43,16 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var isEditing = false
     private var isMoved = false
     private var wasInterruptedByNotification = false
-    private var lastScrollPosition = 0
+
+    //private var lastScrollPosition = 0
+    private var scrollRestoreRunnable: Runnable? = null
 
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
     private lateinit var buttonScroll: ImageButton
     private lateinit var scrollView: NestedScrollView
 
-    private val handler = Handler(Looper.getMainLooper())
+    // private val handler = Handler(Looper.getMainLooper())
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -67,7 +67,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         titleEditText = binding.noteTitle
         contentEditText = binding.noteText
         buttonScroll = binding.noteScrollDown
-        scrollView = binding.scrollView
+        scrollView = binding.noteEditScrollView
 
         setupWindowFocusChangeListener(view)
         setupOptionsMenu()
@@ -88,20 +88,21 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             } else if (wasInterruptedByNotification) {
 
                 wasInterruptedByNotification = false
-                titleEditText.requestFocus()
-                restoreScrollPosition()
-
-                //titleEditText.setSelection(0)
+//                titleEditText.requestFocus()
+//                titleEditText.setSelection(0)
 
                 println("DEBUG: Window focus recieved")
                 // убрали фокус на заголовок, пользователь сам нажмет на текст и клавиатура появится
+
+                //restoreScrollPosition()
+                viewModel.refreshNote()
             }
         }
     }
 
     private fun setupObservers() {
-        viewModel.noteEditState.observe(viewLifecycleOwner) {
-            state -> renderNote(state)
+        viewModel.noteEditState.observe(viewLifecycleOwner) { state ->
+            renderNote(state)
         }
 
         viewModel.message.observe(viewLifecycleOwner) { message ->
@@ -125,6 +126,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         TextWatcherScrollManager.setupScrollDetection(
             editText = contentEditText,
             scrollView = scrollView,
+            //scrollView = binding.noteEditScrollView,
             button = buttonScroll
         )
     }
@@ -327,38 +329,27 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
 
     private fun saveScrollPosition() {
-        //lastCursorPosition = contentEditText.selectionStart
-        lastScrollPosition = scrollView.scrollY
-        println("DEBUG: Saved scroll $lastScrollPosition")
+        val lastScrollPosition = scrollView.scrollY
+        //val lastScrollPosition = binding.noteEditScrollView.scrollY
+        viewModel.saveNoteScrollPosition(lastScrollPosition)
+        println("DEBUG: Scroll saved to prefs: $lastScrollPosition")
     }
 
     private fun restoreScrollPosition() {
+        // scrollRestoreRunnable?.let { scrollView.removeCallbacks(it) }
 
-        binding.scrollView.post {
-            // восстанавливаем прокрутку
-            lastScrollPosition?.let { binding.scrollView.scrollTo(0, it) }
-            println("DEBUG: Set scroll position $lastScrollPosition")
-        }
-//        contentEditText.post {
-//            try {
-//                val textLength = contentEditText.text.length
-//
-//                // Проверяем, чтобы позиция была в пределах текста
-//                val safePosition = when {
-//                    lastCursorPosition < 0 -> 0
-//                    lastCursorPosition > textLength -> textLength
-//                    else -> lastCursorPosition
-//                }
-//
-//
-//                //contentEditText.setSelection(safePosition)
-//                println("DEBUG: Set selection $safePosition")
-//            } catch (e: Exception) {
-//                contentEditText.requestFocus()
-//                contentEditText.setSelection(contentEditText.text.length)
-//                println("DEBUG: Catch Set selection  ${contentEditText.text.length}")
-//            }
+        val lastScrollPosition = viewModel.getNoteScrollPosition()
+        scrollView.post { binding.noteEditScrollView.scrollTo(0, lastScrollPosition) }
+        //binding.noteEditScrollView.scrollTo(0, lastScrollPosition)
+        // scrollView.scrollTo(0, lastScrollPosition)
+        println("DEBUG: Restore scroll position $lastScrollPosition")
+
+//        scrollRestoreRunnable = Runnable {
+//            scrollView.scrollTo(0, lastScrollPosition)
+//            println("DEBUG: Set scroll position $lastScrollPosition")
+//            //scrollRestoreRunnable = null
 //        }
+//        scrollView.post(scrollRestoreRunnable!!)
     }
 
 
@@ -366,14 +357,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onResume()
         // При каждом входе на экран обновляем состояние безопасности
         viewModel.refreshNote()
-
-//        handler.postDelayed({
-//            if (isAdded && !isDetached) {
-//                titleEditText.requestFocus()
-//                contentEditText.requestFocus()
-//                restoreCursorPosition()
-//            }
-//        }, 200)
     }
 
     override fun onPause() {
@@ -394,11 +377,17 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         viewModel.saveAndEncryptOnExit()
     }
 
-    override fun onStop() {
-        // Дополнительно сохраняем при остановке фрагмента
-        saveScrollPosition()
-        super.onStop()
-    }
+//    override fun onDestroyView() {
+//        //удаляем вызов восстановления скролла
+////        scrollRestoreRunnable?.let { binding.scrollView.removeCallbacks(it) }
+////        scrollRestoreRunnable = null
+//        super.onDestroyView()
+//    }
+
+//    override fun onStop() {
+//        saveScrollPosition()
+//        super.onStop()
+//    }
 
     @OptIn(ExperimentalTime::class)
     private fun formatDate(timestamp: Long): String {

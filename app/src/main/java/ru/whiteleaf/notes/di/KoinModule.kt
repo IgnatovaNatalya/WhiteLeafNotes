@@ -188,6 +188,8 @@ val koinModule = module {
 
             noteId = noteId,
             notebookPath = notebookPath,
+
+            preferencesRepository = get(),
         )
     }
 
