@@ -14,6 +14,10 @@ class CustomNestedScrollView @JvmOverloads constructor(
     override fun requestChildFocus(child: View?, focused: View?) {
 
         //чтобы при фокусе на дочернем элементе скролл не перескакивал
-        if (focused == null)  super.requestChildFocus(child, focused)
+       if (focused == null)  super.requestChildFocus(child, focused)
+//        if (!isLaidOut) {
+//            // не прокручиваем во время первого layout
+//            return
+//        }
     }
 }

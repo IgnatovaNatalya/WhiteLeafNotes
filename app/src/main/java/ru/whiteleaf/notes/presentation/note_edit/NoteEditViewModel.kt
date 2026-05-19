@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import ru.whiteleaf.notes.domain.model.Note
-import ru.whiteleaf.notes.domain.use_case.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.GetNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
@@ -22,7 +21,6 @@ import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
-import java.text.FieldPosition
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,7 +32,6 @@ class NoteEditViewModel(
     private val moveNoteUseCase: MoveNoteUseCase,
     private val saveNoteUseCase: SaveNoteUseCase,
     private val shareNoteFileUseCase: ShareNoteFileUseCase,
-    private val createNoteUseCase: CreateNoteUseCase,
     private val encryptionRepository: EncryptionRepository,
     private val securityPreferences: SecurityPreferences,
     private val updateNoteDateUseCase: UpdateNoteDateUseCase,
@@ -87,6 +84,8 @@ class NoteEditViewModel(
                 val note = getNoteUseCase(noteId, notebookPath)
                 if (note == null) return@launch
 
+                val scrollPosition = getNoteScrollPosition()
+
                 if (!hasAccess) {
                     _noteEditState.postValue(NoteEditState.Error("Заметка заблокирована. Разблокируйте записную книжку для редактирования."))
                 } else if (isEncrypted) {
@@ -97,11 +96,14 @@ class NoteEditViewModel(
                     encryptionRepository.decryptNote(noteId, notebookPath)
                     val decryptedContent =
                         encryptionRepository.getDecryptedContent(noteId) ?: note.content
-                    _noteEditState.postValue(NoteEditState.Success(note.copy(content = decryptedContent)))
+                    _noteEditState.postValue(NoteEditState.Success(
+                        note.copy(content = decryptedContent,),
+                        scrollPosition = scrollPosition
+                    ))
                     _note.postValue(note.copy(content = decryptedContent))
                 } else {
                     // Обычный блокнот
-                    _noteEditState.postValue(NoteEditState.Success(note))
+                    _noteEditState.postValue(NoteEditState.Success(note, scrollPosition))
                     _note.postValue(note)
                 }
             } catch (e: Exception) {
@@ -195,8 +197,10 @@ class NoteEditViewModel(
             try {
                 updateNoteDateUseCase(currentNote, newDate)
 
+                val scrollPosition = getNoteScrollPosition()
+
                 _note.value = updatedNote
-                _noteEditState.postValue(NoteEditState.Success(updatedNote))
+                _noteEditState.postValue(NoteEditState.Success(updatedNote, scrollPosition))
 
                 _message.postValue("Дата заметки обновлена")
 

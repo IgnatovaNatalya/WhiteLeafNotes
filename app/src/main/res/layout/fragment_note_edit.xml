@@ -7,8 +7,11 @@
     android:fitsSystemWindows="true"
     tools:context=".presentation.note_edit.NoteEditFragment">
 
+    <!--androidx.core.widget.NestedScrollView-->
     <ru.whiteleaf.notes.common.classes.CustomNestedScrollView
+
         android:id="@+id/note_edit_scroll_view"
+        android:focusable="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
@@ -69,7 +72,7 @@
                 tools:text="Текст заметки..." />
 
         </LinearLayout>
-
+    <!--/androidx.core.widget.NestedScrollView-->
     </ru.whiteleaf.notes.common.classes.CustomNestedScrollView>
 
     <ProgressBar

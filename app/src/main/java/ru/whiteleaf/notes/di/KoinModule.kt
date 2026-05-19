@@ -178,7 +178,6 @@ val koinModule = module {
             moveNoteUseCase = get(),
             saveNoteUseCase = get(),
             shareNoteFileUseCase = get(),
-            createNoteUseCase = get(),
 
             encryptionRepository = get(),
             securityPreferences = get(),
