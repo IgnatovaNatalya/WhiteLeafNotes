@@ -41,7 +41,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private var isEditing = false
     private var isMoved = false
-    private var wasInterruptedByNotification = false
+    private var wasInterrupted = false
 
     private var lastCursorPosition = -1 //-1 если не была открыта клавиатура и не вводился текст
 
@@ -82,16 +82,16 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     fun onFocusChanged(hasFocus:Boolean) {
         if (!hasFocus) {
             //при переходе фокуса, клавиатура скрывается системой
+            println("DEBUG: Window focus gone,saving scroll")
             saveScrollPosition()
-            wasInterruptedByNotification = true
+            wasInterrupted = true
 
             if (checkKeyboard(contentEditText))
                 lastCursorPosition = contentEditText.selectionStart
+            println("DEBUG: Saving cursorPosition $lastCursorPosition")
 
-            println("DEBUG: Window focus gone, cursorPosition= $lastCursorPosition")
-
-        } else if (wasInterruptedByNotification) {
-            wasInterruptedByNotification = false
+        } else if (wasInterrupted) {
+            wasInterrupted = false
             println("DEBUG: Window focus recieved")
             viewModel.refreshNote()
         }
@@ -257,6 +257,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         when (state) {
 
             is NoteEditState.Success -> {
+                println("DEBUG: Render note")
                 binding.progressBar.visibility = View.GONE
                 val note = state.note
                 titleEditText.setText(note.title)
@@ -272,11 +273,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 println("DEBUG: Restore scroll position ${state.scrollPosition}")
 
                 if (lastCursorPosition > 0) {
-                    println ("DEBUG: restore cursor & showKeyboard cursorPosition = $lastCursorPosition")
-                    titleEditText.requestFocus()
-                    showKeyboard()
-                    contentEditText.setSelection(lastCursorPosition)
-                    lastCursorPosition = -1
+                    //titleEditText.requestFocus()
+                    contentEditText.post {
+                        println ("DEBUG: Restore cursor $lastCursorPosition & showKeyboard ")
+                        titleEditText.requestFocus()
+                        contentEditText.requestFocus()
+                        showKeyboard()
+                        contentEditText.setSelection(lastCursorPosition)
+                        lastCursorPosition = -1
+                    }
                 }
             }
 
@@ -308,6 +313,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 contentEditText.text.toString()
             )
         }
+
+        println("Debug: Paused")
+            //onFocusChanged(false)
+
         super.onPause()
     }
 
@@ -324,8 +333,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     fun showKeyboard() {
-        titleEditText.requestFocus()
-        contentEditText.requestFocus() // Сначала даём полю фокус
+        //titleEditText.requestFocus()
+        //contentEditText.requestFocus() // Сначала даём полю фокус
         val imm =
             contentEditText.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(contentEditText, InputMethodManager.SHOW_IMPLICIT)
