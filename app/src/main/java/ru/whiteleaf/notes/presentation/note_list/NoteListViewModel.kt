@@ -1,6 +1,6 @@
 package ru.whiteleaf.notes.presentation.note_list
 
-import androidx.fragment.app.FragmentActivity
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,14 +15,12 @@ import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
-import ru.whiteleaf.notes.domain.repository.SecurityPreferences
-import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
-import ru.whiteleaf.notes.domain.use_case.ClearNotebookKeysUseCase
+import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import java.io.IOException
+import java.security.InvalidKeyException
 
 class NoteListViewModel(
     private val getNotesUseCase: GetNotesUseCase,
@@ -33,12 +31,9 @@ class NoteListViewModel(
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
+    private val encryptionRepository: EncryptionRepository,
     private val encryptNotebookUseCase: EncryptNotebookUseCase,
-    private val clearNotebookKeys: ClearNotebookKeysUseCase,
-    private val unlockNotebookUseCase: UnlockNotebookUseCase,
-    private val checkNotebookAccessUseCase: CheckNotebookAccessUseCase,
-    private val lockNotebookUseCase: LockNotebookUseCase,
-    private val securityPreferences: SecurityPreferences,
+    private val decryptNotebookUseCase: DecryptNotebookUseCase,
     private val preferencesInteractor: PreferencesInteractor,
     private val notebookPath: String?
 ) : ViewModel() {
@@ -52,18 +47,20 @@ class NoteListViewModel(
     private val _navigationEvent = MutableLiveData<NavigationEvent>()
     val navigationEvent: LiveData<NavigationEvent> = _navigationEvent
 
-    // Новые LiveData для безопасности
-    private val _notebookSecurityState = MutableLiveData<NotebookSecurityState>()
+    private var retryCount = 0
+//
+//    // Новые LiveData для безопасности
+//    private val _notebookSecurityState = MutableLiveData<NotebookSecurityState>()
 
-    private val _authenticationRequired = MutableLiveData<Boolean>()
-    val authenticationRequired: LiveData<Boolean> = _authenticationRequired
+//    private val _authenticationRequired = MutableLiveData<Boolean>()
+//    val authenticationRequired: LiveData<Boolean> = _authenticationRequired
 
-    private val _encryptionResult = MutableLiveData<Result<Unit>>()
-    val encryptionResult: LiveData<Result<Unit>> = _encryptionResult
+//    private val _encryptionResult = MutableLiveData<Result<Unit>>()
+//    val encryptionResult: LiveData<Result<Unit>> = _encryptionResult
 
-    private var isEncrypted =
-        notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
-    private var hasAccess = true
+//    private var isEncrypted =
+//        notebookPath?.let { checkNotebookAccessOldUseCase.isNotebookEncrypted(it) } == true
+//    private var hasAccess = true
 
     private val _isPlannerView = MutableLiveData<Boolean>(false)
 
@@ -71,7 +68,7 @@ class NoteListViewModel(
         loadViewMode()
         loadNotes()
         saveLastOpenedNotebook()
-        checkSecurityState()
+        //checkSecurityState()
     }
 
     private fun loadViewMode() {
@@ -87,40 +84,45 @@ class NoteListViewModel(
         _navigationEvent.postValue(NavigationEvent.NavigateToNotebook(notebookPath))
     }
 
-    fun getViewMode():Boolean {
-        return _isPlannerView.value?:false
+    fun getViewMode(): Boolean {
+        return _isPlannerView.value ?: false
     }
 
-    private fun checkSecurityState() {
-
-        viewModelScope.launch {
-            isEncrypted =
-                notebookPath?.let { checkNotebookAccessUseCase.isNotebookEncrypted(it) } == true
-            hasAccess = notebookPath?.let { checkNotebookAccessUseCase(it) } != false
-
-            _notebookSecurityState.postValue(///
-                NotebookSecurityState(
-                    isEncrypted = isEncrypted,
-                    isUnlocked = hasAccess,
-                    requiresAuthentication = isEncrypted && !hasAccess
-                )
-            )
-            _authenticationRequired.postValue(isEncrypted && !hasAccess)///
-        }
-    }
+//    private fun checkSecurityState() {
+//
+//        viewModelScope.launch {
+//            isEncrypted =
+//                notebookPath?.let { checkNotebookAccessOldUseCase.isNotebookEncrypted(it) } == true
+//            hasAccess = notebookPath?.let { checkNotebookAccessOldUseCase(it) } != false
+//
+//            _notebookSecurityState.postValue(///
+//                NotebookSecurityState(
+//                    isEncrypted = isEncrypted,
+//                    isUnlocked = hasAccess,
+//                    requiresAuthentication = isEncrypted && !hasAccess
+//                )
+//            )
+//            _authenticationRequired.postValue(isEncrypted && !hasAccess)///
+//        }
+//    }
 
     fun loadNotes() {
-        _noteListState.postValue(NoteListState.Loading)
-
         viewModelScope.launch {
-            if (notebookPath != null) {
-                val hasAccess = checkNotebookAccessUseCase(notebookPath)
-                if (!hasAccess) {
-                    _noteListState.postValue(NoteListState.Blocked)
-                    return@launch
-                }
-            }
+            _noteListState.postValue(NoteListState.Loading)
+            var isProtected = false
+
             try {
+                if (notebookPath != null) {//корневой всегда открыт
+                    // Проверяем, защищён ли блокнот и не заблокирован ли он
+                    isProtected = encryptionRepository.hasKey(notebookPath)
+                    val isUnlocked = !encryptionRepository.isUnlocked(notebookPath)
+
+                    if (isProtected && isUnlocked) {
+                        _noteListState.postValue(NoteListState.Blocked)
+                        return@launch
+                    }
+                }
+
                 val notesList = getNotesUseCase(notebookPath)
 
                 notesList.forEach { note ->
@@ -131,72 +133,202 @@ class NoteListViewModel(
                 }
                 _noteListState.postValue(
                     NoteListState.Success(
-                        isEncrypted,
+                        isProtected,
                         notesList.filter { it.isNotEmpty() })
                 )
+                retryCount = 0
 
             } catch (e: IOException) {
                 _noteListState.postValue(NoteListState.Error("Ошибка загрузки заметок: ${e.message}"))
             } catch (e: Exception) {
-                showMessage("Неизвестная ошибка: ${e.message}")
-                _noteListState.postValue(NoteListState.Error("Неизвестная ошибка: ${e.message}"))
+                if (e.cause is InvalidKeyException && retryCount < 2) {
+                    retryCount++
+                    _noteListState.postValue(NoteListState.Blocked)
+                } else {
+                    _noteListState.postValue(
+                        NoteListState.Error(
+                            e.message ?: "Ошибка загрузки"
+                        )
+                    )
+                }
             } finally {
                 println("Окончание загрузки заметок")
             }
         }
+
     }
 
-    fun encryptNotebook() {
+    fun onBiometricSuccess(context: Context) {
         viewModelScope.launch {
-            if (notebookPath != null) {
-                // Проверяем, не зашифрован ли уже блокнот
-                if (securityPreferences.isNotebookEncrypted(notebookPath)) {
-                    showMessage("Блокнот уже зашифрован")
-                    return@launch
-                }
-
-                encryptNotebookUseCase(notebookPath)
-                    .onSuccess {
-                        showMessage("Блокнот успешно зашифрован")
-                        checkSecurityState()
-                        loadNotes() // Перезагружаем чтобы показать заблокированное состояние
-                    }
-                    .onFailure { error ->
-                        val errorMessage = error.message ?: "Неизвестная ошибка"
-                        showMessage("Ошибка шифрования: $errorMessage")
-                        println("❌ Ошибка в ViewModel: $errorMessage")
-                        error.printStackTrace()
-                    }
-            }
-        }
-    }
-
-    fun unlockNotebook(activity: FragmentActivity) {
-        viewModelScope.launch {
-            if (notebookPath != null) {
-
-                unlockNotebookUseCase(notebookPath, activity).onSuccess {
-                    showMessage("Записная книжка разблокирована")
-                    checkSecurityState()
-                    loadNotes() // Загружаем расшифрованные заметки
-                }.onFailure { error ->
-                    showMessage(error.message.toString())
-                    println("❌ Ошибка разблокировки: ${error.message}")
-                    error.printStackTrace()
-                }
+            val unlocked = if (notebookPath != null) encryptionRepository.unlockNotebook(
+                notebookPath,
+                context
+            ) else true
+            if (unlocked) {
+                loadNotes()
+            } else {
+                _noteListState.postValue(NoteListState.Error("Не удалось разблокировать записную книжку"))
             }
         }
     }
 
     fun lockNotebook() {
-        showMessage("Шифруем")
-        if (notebookPath != null) {
-            lockNotebookUseCase(notebookPath)
-            showMessage("Записная книжка зашифрована")
-            checkSecurityState()
-            loadNotes() // Обновляем список заметок (должен стать пустым)
+        notebookPath?.let { encryptionRepository.lockNotebook(it) }
+    }
+
+    fun encryptNotebook(context: Context) {
+        if (notebookPath != null) viewModelScope.launch {
+            try {
+                if (encryptionRepository.hasKey(notebookPath)) {
+                    _noteListState.value = NoteListState.Error("Блокнот уже защищён")
+                    return@launch
+                }
+                // 1. Создаём ключ (исключение вылетит, если не получится)
+                encryptionRepository.createKeyForNotebook(notebookPath)
+
+                // 2. Запрашиваем биометрию для разблокировки ключа
+                val unlocked = encryptionRepository.unlockNotebook(notebookPath, context)
+                if (!unlocked) {
+                    // Пользователь отменил – удаляем только что созданный ключ
+                    encryptionRepository.deleteKeyForNotebook(notebookPath)
+                    _noteListState.value =
+                        NoteListState.Error("Не удалось подтвердить личность")
+                    return@launch
+                }
+
+                // 3. Шифруем все заметки
+                //notesRepository.encryptAllNotes(notebookPath, notebookPath)
+                encryptNotebookUseCase(notebookPath)
+                // 4. Обновляем UI (можно перезагрузить список, но он уже зашифрован)
+                loadNotes() // перезагружает список, теперь с расшифровкой
+                //_noteListState.value = NoteListState.SuccessWithMessage("Блокнот зашифрован")
+                _message.value = "Записная книжка зашифрована"
+            } catch (e: Exception) {
+                _noteListState.value = NoteListState.Error("Ошибка шифрования: ${e.message}")
+                println("DEBUG: Ошибка шифрования: ${e.message}")
+
+            }
         }
     }
+
+    fun decryptNotebook(context: Context) {
+        if (notebookPath != null) viewModelScope.launch {
+            try {
+                if (!encryptionRepository.hasKey(notebookPath)) {
+                    _noteListState.value = NoteListState.Error("Блокнот не защищён")
+                    return@launch
+                }
+                // Биометрия нужна для чтения зашифрованных файлов
+                val unlocked = encryptionRepository.unlockNotebook(notebookPath, context)
+                if (!unlocked) {
+                    _noteListState.value =
+                        NoteListState.Error("Не удалось подтвердить личность")
+                    return@launch
+                }
+                // Расшифровываем все заметки
+                //notesRepository.decryptAllNotes(notebookPath, notebookPath)
+                decryptNotebookUseCase(notebookPath)
+                // Удаляем ключ
+                encryptionRepository.deleteKeyForNotebook(notebookPath)
+                // Перезагружаем список (теперь файлы в открытом виде)
+                loadNotes()
+                // _noteListState.value = NoteListState.SuccessWithMessage("Блокнот расшифрован")
+                _message.value = "Защита записной книжки снята"
+            } catch (e: Exception) {
+                _noteListState.value = NoteListState.Error("Ошибка расшифровки: ${e.message}")
+            }
+        }
+    }
+
+//
+//fun loadNotesOld() {
+//    _noteListState.postValue(NoteListState.Loading)
+//
+//    viewModelScope.launch {
+//        if (notebookPath != null) {
+//            val hasAccess = checkNotebookAccessOldUseCase(notebookPath)
+//            if (!hasAccess) {
+//                _noteListState.postValue(NoteListState.Blocked)
+//                return@launch
+//            }
+//        }
+//        try {
+//            val notesList = getNotesUseCase(notebookPath)
+//
+//            notesList.forEach { note ->
+//                if (note.isEmpty()) {
+//                    deleteNoteUseCase(note)
+//                    _message.postValue("Пустая заметка удалена")
+//                }
+//            }
+//            _noteListState.postValue(
+//                NoteListState.Success(
+//                    isEncrypted,
+//                    notesList.filter { it.isNotEmpty() })
+//            )
+//
+//        } catch (e: IOException) {
+//            _noteListState.postValue(NoteListState.Error("Ошибка загрузки заметок: ${e.message}"))
+//        } catch (e: Exception) {
+//            showMessage("Неизвестная ошибка: ${e.message}")
+//            _noteListState.postValue(NoteListState.Error("Неизвестная ошибка: ${e.message}"))
+//        } finally {
+//            println("Окончание загрузки заметок")
+//        }
+//    }
+//}
+
+//    fun encryptNotebook() {
+//        viewModelScope.launch {
+//            if (notebookPath != null) {
+//                // Проверяем, не зашифрован ли уже блокнот
+//                if (securityPreferences.isNotebookEncrypted(notebookPath)) {
+//                    showMessage("Блокнот уже зашифрован")
+//                    return@launch
+//                }
+//
+//                encryptNotebookUseCase(notebookPath)
+//                    .onSuccess {
+//                        showMessage("Блокнот успешно зашифрован")
+//                        checkSecurityState()
+//                        loadNotes() // Перезагружаем чтобы показать заблокированное состояние
+//                    }
+//                    .onFailure { error ->
+//                        val errorMessage = error.message ?: "Неизвестная ошибка"
+//                        showMessage("Ошибка шифрования: $errorMessage")
+//                        println("❌ Ошибка в ViewModel: $errorMessage")
+//                        error.printStackTrace()
+//                    }
+//            }
+//        }
+//    }
+//
+//    fun unlockNotebook(activity: FragmentActivity) {
+//        viewModelScope.launch {
+//            if (notebookPath != null) {
+//
+//                unlockNotebookUseCase(notebookPath, activity).onSuccess {
+//                    showMessage("Записная книжка разблокирована")
+//                    checkSecurityState()
+//                    loadNotes() // Загружаем расшифрованные заметки
+//                }.onFailure { error ->
+//                    showMessage(error.message.toString())
+//                    println("❌ Ошибка разблокировки: ${error.message}")
+//                    error.printStackTrace()
+//                }
+//            }
+//        }
+//    }
+
+//    fun lockNotebook() {
+//        showMessage("Шифруем")
+//        if (notebookPath != null) {
+//            lockNotebookUseCase(notebookPath)
+//            showMessage("Записная книжка зашифрована")
+//            checkSecurityState()
+//            loadNotes() // Обновляем список заметок (должен стать пустым)
+//        }
+//    }
 
     private fun showMessage(msg: String) = _message.postValue(msg)
 
@@ -321,7 +453,8 @@ class NoteListViewModel(
         if (toNote) return
         if (notebookPath != null) {
             println("🔒 Блокируем блокнот при выходе: $notebookPath")
-            lockNotebookUseCase(notebookPath)
+            //lockNotebookUseCase(notebookPath)
+            lockNotebook()
         }
     }
 

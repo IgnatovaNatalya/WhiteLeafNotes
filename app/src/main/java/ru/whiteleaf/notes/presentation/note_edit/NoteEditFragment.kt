@@ -9,6 +9,8 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -79,7 +81,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
     }
 
-    fun onFocusChanged(hasFocus:Boolean) {
+    fun onFocusChanged(hasFocus: Boolean) {
         if (!hasFocus) {
             //при переходе фокуса, клавиатура скрывается системой
             println("DEBUG: Window focus gone,saving scroll")
@@ -275,7 +277,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 if (lastCursorPosition > 0) {
                     //titleEditText.requestFocus()
                     contentEditText.post {
-                        println ("DEBUG: Restore cursor $lastCursorPosition & showKeyboard ")
+                        println("DEBUG: Restore cursor $lastCursorPosition & showKeyboard ")
                         titleEditText.requestFocus()
                         contentEditText.requestFocus()
                         showKeyboard()
@@ -293,7 +295,39 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 binding.progressBar.visibility = View.GONE
                 renderMessage(state.message)
             }
+
+            NoteEditState.NeedsBiometricForRead,
+            NoteEditState.NeedsBiometricForSave -> {
+                showBiometricPrompt(
+                    title = if (state is NoteEditState.NeedsBiometricForRead) "Чтение заметки" else "Сохранение заметки"
+                )
+            }
         }
+    }
+
+
+    private fun showBiometricPrompt(title: String) {
+        val biometricPrompt = BiometricPrompt(
+            requireActivity(),
+            ContextCompat.getMainExecutor(requireContext()),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    viewModel.onBiometricSuccess(requireContext())
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    // обработать ошибку
+                    Toast.makeText(requireContext(), "Ошибка аутентификации", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onAuthenticationFailed() {}
+            }
+        )
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Разблокировка записной книжки")
+            .setNegativeButtonText("Отмена")
+            .build()
+        biometricPrompt.authenticate(promptInfo)
     }
 
     private fun renderMessage(msg: String) =
@@ -306,7 +340,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     override fun onPause() {
-
         if (!isMoved) {
             viewModel.updateFullNote(
                 titleEditText.text.toString(),
@@ -315,7 +348,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
 
         println("Debug: Paused")
-            //onFocusChanged(false)
 
         super.onPause()
     }
@@ -323,7 +355,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         // Финальное сохранение и шифрование
-        viewModel.saveAndEncryptOnExit()
+            //viewModel.saveAndEncryptOnExit()
+        viewModel.updateFullNote(
+            titleEditText.text.toString(),
+            contentEditText.text.toString()
+        )
     }
 
     fun checkKeyboard(editText: EditText): Boolean {

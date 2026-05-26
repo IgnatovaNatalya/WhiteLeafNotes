@@ -9,12 +9,13 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
@@ -73,8 +74,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun setupSecurityUI() {
-        btnProtectNotebook.setOnClickListener { viewModel.encryptNotebook() }
-        binding.unlockButton.setOnClickListener { viewModel.unlockNotebook(requireActivity()) }
+        btnProtectNotebook.setOnClickListener {
+            viewModel.encryptNotebook(requireContext())
+        }
+        binding.unlockButton.setOnClickListener {
+            //viewModel.unlockNotebook(requireActivity())
+        }
     }
 
     private fun setupObservers() {
@@ -90,18 +95,18 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
 
-        viewModel.encryptionResult.observe(viewLifecycleOwner) { result ->
-            result?.onSuccess {
-                Toast.makeText(requireContext(), "Записная книжка зашифрована", Toast.LENGTH_SHORT)
-                    .show()
-            }?.onFailure {
-                Toast.makeText(
-                    requireContext(),
-                    "Ошибка шифрования: ${it.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
+//        viewModel.encryptionResult.observe(viewLifecycleOwner) { result ->
+//            result?.onSuccess {
+//                Toast.makeText(requireContext(), "Записная книжка зашифрована", Toast.LENGTH_SHORT)
+//                    .show()
+//            }?.onFailure {
+//                Toast.makeText(
+//                    requireContext(),
+//                    "Ошибка шифрования: ${it.message}",
+//                    Toast.LENGTH_LONG
+//                ).show()
+//            }
+//        }
     }
 
     private fun navigateEvent(event: NavigationEvent) {
@@ -177,7 +182,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 anchorView = optionsButton,
                 items = ContextMenuHelper.getOptionsMenuItemsNoteList(
                     optionsButton.context,
-                    isProtected = isEncrypted,
+                    isProtected = isEncrypted,///
                     isPlannerView = isPlannerView
                 ),
                 onItemSelected = { itemId ->
@@ -186,6 +191,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                         R.id.options_view_list -> switchViewMode(false)
                         R.id.options_view_planner -> switchViewMode(true)
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
+                        R.id.options_unprotect_notebook -> onOptionsDecryptNotebook()
+                        R.id.options_protect_notebook -> onOptionsEncryptNotebook()
                         R.id.options_share_notebook -> onOptionsShareNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()
                     }
@@ -214,6 +221,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
         { newName -> viewModel.renameNotebook(newName) }.show()
     }
+
+    private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook(requireContext())
+    private fun onOptionsDecryptNotebook() = viewModel.decryptNotebook(requireContext())
 
     private fun onOptionsShareNotebook() = viewModel.shareNotebook()
 
@@ -273,20 +283,20 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         findNavController().navigate(action)
     }
 
-    private fun showAuthenticationDialog() {
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Требуется аутентификация")
-            .setMessage("Для доступа к защищенному блокноту требуется отпечаток пальца")
-            .setPositiveButton("Разблокировать") { _, _ ->
-                viewModel.unlockNotebook(requireActivity())
-            }
-            .setNegativeButton("Отмена") { _, _ ->
-                findNavController().navigateUp()
-            }
-            .setCancelable(false)
-            .create()
-        dialog.show()
-    }
+//    private fun showAuthenticationDialog() {
+//        val dialog = MaterialAlertDialogBuilder(requireContext())
+//            .setTitle("Требуется аутентификация")
+//            .setMessage("Для доступа к защищенному блокноту требуется отпечаток пальца")
+//            .setPositiveButton("Разблокировать") { _, _ ->
+//                viewModel.unlockNotebook(requireActivity())
+//            }
+//            .setNegativeButton("Отмена") { _, _ ->
+//                findNavController().navigateUp()
+//            }
+//            .setCancelable(false)
+//            .create()
+//        dialog.show()
+//    }
 
     private fun renderState(state: NoteListState) {
         println("👀 Fragment observed state: ${state.javaClass.simpleName}")
@@ -336,7 +346,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewPlanner.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-                //showAuthenticationDialog()
+                showBiometricPrompt()
             }
 
             is NoteListState.Error -> {
@@ -364,6 +374,30 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         }
     }
 
+    private fun showBiometricPrompt() {
+        val biometricPrompt = BiometricPrompt(
+            requireActivity(),
+            ContextCompat.getMainExecutor(requireContext()),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    viewModel.onBiometricSuccess(requireContext())
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    // обработать ошибку
+                    Toast.makeText(requireContext(), "Ошибка аутентификации", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onAuthenticationFailed() {}
+            }
+        )
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Разблокировка записной книжки")
+            .setNegativeButtonText("Отмена")
+            .build()
+        biometricPrompt.authenticate(promptInfo)
+    }
+
     override fun onResume() {
         super.onResume()
         viewModel.loadNotes()
@@ -372,6 +406,11 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     override fun onPause() {
         super.onPause()
         viewModel.onNotebookExited(navigateToNote)
+    }
+
+    override fun onDestroyView() {
+        viewModel.lockNotebook()
+        super.onDestroyView()
     }
 
     override fun onDestroy() {

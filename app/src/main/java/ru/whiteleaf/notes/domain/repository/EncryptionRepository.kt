@@ -1,21 +1,23 @@
 package ru.whiteleaf.notes.domain.repository
 
+import android.content.Context
+
 interface EncryptionRepository {
-    suspend fun encryptNotebook(notebookPath: String): Result<Unit>
-    suspend fun decryptNotebook(notebookPath: String): Result<Unit>
-    suspend fun encryptNote(noteId: String, notebookPath: String?): Result<Unit>
-    suspend fun decryptNote(noteId: String, notebookPath: String?): Result<Unit>
-    fun isNotebookUnlocked(notebookPath: String): Boolean
+    // Управление ключами
+    fun hasKey(notebookPath: String): Boolean
+
+    @Throws(Exception::class)
+    fun createKeyForNotebook(notebookPath: String)
+
+    fun deleteKeyForNotebook(notebookId: String)
+
+    // Управление состоянием разблокировки
+    fun isUnlocked(notebookPath: String): Boolean
+    suspend fun unlockNotebook(notebookId: String, context: Context): Boolean
     fun lockNotebook(notebookPath: String)
-    fun clearAllKeys()
+    fun lockAllNotebooks()
 
-    fun debugKeyInfo(notebookPath: String?)
-
-    fun getDecryptedContent(noteId: String): String?
-   // fun getDecryptedTitle(noteId: String): String?
-    fun cacheDecryptedContent(noteId: String, content: String, title: String)
-    fun removeFromCache(noteId: String)
-    fun debugKeyStoreState(notebookPath: String)
-
-    fun clearNotebookKeys(notebookPath: String)
+    // Криптографические операции над содержимым заметок
+    suspend fun encryptNote(notebookPath: String, plaintext: String): String
+    suspend fun decryptNote(notebookPath: String, ciphertext: String): String
 }

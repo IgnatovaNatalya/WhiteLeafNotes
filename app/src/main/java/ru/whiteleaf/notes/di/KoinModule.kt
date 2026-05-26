@@ -1,14 +1,15 @@
 package ru.whiteleaf.notes.di
 
-import BiometricRepositoryImpl
-import SecurityPreferencesImpl
+
 import android.content.ContentResolver
 import android.content.Context
 import ru.whiteleaf.notes.data.repository.NoteRepositoryImpl
 import ru.whiteleaf.notes.data.repository.NotebookRepositoryImpl
+import ru.whiteleaf.notes.data.repository.EncryptionRepositoryImpl
 import ru.whiteleaf.notes.data.repository.ExportRepositoryImpl
 import ru.whiteleaf.notes.data.datasource.FileNoteDataSource
 import ru.whiteleaf.notes.data.datasource.FileNotebookDataSource
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.ExportRepository
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
@@ -40,19 +41,13 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import ru.whiteleaf.notes.common.AppConstants.WHITE_LEAF_PREFS
-import ru.whiteleaf.notes.data.repository.EncryptionRepositoryImpl
 import ru.whiteleaf.notes.data.repository.PreferencesRepositoryImpl
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
-import ru.whiteleaf.notes.domain.repository.BiometricRepository
-import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
-import ru.whiteleaf.notes.domain.repository.SecurityPreferences
-import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
-import ru.whiteleaf.notes.domain.use_case.ClearNotebookKeysUseCase
+import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
+import java.security.KeyStore
 
 val koinModule = module {
 
@@ -71,16 +66,25 @@ val koinModule = module {
         )
     }
 
+    //keystore
+    single {
+        KeyStore.getInstance("AndroidKeyStore").apply {
+            load(null)
+        }
+    }
+
     // Repositories
-    single<NotesRepository> { NoteRepositoryImpl(get(), get()) }
+    single<NotesRepository> { NoteRepositoryImpl(get(), get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get()) }
     single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
 
-    single<BiometricRepository> { BiometricRepositoryImpl(get()) }
-    single<EncryptionRepository> { EncryptionRepositoryImpl(get(), get(), get()) }
+ //   single<BiometricRepositoryOld> { BiometricRepositoryOldImpl(get()) }
+ //   single<EncryptionRepositoryOld> { EncryptionRepositoryOldOldImpl(get(), get(), get()) }
+    single<EncryptionRepository> { EncryptionRepositoryImpl(get()) }
 
-    single<SecurityPreferences> { SecurityPreferencesImpl(get()) }
+ //    single<SecurityPreferences> { SecurityPreferencesImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
+
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -97,7 +101,7 @@ val koinModule = module {
     factory { DeleteNotebookUseCase(get()) }
     factory { RenameNotebookUseCase(get()) }
 
-    factory { DeleteNotebookByPathUseCase(get(), get(), get()) }
+    factory { DeleteNotebookByPathUseCase(get())}//, get(), get()) }
     factory { ShareNotebookUseCase(get(), get(), get()) }
 
     factory { ExportAllNotesUseCase(get(), get(), get()) }
@@ -106,15 +110,16 @@ val koinModule = module {
     factory { GetSharedContentUseCase(get()) }
     factory { InsertNoteUseCase(get()) }
 
-    factory { EncryptNotebookUseCase(get(), get()) }
-    factory { UnlockNotebookUseCase(get(), get(), get()) }
-    factory { CheckNotebookAccessUseCase(get(), get()) }
-    factory { LockNotebookUseCase(get(), get()) }
-
-    factory { ClearNotebookKeysUseCase(get()) }
+    // factory { EncryptNotebookUseCase(get(), get()) }
+    // factory { UnlockNotebookUseCase(get(), get(), get()) }
+    // factory { CheckNotebookAccessOldUseCase(get(), get()) }
+    // factory { LockNotebookUseCase(get(), get()) }
+    // factory { ClearNotebookKeysUseCase(get()) }
 
     factory { UpdateNoteDateUseCase(get()) }
 
+    factory { DecryptNotebookUseCase(get()) }
+    factory { EncryptNotebookUseCase(get()) }
 
     //interactor
     factory { PreferencesInteractor(get()) }
@@ -157,16 +162,13 @@ val koinModule = module {
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
 
-            encryptNotebookUseCase = get(),
-            clearNotebookKeys = get(),
-            unlockNotebookUseCase = get(),
-            checkNotebookAccessUseCase = get(),
-            lockNotebookUseCase = get(),
-
             preferencesInteractor = get(),
 
             notebookPath = notebookPath,
-            securityPreferences = get(),
+
+            encryptionRepository = get(),
+            encryptNotebookUseCase = get(),
+            decryptNotebookUseCase = get(),
         )
     }
 
@@ -178,16 +180,10 @@ val koinModule = module {
             moveNoteUseCase = get(),
             saveNoteUseCase = get(),
             shareNoteFileUseCase = get(),
-
-            encryptionRepository = get(),
-            securityPreferences = get(),
-            checkNotebookAccessUseCase = get(),
-
             updateNoteDateUseCase = get(),
-
             noteId = noteId,
             notebookPath = notebookPath,
-
+            encryptionRepository = get(),
             preferencesRepository = get(),
         )
     }
