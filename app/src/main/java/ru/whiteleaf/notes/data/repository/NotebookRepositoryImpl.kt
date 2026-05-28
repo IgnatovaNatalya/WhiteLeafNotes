@@ -6,13 +6,20 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import java.io.IOException
 
 class NotebookRepositoryImpl(
-    private val notebookDataSource: FileNotebookDataSource
+    private val notebookDataSource: FileNotebookDataSource,
+    private val encryptionRepository: EncryptionRepository,
+    private val preferencesRepository: PreferencesRepository
 ) : NotebookRepository {
 
     override suspend fun getNotebooks(): List<Notebook> {
+
+        val lastOpened = preferencesRepository.getLastOpenedNotebook()
+
         return withContext(Dispatchers.IO) {
             try {
                 notebookDataSource.getAllNotebooks()
@@ -20,8 +27,10 @@ class NotebookRepositoryImpl(
                         Notebook(
                             path = dir.name,
                             createdAt = dir.lastModified(),
-                            noteCount = notebookDataSource.getNoteCount(dir)
-                            //modifiedAt = notebookDataSource.getLastModifiedDate(dir)
+                            noteCount = notebookDataSource.getNoteCount(dir),
+                            //modifiedAt = notebookDataSource.getLastModifiedDate(dir),
+                            isEncrypted = encryptionRepository.hasKey(dir.name),
+                            isLastOpened = lastOpened == dir.name
                         )
                     }
                 //.sortedByDescending { it.modifiedAt }
@@ -61,6 +70,10 @@ class NotebookRepositoryImpl(
         withContext(Dispatchers.IO) {
             try {
                 val notebookDir = notebookDataSource.getNotebookDir(notebook.path)
+
+                if (encryptionRepository.hasKey(notebook.path)) encryptionRepository.deleteKeyForNotebook(
+                    notebook.path //todo возможно тут надо вставить биометрию
+                )
                 if (!notebookDataSource.deleteNotebook(notebookDir)) {
                     throw IOException("Не удалось удалить записную книжку")
                 }
@@ -124,7 +137,10 @@ class NotebookRepositoryImpl(
             try {
                 notebookDataSource.notebookExists(path)
             } catch (e: Exception) {
-                Log.e("NotebookRepository", "Ошибка проверки существования записной книжки: ${e.message}")
+                Log.e(
+                    "NotebookRepository",
+                    "Ошибка проверки существования записной книжки: ${e.message}"
+                )
                 false
             }
         }

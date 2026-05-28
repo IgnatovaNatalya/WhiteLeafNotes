@@ -1,6 +1,8 @@
 package ru.whiteleaf.notes.presentation.start
 
 import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
@@ -15,10 +17,24 @@ class NotebookViewHolder(
 ) : RecyclerView.ViewHolder(view) {
     private val name: TextView = view.findViewById(R.id.notebookName)
     private val noteCount: TextView = view.findViewById(R.id.noteCount)
+    private val icon: ImageView = view.findViewById(R.id.notebookIcon)
+    private val notebookBack = view.findViewById<LinearLayout>(R.id.llNotebookBg)
 
     fun bind(notebook: Notebook) {
         name.text = notebook.name
-        noteCount.text = itemView.resources.getQuantityString(R.plurals.notes_count, notebook.noteCount, notebook.noteCount)
+        noteCount.text = itemView.resources.getQuantityString(
+            R.plurals.notes_count,
+            notebook.noteCount,
+            notebook.noteCount
+        )
+
+        if (notebook.isEncrypted) {
+            icon.setImageResource(R.drawable.ic_book_protected)
+            notebookBack.setBackgroundResource(R.drawable.bg_book_protected)
+        } else {
+            icon.setImageResource(R.drawable.ic_book)
+            notebookBack.background = null
+        }
 
         itemView.setOnClickListener {
             onNotebookClicked(notebook)

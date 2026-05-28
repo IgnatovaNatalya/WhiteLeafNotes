@@ -75,14 +75,14 @@ val koinModule = module {
 
     // Repositories
     single<NotesRepository> { NoteRepositoryImpl(get(), get(), get()) }
-    single<NotebookRepository> { NotebookRepositoryImpl(get()) }
+    single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get()) }
     single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
 
- //   single<BiometricRepositoryOld> { BiometricRepositoryOldImpl(get()) }
- //   single<EncryptionRepositoryOld> { EncryptionRepositoryOldOldImpl(get(), get(), get()) }
+    //   single<BiometricRepositoryOld> { BiometricRepositoryOldImpl(get()) }
+    //   single<EncryptionRepositoryOld> { EncryptionRepositoryOldOldImpl(get(), get(), get()) }
     single<EncryptionRepository> { EncryptionRepositoryImpl(get()) }
 
- //    single<SecurityPreferences> { SecurityPreferencesImpl(get()) }
+    //    single<SecurityPreferences> { SecurityPreferencesImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
 
 
@@ -101,7 +101,7 @@ val koinModule = module {
     factory { DeleteNotebookUseCase(get()) }
     factory { RenameNotebookUseCase(get()) }
 
-    factory { DeleteNotebookByPathUseCase(get())}//, get(), get()) }
+    factory { DeleteNotebookByPathUseCase(get()) }//, get(), get()) }
     factory { ShareNotebookUseCase(get(), get(), get()) }
 
     factory { ExportAllNotesUseCase(get(), get(), get()) }

@@ -8,7 +8,8 @@ data class Notebook(
     val path: String, // Путь папки в корневой папке заметок
     val createdAt: Long,
     val noteCount: Int =0,
-    val isEncrypted: Boolean = false
+    val isEncrypted: Boolean = false,
+    val isLastOpened: Boolean = false
 ) : Parcelable {
     val name = path
 }
