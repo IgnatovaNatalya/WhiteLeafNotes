@@ -4,12 +4,16 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import android.util.Log
+import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.suspendCancellableCoroutine
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
 import java.io.ByteArrayOutputStream
+import java.security.InvalidKeyException
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -30,36 +34,11 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             ?: throw IllegalStateException("Key for notebook $notebookId not found")
     }
 
-    // Создание нового ключа для блокнота
-//    override fun createKeyForNotebook(notebookPath: String): Result<Unit> {
-//        return try {
-//            val alias = "notebook_$notebookPath"
-//            if (keyStore.containsAlias(alias)) {
-//                return Result.success(Unit) // или можно вернуть ошибку, но обычно просто игнорируем
-//            }
-//            val keyGenerator =
-//                KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-//            val spec = KeyGenParameterSpec.Builder(
-//                alias,
-//                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-//            )
-//                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-//                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-//                .setUserAuthenticationRequired(true)
-//                .setUserAuthenticationValidityDurationSeconds(60) // ключ остаётся разблокированным 60 секунд после биометрии
-//                .build()
-//            keyGenerator.init(spec)
-//            keyGenerator.generateKey()
-//            Result.success(Unit)
-//        } catch (e: Exception) {
-//            Result.failure(e)
-//        }
-//    }
-
     override fun createKeyForNotebook(notebookPath: String) {
         try {
             val alias = "notebook_$notebookPath"
             if (keyStore.containsAlias(alias)) return
+
             val keyGenerator =
                 KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
             val spec = KeyGenParameterSpec.Builder(
@@ -69,7 +48,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setUserAuthenticationRequired(true)
-                .setUserAuthenticationValidityDurationSeconds(60)
+                .setUserAuthenticationValidityDurationSeconds(60) // 0 — значит, каждый раз нужна свежая биометрия
                 .build()
             keyGenerator.init(spec)
             keyGenerator.generateKey()
@@ -87,33 +66,46 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         return unlockedNotebooks.contains(notebookPath)
     }
 
-    // Асинхронная разблокировка через биометрию
-
-    override suspend fun unlockNotebook(notebookId: String, context: Context): Boolean {
+    override suspend fun unlockNotebook(notebookPath: String, context: Context): Boolean {
         return suspendCancellableCoroutine { continuation ->
-            val key = getSecretKey(notebookId)
-            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-            // НЕ вызываем cipher.init() здесь! Это делает система после аутентификации.
-            val cryptoObject = BiometricPrompt.CryptoObject(cipher)
 
-            val executor = ContextCompat.getMainExecutor(context)
+            println("DEBUG: EncryptionRepo: all keys:  ${getAllKeyAliases()}")
+
+            val activity = context as? FragmentActivity
+            if (activity == null) {
+                Log.e("DEBUG: EncryptionRepo", "Context is not FragmentActivity")
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
+            }
+
+            // Проверка наличия биометрии
+            val biometricManager = BiometricManager.from(activity)
+            val canAuth =
+                biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
+                Log.e("DEBUG: EncryptionRepo", "Biometric not available: $canAuth")
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
+            }
+
+            val executor = ContextCompat.getMainExecutor(activity)
+
             val biometricPrompt = BiometricPrompt(
-                context as FragmentActivity,
+                activity,
                 executor,
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        // Аутентификация успешна – ключ разблокирован системой
-                        unlockedNotebooks.add(notebookId)
+                        unlockedNotebooks.add(notebookPath)
                         continuation.resume(true)
                     }
 
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        // Ошибка или отмена пользователем
+                        Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
                         continuation.resume(false)
                     }
 
                     override fun onAuthenticationFailed() {
-                        // Неудачная попытка (палец не распознан)
+                        Log.e("DEBUG: Biometric", "Отмена биометрии")
                         continuation.resume(false)
                     }
                 }
@@ -123,67 +115,17 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
                 .setTitle("Подтвердите личность")
                 .setSubtitle("Для доступа к защищённому блокноту")
                 .setNegativeButtonText("Отмена")
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 .build()
 
             try {
-                biometricPrompt.authenticate(promptInfo, cryptoObject)
+                biometricPrompt.authenticate(promptInfo)
             } catch (e: Exception) {
-                // Например, если нет биометрии на устройстве
+                Log.e("Biometric", "Error starting biometric", e)
                 continuation.resume(false)
             }
         }
     }
-
-//    override suspend fun unlockNotebook(notebookId: String, context: Context): Boolean {
-//        return suspendCancellableCoroutine { continuation ->
-//            val key = getSecretKey(notebookId)
-//            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-//            // Инициализируем Cipher в режиме DECRYPT_MODE – именно здесь система запросит биометрию
-//            val cryptoObject = BiometricPrompt.CryptoObject(cipher)
-//
-//            val executor = ContextCompat.getMainExecutor(context)
-//            val biometricPrompt = BiometricPrompt(
-//                context as FragmentActivity,
-//                executor,
-//                object : BiometricPrompt.AuthenticationCallback() {
-//                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-//                        // Аутентификация успешна – ключ разблокирован на заданное время
-//                        unlockedNotebooks.add(notebookId)
-//                        continuation.resume(true)
-//                    }
-//
-//                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-//                        continuation.resume(false)
-//                    }
-//
-//                    override fun onAuthenticationFailed() {
-//                        continuation.resume(false)
-//                    }
-//                }
-//            )
-//
-//            val promptInfo = BiometricPrompt.PromptInfo.Builder()
-//                .setTitle("Разблокировка блокнота")
-//                .setSubtitle("Подтвердите доступ с помощью отпечатка пальца")
-//                .setNegativeButtonText("Отмена")
-//                .build()
-//
-//            try {
-//                // Пытаемся инициализировать Cipher – для этого потребуется биометрия
-//                cipher.init(Cipher.DECRYPT_MODE, key)
-//                biometricPrompt.authenticate(promptInfo, cryptoObject)
-//            } catch (e: Exception) {
-//                // Если ключ уже разблокирован (например, из-за предыдущей аутентификации),
-//                // то исключения не будет, и мы можем считать блокнот разблокированным
-//                if (e.message?.contains("user authentication required") == false) {
-//                    unlockedNotebooks.add(notebookId)
-//                    continuation.resume(true)
-//                } else {
-//                    continuation.resume(false)
-//                }
-//            }
-//        }
-//    }
 
     override fun lockNotebook(notebookPath: String) {
         unlockedNotebooks.remove(notebookPath)
@@ -211,23 +153,49 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
     }
 
     // Расшифровка строки из Base64 (ожидается IV + шифротекст)
-    override suspend fun decryptNote(notebookId: String, ciphertextBase64: String): String {
-        val combined = Base64.decode(ciphertextBase64, Base64.DEFAULT)
+    override suspend fun decryptNote(notebookPath: String, ciphertext: String): String {
+        val combined = Base64.decode(ciphertext, Base64.DEFAULT)
         // Первые 12 байт – IV (для GCM стандартный размер 12)
         val iv = combined.copyOfRange(0, 12)
         val ciphertext = combined.copyOfRange(12, combined.size)
 
-        val key = getSecretKey(notebookId)
+        val key = getSecretKey(notebookPath)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         val gcmSpec = GCMParameterSpec(128, iv)
-        cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
-        val plaintext = cipher.doFinal(ciphertext)
-        return String(plaintext, Charsets.UTF_8)
+
+        try {
+            cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
+            val plaintext = cipher.doFinal(ciphertext)
+            return String(plaintext, Charsets.UTF_8)
+        } catch (e: InvalidKeyException) {
+            // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+            throw KeyNotUnlockedException("Key is locked for notebook $notebookPath").apply { initCause(e) }
+        } catch (e: Exception) {
+            // Другие ошибки (повреждённые данные, неправильный IV и т.п.) пробрасываем как есть
+            throw e
+        }
     }
 
     override fun deleteKeyForNotebook(notebookId: String) {
         val alias = "notebook_$notebookId"
         keyStore.deleteEntry(alias)
         lockNotebook(notebookId) // также очищаем флаг разблокировки
+    }
+
+    /**
+     * Возвращает список псевдонимов всех ключей, созданных приложением в Keystore.
+     */
+    fun getAllKeyAliases(): List<String> {
+        return try {
+            keyStore.aliases().toList().filter { alias ->
+                // Опционально: если нужно исключить потенциальные ключи с определённым префиксом (например, системные)
+                // или наоборот оставить только ключи, созданные твоим приложением, например, с префиксом.
+                // !alias.startsWith("_android_security") && keyStore.isKeyEntry(alias)
+                alias.startsWith("notebook_") && keyStore.isKeyEntry(alias)
+            }
+        } catch (e: Exception) {
+            // Обработка ошибок: например, если Keystore не был загружен
+            emptyList()
+        }
     }
 }

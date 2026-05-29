@@ -17,6 +17,8 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences) : Preferen
         }
     }
 
+    override fun getLastOpenedNotebook(): String? = prefs.getString(KEY_LAST_OPENED_NOTEBOOK, null)
+
     override fun saveViewMode(notebookPath: String, isPlannerMode: Boolean) {
         val key = "$KEY_VIEW_MODE_PREFIX$notebookPath"
         prefs.edit { putBoolean(key, isPlannerMode) }
@@ -28,7 +30,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences) : Preferen
     }
 
     override fun saveNoteScrollPosition(noteId: String, notebookPath: String, scrollY: Int) {
-        val key =  makeScrollKey(noteId, notebookPath)
+        val key = makeScrollKey(noteId, notebookPath)
         prefs.edit().putInt(key, scrollY).apply()
     }
 
@@ -38,7 +40,6 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences) : Preferen
     }
 
     private fun makeScrollKey(noteId: String, notebookPath: String): String {
-
         return "$KEY_NOTE_SCROLL_POSITION_PREFIX${notebookPath}_${noteId}"
     }
 }

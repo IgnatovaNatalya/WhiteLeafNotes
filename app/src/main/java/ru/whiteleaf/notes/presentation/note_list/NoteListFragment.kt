@@ -9,8 +9,6 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -38,7 +36,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private lateinit var noteLinearAdapter: NotesLinearAdapter
     private lateinit var plannerAdapter: NotesGridAdapter
 
-    private lateinit var btnProtectNotebook: ImageButton
     private lateinit var btnLockIndicator: ImageButton
 
     private var navigateToNote = false
@@ -58,7 +55,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         notebookTitle = args.notebookPath.toString()
 
-        btnProtectNotebook = (requireActivity() as AppCompatActivity).findViewById(R.id.btn_protect)
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
@@ -74,11 +70,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun setupSecurityUI() {
-        btnProtectNotebook.setOnClickListener {
-            viewModel.encryptNotebook(requireContext())
-        }
         binding.unlockButton.setOnClickListener {
-            //viewModel.unlockNotebook(requireActivity())
+            viewModel.unlockNotebook(requireActivity())
         }
     }
 
@@ -90,23 +83,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 viewModel.clearMessage()
             }
         }
-
         viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> navigateEvent(event) }
-
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
-
-//        viewModel.encryptionResult.observe(viewLifecycleOwner) { result ->
-//            result?.onSuccess {
-//                Toast.makeText(requireContext(), "Записная книжка зашифрована", Toast.LENGTH_SHORT)
-//                    .show()
-//            }?.onFailure {
-//                Toast.makeText(
-//                    requireContext(),
-//                    "Ошибка шифрования: ${it.message}",
-//                    Toast.LENGTH_LONG
-//                ).show()
-//            }
-//        }
     }
 
     private fun navigateEvent(event: NavigationEvent) {
@@ -283,21 +261,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         findNavController().navigate(action)
     }
 
-//    private fun showAuthenticationDialog() {
-//        val dialog = MaterialAlertDialogBuilder(requireContext())
-//            .setTitle("Требуется аутентификация")
-//            .setMessage("Для доступа к защищенному блокноту требуется отпечаток пальца")
-//            .setPositiveButton("Разблокировать") { _, _ ->
-//                viewModel.unlockNotebook(requireActivity())
-//            }
-//            .setNegativeButton("Отмена") { _, _ ->
-//                findNavController().navigateUp()
-//            }
-//            .setCancelable(false)
-//            .create()
-//        dialog.show()
-//    }
-
     private fun renderState(state: NoteListState) {
         println("👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
@@ -327,7 +290,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
                 isEncrypted = state.isEncrypted
                 if (state.isEncrypted) {
-                    btnLockIndicator.setImageResource(R.drawable.ic_unlocked)
+                    btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
                 } else btnLockIndicator.visibility = View.GONE
 
@@ -337,16 +300,15 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             is NoteListState.Blocked -> {
                 println("⏳ Fragment showing Blocked")
                 isEncrypted = true
-
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.VISIBLE
                 binding.createNote.visibility = View.GONE
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
-                btnLockIndicator.setImageResource(R.drawable.ic_locked)
+                btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-                showBiometricPrompt()
+                //viewModel.unlockNotebook(requireActivity()) //разблокирует пользователь
             }
 
             is NoteListState.Error -> {
@@ -372,30 +334,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 btnLockIndicator.visibility = View.GONE
             }
         }
-    }
-
-    private fun showBiometricPrompt() {
-        val biometricPrompt = BiometricPrompt(
-            requireActivity(),
-            ContextCompat.getMainExecutor(requireContext()),
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    viewModel.onBiometricSuccess(requireContext())
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    // обработать ошибку
-                    Toast.makeText(requireContext(), "Ошибка аутентификации", Toast.LENGTH_SHORT).show()
-                }
-
-                override fun onAuthenticationFailed() {}
-            }
-        )
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Разблокировка записной книжки")
-            .setNegativeButtonText("Отмена")
-            .build()
-        biometricPrompt.authenticate(promptInfo)
     }
 
     override fun onResume() {

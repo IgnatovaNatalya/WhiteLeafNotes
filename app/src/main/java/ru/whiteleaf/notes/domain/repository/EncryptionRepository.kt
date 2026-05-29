@@ -13,7 +13,7 @@ interface EncryptionRepository {
 
     // Управление состоянием разблокировки
     fun isUnlocked(notebookPath: String): Boolean
-    suspend fun unlockNotebook(notebookId: String, context: Context): Boolean
+    suspend fun unlockNotebook(notebookPath: String, context: Context): Boolean
     fun lockNotebook(notebookPath: String)
     fun lockAllNotebooks()
 
@@ -21,3 +21,5 @@ interface EncryptionRepository {
     suspend fun encryptNote(notebookPath: String, plaintext: String): String
     suspend fun decryptNote(notebookPath: String, ciphertext: String): String
 }
+
+class KeyNotUnlockedException(message: String) : Exception(message)
