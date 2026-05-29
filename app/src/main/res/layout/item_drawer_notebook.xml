@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,25 +7,38 @@
     android:background="?attr/selectableItemBackground"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp">
+    android:padding="4dp">
 
-    <ImageView
-        android:layout_width="8dp"
-        android:layout_height="10dp"
-        android:layout_marginEnd="8dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_book"
-        app:tint="?attr/colorSecondary" />
+    <LinearLayout
+        android:id="@+id/ll_drawer_bg_book"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_book_current"
+        android:backgroundTint="?attr/android:colorControlHighlight"
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/drawer_notebook_title"
-        style="@style/DrawerNotebookTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="?attr/android:textColorPrimary"
-        tools:text="Название записной книжки" />
+        <ImageView
+            android:id="@+id/drawer_notebook_icon"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginStart="12dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_book"
+            app:tint="?attr/colorTertiary" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/drawer_notebook_title"
+            style="@style/DrawerNotebookTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:layout_marginEnd="22dp"
+            android:maxLines="1"
+            android:textColor="?attr/android:textColorPrimary"
+            tools:text="Название" />
+
+    </LinearLayout>
+</FrameLayout>

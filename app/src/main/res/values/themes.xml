@@ -16,6 +16,9 @@
         <item name="colorSecondaryContainer">@color/accent_blue</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
 
+        <item name="colorTertiary">@color/dark_blue</item>
+        <item name="android:colorControlHighlight">@color/accent_blue</item>
+
         <item name="colorContainer">@color/popup_light</item>
         <item name="android:colorPressedHighlight">@color/item_pressed</item>
 

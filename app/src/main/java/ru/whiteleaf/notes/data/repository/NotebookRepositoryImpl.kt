@@ -30,6 +30,7 @@ class NotebookRepositoryImpl(
                             noteCount = notebookDataSource.getNoteCount(dir),
                             //modifiedAt = notebookDataSource.getLastModifiedDate(dir),
                             isEncrypted = encryptionRepository.hasKey(dir.name),
+                            isUnlocked = encryptionRepository.isUnlocked(dir.name),
                             isLastOpened = lastOpened == dir.name
                         )
                     }
