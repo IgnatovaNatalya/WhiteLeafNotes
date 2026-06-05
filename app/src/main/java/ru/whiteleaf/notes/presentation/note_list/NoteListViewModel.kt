@@ -15,11 +15,16 @@ import ru.whiteleaf.notes.domain.use_case.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import kotlinx.coroutines.launch
-import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
 import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
+import ru.whiteleaf.notes.domain.use_case.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.DeleteKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
+import ru.whiteleaf.notes.domain.use_case.IsNotebookUnlockedUseCase
+import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
 import java.io.IOException
 import java.security.InvalidKeyException
 
@@ -32,7 +37,12 @@ class NoteListViewModel(
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
-    private val encryptionRepository: EncryptionRepository,
+    private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
+    private val isNotebookUnlockedUseCase: IsNotebookUnlockedUseCase,
+    private val unlockNotebookUseCase: UnlockNotebookUseCase,
+    private val lockNotebookUseCase: LockNotebookUseCase,
+    private val createKeyForNotebookUseCase: CreateKeyForNotebookUseCase,
+    private val deleteKeyForNotebookUseCase: DeleteKeyForNotebookUseCase,
     private val encryptNotebookUseCase: EncryptNotebookUseCase,
     private val decryptNotebookUseCase: DecryptNotebookUseCase,
     private val preferencesInteractor: PreferencesInteractor,
@@ -72,6 +82,7 @@ class NoteListViewModel(
     fun getViewMode(): Boolean {
         return _isPlannerView.value ?: false
     }
+
     fun loadNotes() {
         viewModelScope.launch {
             _noteListState.postValue(NoteListState.Loading)
@@ -80,8 +91,8 @@ class NoteListViewModel(
             try {
                 if (notebookPath != null) {
 
-                    isProtected = encryptionRepository.hasKey(notebookPath)
-                    val isUnlocked = encryptionRepository.isUnlocked(notebookPath)
+                    isProtected = isNotebookProtectedUseCase(notebookPath)
+                    val isUnlocked = isNotebookUnlockedUseCase(notebookPath)
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
@@ -108,7 +119,7 @@ class NoteListViewModel(
             } catch (e: Exception) {
                 if (e.cause is InvalidKeyException) {
                     _noteListState.postValue(NoteListState.Blocked)
-                    if (notebookPath != null) encryptionRepository.lockNotebook(notebookPath)
+                    if (notebookPath != null) lockNotebookUseCase(notebookPath)
                 } else _noteListState.postValue(NoteListState.Error(e.message ?: "Ошибка загрузки"))
             } finally {
                 println("DEBUG: NoteListViewmodel: Окончание загрузки заметок")
@@ -118,35 +129,33 @@ class NoteListViewModel(
 
     fun unlockNotebook(context: Context) {
         val isProtected =
-            if (notebookPath != null) encryptionRepository.hasKey(notebookPath) else false
+            if (notebookPath != null) isNotebookProtectedUseCase(notebookPath) else false //encryptionRepository.hasKey(notebookPath) else false
         println("DEBUG: unlock notebook, notebookPath = $notebookPath, isProtected = $isProtected")
 
         if (notebookPath != null && isProtected)
             viewModelScope.launch {
-                val unlocked = encryptionRepository.unlockNotebook(notebookPath, context)
+                val unlocked = unlockNotebookUseCase(notebookPath, context)
                 if (unlocked) {
                     println("DEBUG: unlock notebook: success")
                     loadNotes()
                 } else {
                     _noteListState.postValue(NoteListState.Blocked)
-                    //   _noteListState.postValue(NoteListState.Error("Не удалось разблокировать записную книжку"))
                 }
             }
     }
 
     fun lockNotebook() {
-        notebookPath?.let { encryptionRepository.lockNotebook(it) }
+        notebookPath?.let { lockNotebookUseCase(it) }
     }
 
-    fun encryptNotebook(context: Context) {
+    fun encryptNotebook() {
         if (notebookPath != null) viewModelScope.launch {
             try {
-                if (encryptionRepository.hasKey(notebookPath)) {
-                    _noteListState.value = NoteListState.Error("Блокнот уже защищён")
+                if (isNotebookProtectedUseCase(notebookPath)) {
+                    _noteListState.value = NoteListState.Error("Записная книжка уже защищищена")
                     return@launch
                 }
-
-                encryptionRepository.createKeyForNotebook(notebookPath)
+                createKeyForNotebookUseCase(notebookPath)
                 encryptNotebookUseCase(notebookPath)
                 loadNotes()
                 _message.value = "Записная книжка зашифрована"
@@ -161,22 +170,18 @@ class NoteListViewModel(
     fun decryptNotebook(context: Context) {
         if (notebookPath != null) viewModelScope.launch {
             try {
-                if (!encryptionRepository.hasKey(notebookPath)) {
+                if (!isNotebookProtectedUseCase(notebookPath)) {
                     _noteListState.value = NoteListState.Error("Защита не установлена")
                     return@launch
                 }
-                // Биометрия нужна для чтения зашифрованных файлов
-                val unlocked = encryptionRepository.unlockNotebook(notebookPath, context)
+                val unlocked = unlockNotebookUseCase(notebookPath, context)
                 if (!unlocked) {
                     _noteListState.value =
                         NoteListState.Error("Не удалось подтвердить личность")
                     return@launch
                 }
-                // Расшифровываем все заметки
                 decryptNotebookUseCase(notebookPath)
-                // Удаляем ключ
-                encryptionRepository.deleteKeyForNotebook(notebookPath)
-                // Перезагружаем список (теперь файлы в открытом виде)
+                deleteKeyForNotebookUseCase(notebookPath)
                 loadNotes()
                 _message.value = "Защита записной книжки снята"
             } catch (e: Exception) {
@@ -296,7 +301,7 @@ class NoteListViewModel(
         if (toNote) return
         if (notebookPath != null) {
             println("🔒 Блокируем записную книжку при выходе: $notebookPath")
-            encryptionRepository.lockNotebook(notebookPath)
+            lockNotebookUseCase(notebookPath)
         }
     }
 

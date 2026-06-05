@@ -18,9 +18,9 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
-import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
+import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import kotlin.collections.forEach
 
 class StartViewModel(
@@ -34,7 +34,7 @@ class StartViewModel(
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
-    private val encryptionRepository: EncryptionRepository //todo сделать use case
+    private val unlockNotebookUseCase: UnlockNotebookUseCase
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -214,8 +214,8 @@ class StartViewModel(
     fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {
             try {
-                val unlocked =
-                    encryptionRepository.unlockNotebook(notebook.path, context, "Для удаления")
+                val unlocked = unlockNotebookUseCase(notebook.path, context, "Для удаления")
+
                 if (unlocked) {
                     deleteNotebookUseCase(notebook.path)
                     loadData()

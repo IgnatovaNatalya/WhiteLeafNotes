@@ -44,8 +44,14 @@ import ru.whiteleaf.notes.common.AppConstants.WHITE_LEAF_PREFS
 import ru.whiteleaf.notes.data.repository.PreferencesRepositoryImpl
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
+import ru.whiteleaf.notes.domain.use_case.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.DeleteKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
+import ru.whiteleaf.notes.domain.use_case.IsNotebookUnlockedUseCase
+import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
 import java.security.KeyStore
 
@@ -78,13 +84,9 @@ val koinModule = module {
     single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get()) }
     single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
 
-    //   single<BiometricRepositoryOld> { BiometricRepositoryOldImpl(get()) }
-    //   single<EncryptionRepositoryOld> { EncryptionRepositoryOldOldImpl(get(), get(), get()) }
     single<EncryptionRepository> { EncryptionRepositoryImpl(get()) }
 
-    //    single<SecurityPreferences> { SecurityPreferencesImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
-
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -110,13 +112,14 @@ val koinModule = module {
     factory { GetSharedContentUseCase(get()) }
     factory { InsertNoteUseCase(get()) }
 
-    // factory { EncryptNotebookUseCase(get(), get()) }
-    // factory { UnlockNotebookUseCase(get(), get(), get()) }
-    // factory { CheckNotebookAccessOldUseCase(get(), get()) }
-    // factory { LockNotebookUseCase(get(), get()) }
-    // factory { ClearNotebookKeysUseCase(get()) }
-
     factory { UpdateNoteDateUseCase(get()) }
+
+    factory { CreateKeyForNotebookUseCase(get()) }
+    factory { DeleteKeyForNotebookUseCase(get()) }
+    factory { IsNotebookProtectedUseCase(get()) }
+    factory { IsNotebookUnlockedUseCase(get()) }
+    factory { LockNotebookUseCase(get()) }
+    factory { UnlockNotebookUseCase(get()) }
 
     factory { DecryptNotebookUseCase(get()) }
     factory { EncryptNotebookUseCase(get()) }
@@ -138,7 +141,7 @@ val koinModule = module {
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
-            encryptionRepository = get(),
+            unlockNotebookUseCase = get(),
         )
     }
 
@@ -165,11 +168,16 @@ val koinModule = module {
 
             preferencesInteractor = get(),
 
-            notebookPath = notebookPath,
-
-            encryptionRepository = get(),
+            isNotebookProtectedUseCase = get(),
+            isNotebookUnlockedUseCase = get(),
+            unlockNotebookUseCase = get(),
+            lockNotebookUseCase = get(),
+            createKeyForNotebookUseCase = get(),
+            deleteKeyForNotebookUseCase = get(),
             encryptNotebookUseCase = get(),
             decryptNotebookUseCase = get(),
+
+            notebookPath = notebookPath,
         )
     }
 

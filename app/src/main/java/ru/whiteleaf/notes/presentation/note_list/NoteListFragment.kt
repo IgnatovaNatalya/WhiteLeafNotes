@@ -200,7 +200,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         { newName -> viewModel.renameNotebook(newName) }.show()
     }
 
-    private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook(requireContext())
+    private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook()
     private fun onOptionsDecryptNotebook() = viewModel.decryptNotebook(requireContext())
 
     private fun onOptionsShareNotebook() = viewModel.shareNotebook()

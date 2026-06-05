@@ -356,7 +356,8 @@ class NoteEditViewModel(
         viewModelScope.launch {
             val unlocked = if (notebookPath != null) encryptionRepository.unlockNotebook(
                 notebookPath,
-                context
+                context,
+                "Для редактирования"
             ) else true
             if (unlocked) {
                 if (pendingSaveContent != null) {

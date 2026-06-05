@@ -9,16 +9,12 @@ interface EncryptionRepository {
     @Throws(Exception::class)
     fun createKeyForNotebook(notebookPath: String)
 
-    fun deleteKeyForNotebook(notebookId: String)
+    fun deleteKeyForNotebook(notebookPath: String)
 
     // Управление состоянием разблокировки
     fun isUnlocked(notebookPath: String): Boolean
 
-    suspend fun unlockNotebook(
-        notebookPath: String,
-        context: Context,
-        reason: String = "Для просмотра"
-    ): Boolean
+    suspend fun unlockNotebook(notebookPath: String, context: Context,reason: String): Boolean
 
     fun lockNotebook(notebookPath: String)
     fun lockAllNotebooks()

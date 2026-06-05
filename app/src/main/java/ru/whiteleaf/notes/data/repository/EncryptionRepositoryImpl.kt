@@ -176,10 +176,10 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         }
     }
 
-    override fun deleteKeyForNotebook(notebookId: String) {
-        val alias = "notebook_$notebookId"
+    override fun deleteKeyForNotebook(notebookPath: String) {
+        val alias = "notebook_$notebookPath"
         keyStore.deleteEntry(alias)
-        lockNotebook(notebookId) // также очищаем флаг разблокировки
+        lockNotebook(notebookPath) // также очищаем флаг разблокировки
     }
 
     /**
