@@ -138,6 +138,7 @@ val koinModule = module {
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
+            encryptionRepository = get(),
         )
     }
 

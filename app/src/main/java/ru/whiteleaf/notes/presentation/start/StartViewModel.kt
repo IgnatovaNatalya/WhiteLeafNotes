@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.start
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -17,6 +18,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import kotlin.collections.forEach
@@ -31,7 +33,8 @@ class StartViewModel(
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
-    private val shareNotebookUseCase: ShareNotebookUseCase
+    private val shareNotebookUseCase: ShareNotebookUseCase,
+    private val encryptionRepository: EncryptionRepository //todo сделать use case
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -208,15 +211,22 @@ class StartViewModel(
         }
     }
 
-    fun deleteNotebook(notebook: Notebook) {
+    fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {
             try {
-                deleteNotebookUseCase(notebook.path)
-                loadData()
+                val unlocked =
+                    encryptionRepository.unlockNotebook(notebook.path, context, "Для удаления")
+                if (unlocked) {
+                    deleteNotebookUseCase(notebook.path)
+                    loadData()
+                    _message.postValue("Записная книжка удалена")
+                } else {
+                    _message.postValue("Не удалось подтвердить личность")
+                    return@launch
+                }
             } catch (e: KeyNotUnlockedException) {
                 _message.postValue("Записная книжка заблокирована: ${e.message}")
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 _message.postValue("Ошибка удаления записной книжки: ${e.message}")
             }
         }

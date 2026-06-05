@@ -131,7 +131,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         val dialog = DialogHelper.createDeleteNotebookDialog(
             context = requireContext(),
             notebookTitle = notebook.name,
-            onDeleteConfirmed = { viewModel.deleteNotebook(notebook) }
+            onDeleteConfirmed = { viewModel.deleteNotebook(notebook, requireContext()) }
         )
         dialog.show()
     }

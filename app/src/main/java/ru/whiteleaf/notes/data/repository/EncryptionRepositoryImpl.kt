@@ -66,7 +66,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         return unlockedNotebooks.contains(notebookPath)
     }
 
-    override suspend fun unlockNotebook(notebookPath: String, context: Context): Boolean {
+    override suspend fun unlockNotebook(notebookPath: String, context: Context, reason:String): Boolean {
         return suspendCancellableCoroutine { continuation ->
 
             println("DEBUG: EncryptionRepo: all keys:  ${getAllKeyAliases()}")
@@ -112,8 +112,8 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             )
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Подтвердите личность")
-                .setSubtitle("Для доступа к защищённому блокноту")
+                .setTitle("Записная книжка защищена")
+                .setSubtitle("$reason подтвердите личность")
                 .setNegativeButtonText("Отмена")
                 .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 .build()

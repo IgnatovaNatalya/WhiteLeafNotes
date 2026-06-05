@@ -162,7 +162,7 @@ class NoteListViewModel(
         if (notebookPath != null) viewModelScope.launch {
             try {
                 if (!encryptionRepository.hasKey(notebookPath)) {
-                    _noteListState.value = NoteListState.Error("Блокнот не защищён")
+                    _noteListState.value = NoteListState.Error("Защита не установлена")
                     return@launch
                 }
                 // Биометрия нужна для чтения зашифрованных файлов
