@@ -17,6 +17,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import kotlin.collections.forEach
 
@@ -212,7 +213,10 @@ class StartViewModel(
             try {
                 deleteNotebookUseCase(notebook.path)
                 loadData()
-            } catch (e: Exception) {
+            } catch (e: KeyNotUnlockedException) {
+                _message.postValue("Записная книжка заблокирована: ${e.message}")
+            }
+            catch (e: Exception) {
                 _message.postValue("Ошибка удаления записной книжки: ${e.message}")
             }
         }
