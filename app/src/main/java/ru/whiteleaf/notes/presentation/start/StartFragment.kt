@@ -138,7 +138,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onRenameNotebook(notebook: Notebook) {
         DialogHelper.createRenameNotebookDialog(requireContext(), notebook.name) { newName ->
-            viewModel.renameNotebook(notebook, newName)
+            viewModel.renameNotebook(notebook, newName, requireContext())
         }.show()
     }
 

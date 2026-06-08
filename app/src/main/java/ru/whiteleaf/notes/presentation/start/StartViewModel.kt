@@ -159,14 +159,23 @@ class StartViewModel(
         }
     }
 
-    fun renameNotebook(notebook: Notebook, newName: String) {
+    fun renameNotebook(notebook: Notebook, newName: String, context: Context) {
         viewModelScope.launch {
             try {
+                val unlocked = unlockNotebookUseCase(notebook.path, context, "Для переименования")
+
+                if (!unlocked) {
+                    _message.postValue("Не удалось подтвердить личность")
+                    return@launch
+                }
+
                 if (newName != notebook.name) {
                     renameNotebookUseCase(notebook.path, newName)
                     loadData()
                     _message.postValue("Название записной книжки изменено")
                 }
+            } catch (e: KeyNotUnlockedException) {
+                _message.postValue("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
                 _message.postValue("Ошибка переименования: ${e.message}")
             }

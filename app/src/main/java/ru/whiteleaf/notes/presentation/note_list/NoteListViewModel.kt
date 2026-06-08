@@ -241,18 +241,29 @@ class NoteListViewModel(
         }
     }
 
-    fun renameNotebook(newName: String) {
-        viewModelScope.launch {
-            try {
-                if (newName != notebookPath && notebookPath != null) {
-                    renameNotebookUseCase(notebookPath, newName)
-                    showMessage("Название записной книжки изменено")
-                    _navigationEvent.postValue(NavigationEvent.NavigateToNotebook(newName))
-                } else showMessage("Ошибка переименования")
-            } catch (e: Exception) {
-                showMessage("Ошибка переименования: ${e.message}")
+    fun renameNotebook(newName: String, context: Context) {
+        if (notebookPath != null)
+            viewModelScope.launch {
+                try {
+                    val unlocked =
+                        unlockNotebookUseCase(notebookPath, context, "Для переименования")
+
+                    if (!unlocked) {
+                        _message.postValue("Не удалось подтвердить личность")
+                        return@launch
+                    }
+
+                    if (newName != notebookPath) {
+                        renameNotebookUseCase(notebookPath, newName)
+                        showMessage("Название записной книжки изменено")
+                        _navigationEvent.postValue(NavigationEvent.NavigateToNotebook(newName))
+                    } else showMessage("Ошибка переименования")
+                } catch (e: KeyNotUnlockedException) {
+                    _message.postValue("Записная книжка заблокирована: ${e.message}")
+                } catch (e: Exception) {
+                    showMessage("Ошибка переименования: ${e.message}")
+                }
             }
-        }
     }
 
     fun shareNotebook() {
@@ -272,18 +283,27 @@ class NoteListViewModel(
         }
     }
 
-    fun deleteNotebook() {
-        viewModelScope.launch {
-            try {
-                if (notebookPath != null) {
+    fun deleteNotebook(context:Context) {
+        if (notebookPath != null)
+            viewModelScope.launch {
+                try {
+                    val unlocked =
+                        unlockNotebookUseCase(notebookPath, context, "Для удаления")
+
+                    if (!unlocked) {
+                        _message.postValue("Не удалось подтвердить личность")
+                        return@launch
+                    }
+
                     deleteNotebookUseCase(notebookPath)
+
                     _navigationEvent.postValue(NavigationEvent.NavigateUp)
                     showMessage("Записная книжка удалена")
-                } else showMessage("Ошибка удаления записной книжки: путь не задан")
-            } catch (e: Exception) {
-                showMessage("Ошибка удаления записной книжки: ${e.message}")
+
+                } catch (e: Exception) {
+                    showMessage("Ошибка удаления записной книжки: ${e.message}")
+                }
             }
-        }
     }
 
     fun onNoteClicked(noteId: String) =

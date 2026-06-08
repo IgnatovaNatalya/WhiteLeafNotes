@@ -197,7 +197,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun onOptionsRenameNotebook() {
         DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
-        { newName -> viewModel.renameNotebook(newName) }.show()
+        { newName -> viewModel.renameNotebook(newName, requireContext()) }.show()
     }
 
     private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook()
@@ -209,7 +209,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         DialogHelper.createDeleteNotebookDialog(
             context = requireContext(),
             notebookTitle = notebookTitle,
-            onDeleteConfirmed = { viewModel.deleteNotebook() }
+            onDeleteConfirmed = { viewModel.deleteNotebook(requireContext()) }
         ).show()
     }
 
