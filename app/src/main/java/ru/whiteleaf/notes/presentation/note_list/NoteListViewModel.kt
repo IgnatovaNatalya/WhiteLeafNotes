@@ -120,7 +120,9 @@ class NoteListViewModel(
                 if (e.cause is InvalidKeyException) {
                     _noteListState.postValue(NoteListState.Blocked)
                     if (notebookPath != null) lockNotebookUseCase(notebookPath)
-                } else _noteListState.postValue(NoteListState.Error(e.message ?: "Ошибка загрузки"))
+                    println("DEBUG: NoteListViewmodel: InvalidKeyException ${e.message}")
+                } else
+                    _noteListState.postValue(NoteListState.Error(e.message ?: "Ошибка загрузки"))
             } finally {
                 println("DEBUG: NoteListViewmodel: Окончание загрузки заметок")
             }
@@ -320,7 +322,7 @@ class NoteListViewModel(
     fun onNotebookExited(toNote: Boolean) {
         if (toNote) return
         if (notebookPath != null) {
-            println("🔒 Блокируем записную книжку при выходе: $notebookPath")
+            println("DEBUG: Блокируем записную книжку при выходе: $notebookPath")
             lockNotebookUseCase(notebookPath)
         }
     }

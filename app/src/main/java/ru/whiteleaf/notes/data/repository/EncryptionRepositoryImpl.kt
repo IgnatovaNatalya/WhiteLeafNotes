@@ -48,7 +48,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setUserAuthenticationRequired(true)
-                .setUserAuthenticationValidityDurationSeconds(60) // 0 — значит, каждый раз нужна свежая биометрия
+                .setUserAuthenticationValidityDurationSeconds(120) // 0 — значит, каждый раз нужна свежая биометрия
                 .build()
             keyGenerator.init(spec)
             keyGenerator.generateKey()
