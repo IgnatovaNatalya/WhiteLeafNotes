@@ -51,6 +51,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        navigateToNote = false
+
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
 
         notebookTitle = args.notebookPath.toString()
@@ -308,7 +310,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewPlanner.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-                //viewModel.unlockNotebook(requireActivity()) //разблокирует пользователь
             }
 
             is NoteListState.Error -> {
@@ -343,16 +344,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onPause() {
         super.onPause()
-        viewModel.onNotebookExited(navigateToNote)
-    }
-
-    override fun onDestroyView() {
-        viewModel.lockNotebook()
-        super.onDestroyView()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
         viewModel.onNotebookExited(navigateToNote)
     }
 }

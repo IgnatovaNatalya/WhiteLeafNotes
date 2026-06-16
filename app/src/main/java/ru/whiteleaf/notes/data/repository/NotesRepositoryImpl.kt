@@ -53,8 +53,12 @@ class NoteRepositoryImpl(
                             modifiedAt = lastModified,
                             notebookPath = notebookPath
                         )
+                    } catch (e: KeyNotUnlockedException) {
+                        // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+                        throw e
                     } catch (e: Exception) {
                         // Любая ошибка при чтении/расшифровке файла прерывает загрузку списка
+                        println("DEBUG: NoteRepositoryImpl: ${e.message}")
                         throw IOException("Failed to read note ${file.name}", e)
                     }
                 }?.sortedByDescending { it.modifiedAt } ?: emptyList()

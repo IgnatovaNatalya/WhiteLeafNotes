@@ -15,6 +15,7 @@ import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
 import java.io.ByteArrayOutputStream
 import java.security.InvalidKeyException
 import java.security.KeyStore
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -48,7 +49,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setUserAuthenticationRequired(true)
-                .setUserAuthenticationValidityDurationSeconds(120) // 0 — значит, каждый раз нужна свежая биометрия
+                .setUserAuthenticationValidityDurationSeconds(10) // 0 — значит, каждый раз нужна свежая биометрия
                 .build()
             keyGenerator.init(spec)
             keyGenerator.generateKey()
@@ -90,23 +91,31 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
 
             val executor = ContextCompat.getMainExecutor(activity)
 
+            val isResumed = AtomicBoolean(false)
+
             val biometricPrompt = BiometricPrompt(
                 activity,
                 executor,
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        unlockedNotebooks.add(notebookPath)
-                        continuation.resume(true)
+                        if (isResumed.compareAndSet(false, true)) {
+                            unlockedNotebooks.add(notebookPath)
+                            continuation.resume(true)
+                        }
                     }
 
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
-                        continuation.resume(false)
+                        if (isResumed.compareAndSet(false, true)) {
+                            Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
+                            continuation.resume(false)
+                        }
                     }
 
                     override fun onAuthenticationFailed() {
-                        Log.e("DEBUG: Biometric", "Отмена биометрии")
-                        continuation.resume(false)
+                        if (isResumed.compareAndSet(false, true)) {
+                            Log.e("DEBUG: Biometric", "Неверный отпечаток")
+                            continuation.resume(false)
+                        }
                     }
                 }
             )
@@ -167,6 +176,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
             val plaintext = cipher.doFinal(ciphertext)
             return String(plaintext, Charsets.UTF_8)
+
         } catch (e: InvalidKeyException) {
             // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
             throw KeyNotUnlockedException("Key is locked for notebook $notebookPath").apply { initCause(e) }

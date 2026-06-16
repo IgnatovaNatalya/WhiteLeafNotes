@@ -100,6 +100,7 @@ class NoteListViewModel(
                     }
                 }
 
+                println("DEBUG: NoteListViewmodel: Загрузка заметок, isProtected= $isProtected")
                 val notesList = getNotesUseCase(notebookPath)
 
                 notesList.forEach { note ->
@@ -144,10 +145,6 @@ class NoteListViewModel(
                     _noteListState.postValue(NoteListState.Blocked)
                 }
             }
-    }
-
-    fun lockNotebook() {
-        notebookPath?.let { lockNotebookUseCase(it) }
     }
 
     fun encryptNotebook() {
