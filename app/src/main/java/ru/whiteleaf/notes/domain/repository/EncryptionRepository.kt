@@ -24,4 +24,4 @@ interface EncryptionRepository {
     suspend fun decryptNote(notebookPath: String, ciphertext: String): String
 }
 
-class KeyNotUnlockedException(message: String) : Exception(message)
+class AuthenticationRequiredException(message: String) : Exception(message)

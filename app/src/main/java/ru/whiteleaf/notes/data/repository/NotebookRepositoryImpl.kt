@@ -7,7 +7,7 @@ import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
-import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import java.io.IOException
 
@@ -76,7 +76,7 @@ class NotebookRepositoryImpl(
 
                 // Если блокнот защищён и ключ не разблокирован – выбрасываем исключение
                 if (isProtected && !encryptionRepository.isUnlocked(notebook.path)) {
-                    throw KeyNotUnlockedException("Notebook '${notebook.path}' is locked. Biometric authentication required to delete it.")
+                    throw AuthenticationRequiredException("Notebook '${notebook.path}' is locked. Biometric authentication required to delete it.")
                 }
 
                 if (isProtected) encryptionRepository.deleteKeyForNotebook( notebook.path)
@@ -84,7 +84,7 @@ class NotebookRepositoryImpl(
                 if (!notebookDataSource.deleteNotebook(notebookDir)) {
                     throw IOException("Не удалось удалить записную книжку")
                 }
-            } catch (e: KeyNotUnlockedException) {
+            } catch (e: AuthenticationRequiredException) {
                 throw e
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка удаления записной книжки: ${e.message}")

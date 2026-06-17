@@ -16,7 +16,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
-import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteKeyForNotebookUseCase
@@ -113,7 +113,7 @@ class NoteListViewModel(
                     NoteListState.Success(isProtected, notesList.filter { it.isNotEmpty() })
                 )
 
-            } catch (e: KeyNotUnlockedException) {
+            } catch (e: AuthenticationRequiredException) {
                 _noteListState.postValue(NoteListState.Blocked)
             } catch (e: IOException) {
                 _noteListState.postValue(NoteListState.Error("Ошибка загрузки заметок: ${e.message}"))
@@ -147,7 +147,7 @@ class NoteListViewModel(
             }
     }
 
-    fun encryptNotebook() {
+    fun encryptNotebook(context: Context) {
         if (notebookPath != null) viewModelScope.launch {
             try {
                 if (isNotebookProtectedUseCase(notebookPath)) {
@@ -155,9 +155,14 @@ class NoteListViewModel(
                     return@launch
                 }
                 createKeyForNotebookUseCase(notebookPath)
+                unlockNotebookUseCase(notebookPath, context, "Для защиты")
                 encryptNotebookUseCase(notebookPath)
                 loadNotes()
                 _message.value = "Записная книжка зашифрована"
+            } catch (e: AuthenticationRequiredException) {
+                _noteListState.value = NoteListState.Error("Не удалось зашифровать записную книжку: ${e.message}")
+                //_noteListState.value = NoteListState.Blocked
+                println("DEBUG: NoteListVM fail encrypt notebook: ${e.message}")
 
             } catch (e: Exception) {
                 _noteListState.value = NoteListState.Error("Ошибка шифрования: ${e.message}")
@@ -257,7 +262,7 @@ class NoteListViewModel(
                         showMessage("Название записной книжки изменено")
                         _navigationEvent.postValue(NavigationEvent.NavigateToNotebook(newName))
                     } else showMessage("Ошибка переименования")
-                } catch (e: KeyNotUnlockedException) {
+                } catch (e: AuthenticationRequiredException) {
                     _message.postValue("Записная книжка заблокирована: ${e.message}")
                 } catch (e: Exception) {
                     showMessage("Ошибка переименования: ${e.message}")

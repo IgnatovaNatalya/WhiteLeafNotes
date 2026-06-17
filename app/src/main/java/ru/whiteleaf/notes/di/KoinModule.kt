@@ -192,7 +192,7 @@ val koinModule = module {
             updateNoteDateUseCase = get(),
             noteId = noteId,
             notebookPath = notebookPath,
-            encryptionRepository = get(),
+            unlockNotebookUseCase = get(),
             preferencesRepository = get(),
         )
     }

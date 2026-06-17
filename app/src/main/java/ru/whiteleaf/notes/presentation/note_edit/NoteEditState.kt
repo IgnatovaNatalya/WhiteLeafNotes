@@ -6,7 +6,6 @@ sealed class NoteEditState {
     object Loading : NoteEditState()
     data class Success(val note: Note, val scrollPosition: Int) : NoteEditState()
     data class Error(val message: String) : NoteEditState()
-    object NeedsBiometricForRead : NoteEditState()
-    object NeedsBiometricForSave : NoteEditState()
+    object Blocked: NoteEditState()
 
 }

@@ -3,6 +3,7 @@ package ru.whiteleaf.notes.data.repository
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.security.keystore.UserNotAuthenticatedException
 import android.util.Base64
 import android.util.Log
 import androidx.biometric.BiometricManager
@@ -11,7 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.suspendCancellableCoroutine
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
-import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import java.io.ByteArrayOutputStream
 import java.security.InvalidKeyException
 import java.security.KeyStore
@@ -22,6 +23,9 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import kotlin.coroutines.resume
 
+const val NOTEBOOK_KEY_ALIAS_PREFIX = "notebook_"
+const val NOTEBOOK_KEY_AUTH_DURATION = 10
+
 class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepository {
 
     // Храним идентификаторы разблокированных блокнотов (для быстрой проверки,
@@ -29,15 +33,20 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
     private val unlockedNotebooks = mutableSetOf<String>()
 
     // Вспомогательный метод для получения SecretKey из Keystore
-    private fun getSecretKey(notebookId: String): SecretKey {
-        val alias = "notebook_$notebookId"
+    private fun getSecretKey(notebookPath: String): SecretKey {
+
+        //val alias = "notebook_$notebookPath"
+        val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
+
         return (keyStore.getKey(alias, null) as? SecretKey)
-            ?: throw IllegalStateException("Key for notebook $notebookId not found")
+            ?: throw IllegalStateException("Key for notebook $notebookPath not found")
     }
 
     override fun createKeyForNotebook(notebookPath: String) {
         try {
-            val alias = "notebook_$notebookPath"
+
+            val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
+
             if (keyStore.containsAlias(alias)) return
 
             val keyGenerator =
@@ -49,17 +58,20 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .setUserAuthenticationRequired(true)
-                .setUserAuthenticationValidityDurationSeconds(10) // 0 — значит, каждый раз нужна свежая биометрия
+                .setUserAuthenticationValidityDurationSeconds(NOTEBOOK_KEY_AUTH_DURATION) // 0 — значит, каждый раз нужна свежая биометрия
                 .build()
             keyGenerator.init(spec)
             keyGenerator.generateKey()
+            println("DEBUG: EncryptionRepo: created key $alias")
         } catch (e: Exception) {
+            println("DEBUG: EncryptionRepo: Failed to create key for notebook $notebookPath")
             throw RuntimeException("Failed to create key for notebook $notebookPath", e)
         }
     }
 
     override fun hasKey(notebookPath: String): Boolean {
-        val alias = "notebook_$notebookPath"
+//        val alias = "notebook_$notebookPath"
+        val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
         return keyStore.containsAlias(alias)
     }
 
@@ -67,7 +79,11 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         return unlockedNotebooks.contains(notebookPath)
     }
 
-    override suspend fun unlockNotebook(notebookPath: String, context: Context, reason:String): Boolean {
+    override suspend fun unlockNotebook(
+        notebookPath: String,
+        context: Context,
+        reason: String
+    ): Boolean {
         return suspendCancellableCoroutine { continuation ->
 
             println("DEBUG: EncryptionRepo: all keys:  ${getAllKeyAliases()}")
@@ -144,25 +160,46 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         unlockedNotebooks.clear()
     }
 
-    // Шифрование строки -> Base64 (с сохранением IV)
+
     override suspend fun encryptNote(notebookPath: String, plaintext: String): String {
+
+        // Шифрование строки -> Base64 (с сохранением IV)
         val key = getSecretKey(notebookPath)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+
         // Для шифрования биометрия не нужна, но ключ должен быть разблокирован (если требуется)
         // Если ключ требует аутентификации и не разблокирован, вызов init выбросит исключение
-        cipher.init(Cipher.ENCRYPT_MODE, key)
-        val iv = cipher.iv // получаем IV, сгенерированный автоматически
-        val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
-        // Склеиваем IV + шифротекст и кодируем в Base64
-        val combined = ByteArrayOutputStream().apply {
-            write(iv)
-            write(ciphertext)
-        }.toByteArray()
-        return Base64.encodeToString(combined, Base64.NO_WRAP)
+
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, key)
+            val iv = cipher.iv // получаем IV, сгенерированный автоматически
+            val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+            // Склеиваем IV + шифротекст и кодируем в Base64
+            val combined = ByteArrayOutputStream().apply {
+                write(iv)
+                write(ciphertext)
+            }.toByteArray()
+
+            return Base64.encodeToString(combined, Base64.NO_WRAP)
+
+        } catch (e: InvalidKeyException) {
+            // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+            throw AuthenticationRequiredException("Key is locked for encrypting $notebookPath").apply {
+                initCause(e)
+            }
+
+        } catch (e: UserNotAuthenticatedException) {
+            throw AuthenticationRequiredException("User not authenticated").apply { initCause(e) }
+
+        } catch (e: Exception) {
+            // Другие ошибки пробрасываем как есть
+            throw e
+        }
     }
 
-    // Расшифровка строки из Base64 (ожидается IV + шифротекст)
+
     override suspend fun decryptNote(notebookPath: String, ciphertext: String): String {
+        // Расшифровка строки из Base64 (ожидается IV + шифротекст)
         val combined = Base64.decode(ciphertext, Base64.DEFAULT)
         // Первые 12 байт – IV (для GCM стандартный размер 12)
         val iv = combined.copyOfRange(0, 12)
@@ -179,7 +216,9 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
 
         } catch (e: InvalidKeyException) {
             // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
-            throw KeyNotUnlockedException("Key is locked for notebook $notebookPath").apply { initCause(e) }
+            throw AuthenticationRequiredException("Key is locked for decrypting $notebookPath").apply {
+                initCause(e)
+            }
         } catch (e: Exception) {
             // Другие ошибки (повреждённые данные, неправильный IV и т.п.) пробрасываем как есть
             throw e
@@ -187,7 +226,8 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
     }
 
     override fun deleteKeyForNotebook(notebookPath: String) {
-        val alias = "notebook_$notebookPath"
+        //val alias = "notebook_$notebookPath"
+        val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
         keyStore.deleteEntry(alias)
         lockNotebook(notebookPath) // также очищаем флаг разблокировки
     }
@@ -198,13 +238,9 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
     fun getAllKeyAliases(): List<String> {
         return try {
             keyStore.aliases().toList().filter { alias ->
-                // Опционально: если нужно исключить потенциальные ключи с определённым префиксом (например, системные)
-                // или наоборот оставить только ключи, созданные твоим приложением, например, с префиксом.
-                // !alias.startsWith("_android_security") && keyStore.isKeyEntry(alias)
-                alias.startsWith("notebook_") && keyStore.isKeyEntry(alias)
+                alias.startsWith(NOTEBOOK_KEY_ALIAS_PREFIX ) && keyStore.isKeyEntry(alias)
             }
         } catch (e: Exception) {
-            // Обработка ошибок: например, если Keystore не был загружен
             emptyList()
         }
     }

@@ -12,7 +12,7 @@ import ru.whiteleaf.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
-import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import java.io.File
 import java.io.IOException
 
@@ -30,7 +30,7 @@ class NoteRepositoryImpl(
 
             // Если блокнот защищён и ключ не разблокирован – сразу бросаем исключение
             if (isProtected && !encryptionRepository.isUnlocked(notebookPath)) {
-                throw KeyNotUnlockedException("Key is locked for notebook $notebookPath")
+                throw AuthenticationRequiredException("Key is locked for getting notes in notebook $notebookPath")
             }
 
             noteDataSource.listFilesInDirectory(dir)
@@ -53,12 +53,12 @@ class NoteRepositoryImpl(
                             modifiedAt = lastModified,
                             notebookPath = notebookPath
                         )
-                    } catch (e: KeyNotUnlockedException) {
+                    } catch (e: AuthenticationRequiredException) {
                         // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
                         throw e
                     } catch (e: Exception) {
                         // Любая ошибка при чтении/расшифровке файла прерывает загрузку списка
-                        println("DEBUG: NoteRepositoryImpl: ${e.message}")
+                        println("DEBUG: NoteRepositoryImpl get notes: ${e.message}")
                         throw IOException("Failed to read note ${file.name}", e)
                     }
                 }?.sortedByDescending { it.modifiedAt } ?: emptyList()
@@ -87,7 +87,9 @@ class NoteRepositoryImpl(
                     noteFile,
                     note.modifiedAt
                 )
-
+            } catch (e: AuthenticationRequiredException) {
+                // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+                throw e
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка сохранения заметки: ${e.message}")
                 throw IOException("Ошибка сохранения заметки: ${e.message}")
@@ -100,7 +102,7 @@ class NoteRepositoryImpl(
             try {
                 noteDataSource.deleteNote(note.notebookPath ?: "", note.id)
             } catch (e: Exception) {
-                Log.e("NoteRepository", "Ошибка удаления заметки: ${e.message}")
+                Log.e("NoteRepositoryImpl", "Ошибка удаления заметки: ${e.message}")
                 throw IOException("Ошибка удаления заметки: ${e.message}")
             }
         }
@@ -249,6 +251,7 @@ class NoteRepositoryImpl(
 
     override suspend fun encryptAllNotes(notebookPath: String) {
         withContext(Dispatchers.IO) {
+            println("DEBUG: NoteRepositoryImpl: start encrypting notes in notebook $notebookPath")
             val dir = File(noteDataSource.baseDir, notebookPath)
             val files = noteDataSource.listFilesInDirectory(dir)
                 ?.filter { it.isFile && it.name.endsWith(".txt") } ?: return@withContext
@@ -262,6 +265,7 @@ class NoteRepositoryImpl(
                 noteDataSource.writeNoteContent(file, encrypted)             // перезаписываем
                 noteDataSource.setNoteDate(file, lastModified)
             }
+            println("DEBUG: NoteRepositoryImpl: all notes encrypted in notebook $notebookPath")
         }
     }
 

@@ -54,6 +54,7 @@
     <string name="protect">Зашифровать</string>
     <string name="unprotect">Снять защиту</string>
     <string name="is_protected">Записная книжка защищена</string>
+    <string name="note_is_protected">Редактирование заметки\nв защищенной записной книжке</string>
     <string name="unlock">Разблокировать</string>
 
     <plurals name="notes_count">

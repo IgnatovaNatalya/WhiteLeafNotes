@@ -18,7 +18,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
-import ru.whiteleaf.notes.domain.repository.KeyNotUnlockedException
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import kotlin.collections.forEach
@@ -174,7 +174,7 @@ class StartViewModel(
                     loadData()
                     _message.postValue("Название записной книжки изменено")
                 }
-            } catch (e: KeyNotUnlockedException) {
+            } catch (e: AuthenticationRequiredException) {
                 _message.postValue("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
                 _message.postValue("Ошибка переименования: ${e.message}")
@@ -233,7 +233,7 @@ class StartViewModel(
                     _message.postValue("Не удалось подтвердить личность")
                     return@launch
                 }
-            } catch (e: KeyNotUnlockedException) {
+            } catch (e: AuthenticationRequiredException) {
                 _message.postValue("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
                 _message.postValue("Ошибка удаления записной книжки: ${e.message}")
