@@ -11,7 +11,7 @@
         <item name="colorPrimary">@color/accent_coral</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/container_dark</item>
-        <item name="colorOnPrimaryContainer">@color/text_secondary_dark</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
 
         <item name="colorSecondary">@color/text_primary_dark</item>
         <item name="colorOnSecondary">@color/white</item>
@@ -28,8 +28,11 @@
         <item name="android:textColorSecondary">@color/text_secondary_dark</item>
         <item name="colorControlNormal">@color/text_primary_dark</item>
 
+        <item name="colorPrimarySurface">@color/container_dark</item>
+
+
         <!-- Устанавливаем фон окна через windowBackground -->
-        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:windowBackground">@color/divider_dark</item>
 
         <!-- Стиль для текста -->
         <item name="textAppearanceBodyLarge">@style/TextAppearance.WhiteList.BodyLarge.Dark
