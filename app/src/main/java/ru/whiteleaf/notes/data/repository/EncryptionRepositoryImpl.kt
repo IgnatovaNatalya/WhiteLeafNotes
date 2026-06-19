@@ -82,6 +82,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
     override suspend fun unlockNotebook(
         notebookPath: String,
         context: Context,
+        title: String,
         reason: String
     ): Boolean {
         return suspendCancellableCoroutine { continuation ->
@@ -137,7 +138,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             )
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Записная книжка защищена")
+                .setTitle(title)
                 .setSubtitle("$reason подтвердите личность")
                 .setNegativeButtonText("Отмена")
                 .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)

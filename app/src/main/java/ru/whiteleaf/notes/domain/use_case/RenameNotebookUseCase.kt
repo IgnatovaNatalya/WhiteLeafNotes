@@ -17,6 +17,7 @@ class RenameNotebookUseCase(
             notesRepository.decryptAllNotes(notebookPath)
             encryptionRepository.deleteKeyForNotebook(notebookPath)
         }
+
         notebookRepository.renameNotebook(notebookPath, newName)
 
         if (isProtected) {

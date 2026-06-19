@@ -14,7 +14,7 @@ interface EncryptionRepository {
     // Управление состоянием разблокировки
     fun isUnlocked(notebookPath: String): Boolean
 
-    suspend fun unlockNotebook(notebookPath: String, context: Context,reason: String): Boolean
+    suspend fun unlockNotebook(notebookPath: String, context: Context, title: String, reason: String): Boolean
 
     fun clearUnlockedFlag(notebookPath: String)
     fun lockAllNotebooks()

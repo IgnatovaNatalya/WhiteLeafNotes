@@ -162,7 +162,8 @@ class StartViewModel(
     fun renameNotebook(notebook: Notebook, newName: String, context: Context) {
         viewModelScope.launch {
             try {
-                val unlocked = unlockNotebookUseCase(notebook.path, context, "Для переименования")
+                val unlocked =
+                    unlockNotebookUseCase(notebook.path, context, reason = "Для переименования")
 
                 if (!unlocked) {
                     _message.postValue("Не удалось подтвердить личность")
@@ -223,7 +224,8 @@ class StartViewModel(
     fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {
             try {
-                val unlocked = unlockNotebookUseCase(notebook.path, context, "Для удаления")
+                val unlocked =
+                    unlockNotebookUseCase(notebook.path, context, reason = "Для удаления")
 
                 if (unlocked) {
                     deleteNotebookUseCase(notebook.path)

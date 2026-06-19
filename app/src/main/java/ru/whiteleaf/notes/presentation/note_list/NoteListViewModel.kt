@@ -96,6 +96,7 @@ class NoteListViewModel(
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
+                        _navigationEvent.postValue(NavigationEvent.ShowBiometric)
                         return@launch
                     }
                 }
@@ -155,7 +156,12 @@ class NoteListViewModel(
                     return@launch
                 }
                 createKeyForNotebookUseCase(notebookPath)
-                unlockNotebookUseCase(notebookPath, context, "Для защиты")
+                unlockNotebookUseCase(
+                    notebookPath,
+                    context,
+                    title = "Защита записной кникки",
+                    reason = "Для защиты"
+                )
                 encryptNotebookUseCase(notebookPath)
                 loadNotes()
                 _message.value = "Записная книжка зашифрована"
@@ -179,7 +185,8 @@ class NoteListViewModel(
                     _noteListState.value = NoteListState.Error("Защита не установлена")
                     return@launch
                 }
-                val unlocked = unlockNotebookUseCase(notebookPath, context, "Для снятия защиты")
+                val unlocked =
+                    unlockNotebookUseCase(notebookPath, context, reason = "Для снятия защиты")
                 if (!unlocked) {
                     _noteListState.value =
                         NoteListState.Error("Не удалось подтвердить личность")
@@ -251,7 +258,7 @@ class NoteListViewModel(
             viewModelScope.launch {
                 try {
                     val unlocked =
-                        unlockNotebookUseCase(notebookPath, context, "Для переименования")
+                        unlockNotebookUseCase(notebookPath, context, reason = "Для переименования")
 
                     if (!unlocked) {
                         _message.postValue("Не удалось подтвердить личность")
@@ -293,7 +300,7 @@ class NoteListViewModel(
             viewModelScope.launch {
                 try {
                     val unlocked =
-                        unlockNotebookUseCase(notebookPath, context, "Для удаления")
+                        unlockNotebookUseCase(notebookPath, context, reason = "Для удаления")
 
                     if (!unlocked) {
                         _message.postValue("Не удалось подтвердить личность")
@@ -323,12 +330,14 @@ class NoteListViewModel(
     }
 
     fun onNotebookExited(toNote: Boolean) {
+        println("DEBUG: Выход из блокнота $notebookPath, toNote=$toNote")
         val state = _noteListState.value
 
         if (toNote || state !is NoteListState.Success) return
+        println ("DEBUG: isEncrypted = ${state.isEncrypted} ")
 
         if (notebookPath != null)
-            if (!state.isEncrypted) {
+            if (state.isEncrypted) {
                 println("DEBUG: убираем признак разблокировки при выходе: $notebookPath")
                 lockNotebookUseCase(notebookPath)
             }
