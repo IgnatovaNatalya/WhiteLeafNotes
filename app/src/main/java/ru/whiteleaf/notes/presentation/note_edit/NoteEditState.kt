@@ -7,5 +7,4 @@ sealed class NoteEditState {
     data class Success(val note: Note, val scrollPosition: Int) : NoteEditState()
     data class Error(val message: String) : NoteEditState()
     object Blocked: NoteEditState()
-
 }

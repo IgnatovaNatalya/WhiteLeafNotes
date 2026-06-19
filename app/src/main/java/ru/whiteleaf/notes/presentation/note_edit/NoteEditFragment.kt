@@ -336,13 +336,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        viewModel.updateFullNote(
-            titleEditText.text.toString(),
-            contentEditText.text.toString()
-        )
-    }
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        viewModel.updateFullNote(
+//            titleEditText.text.toString(),
+//            contentEditText.text.toString()
+//        )
+//    }
 
     fun checkKeyboard(editText: EditText): Boolean {
         val imm =

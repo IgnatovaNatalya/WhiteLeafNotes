@@ -9,7 +9,7 @@ class UnlockNotebookUseCase(
     suspend operator fun invoke(
         notebookPath: String,
         context: Context,
-        title: String = "Записаня книжка защищена",
+        title: String = "Записная книжка защищена",
         reason: String = "Для просмотра"
     ): Boolean {
         return encryptionRepository.unlockNotebook(notebookPath, context, title,  reason)

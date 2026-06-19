@@ -28,7 +28,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.ImportZipNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.SaveNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNoteFileUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import ru.whiteleaf.notes.presentation.note_edit.NoteEditViewModel
@@ -52,6 +52,7 @@ import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.IsNotebookUnlockedUseCase
 import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
 import java.security.KeyStore
 
@@ -91,19 +92,21 @@ val koinModule = module {
     // Use cases
     factory { GetNotesUseCase(get()) }
     factory { GetNoteUseCase(get()) }
-    factory { SaveNoteUseCase(get()) }
     factory { CreateNoteUseCase(get()) }
+    factory { RenameNoteUseCase(get()) }
+    factory { SaveNoteContentUseCase(get()) }
+    factory { UpdateFullNoteUseCase(get(), get()) }
     factory { DeleteNoteUseCase(get()) }
     factory { MoveNoteUseCase(get()) }
-    factory { RenameNoteUseCase(get()) }
+
     factory { ShareNoteFileUseCase(get()) }
 
     factory { GetNotebooksUseCase(get()) }
     factory { CreateNotebookUseCase(get()) }
     factory { DeleteNotebookUseCase(get()) }
     factory { RenameNotebookUseCase(get(), get(), get()) }
-
     factory { DeleteNotebookByPathUseCase(get()) }//, get(), get()) }
+
     factory { ShareNotebookUseCase(get(), get(), get()) }
 
     factory { ExportAllNotesUseCase(get(), get(), get()) }
@@ -187,7 +190,8 @@ val koinModule = module {
             deleteNoteUseCase = get(),
             renameNoteUseCase = get(),
             moveNoteUseCase = get(),
-            saveNoteUseCase = get(),
+            saveNoteContentUseCase = get(),
+            updateFullNoteUseCase = get(),
             shareNoteFileUseCase = get(),
             updateNoteDateUseCase = get(),
             noteId = noteId,
