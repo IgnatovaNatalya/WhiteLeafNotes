@@ -16,7 +16,7 @@ interface EncryptionRepository {
 
     suspend fun unlockNotebook(notebookPath: String, context: Context,reason: String): Boolean
 
-    fun lockNotebook(notebookPath: String)
+    fun clearUnlockedFlag(notebookPath: String)
     fun lockAllNotebooks()
 
     // Криптографические операции над содержимым заметок

@@ -152,7 +152,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         }
     }
 
-    override fun lockNotebook(notebookPath: String) {
+    override fun clearUnlockedFlag(notebookPath: String) {
         unlockedNotebooks.remove(notebookPath)
     }
 
@@ -229,7 +229,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         //val alias = "notebook_$notebookPath"
         val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
         keyStore.deleteEntry(alias)
-        lockNotebook(notebookPath) // также очищаем флаг разблокировки
+        clearUnlockedFlag(notebookPath) // также очищаем флаг разблокировки
     }
 
     /**

@@ -79,7 +79,10 @@ class NotebookRepositoryImpl(
                     throw AuthenticationRequiredException("Notebook '${notebook.path}' is locked. Biometric authentication required to delete it.")
                 }
 
-                if (isProtected) encryptionRepository.deleteKeyForNotebook( notebook.path)
+                if (isProtected) {
+                    encryptionRepository.clearUnlockedFlag(notebook.path) //убираем из списка разблокированных
+                    encryptionRepository.deleteKeyForNotebook( notebook.path)
+                }
 
                 if (!notebookDataSource.deleteNotebook(notebookDir)) {
                     throw IOException("Не удалось удалить записную книжку")

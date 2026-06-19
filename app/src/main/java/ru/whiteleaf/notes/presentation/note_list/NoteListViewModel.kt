@@ -160,7 +160,8 @@ class NoteListViewModel(
                 loadNotes()
                 _message.value = "Записная книжка зашифрована"
             } catch (e: AuthenticationRequiredException) {
-                _noteListState.value = NoteListState.Error("Не удалось зашифровать записную книжку: ${e.message}")
+                _noteListState.value =
+                    NoteListState.Error("Не удалось зашифровать записную книжку: ${e.message}")
                 //_noteListState.value = NoteListState.Blocked
                 println("DEBUG: NoteListVM fail encrypt notebook: ${e.message}")
 
@@ -178,7 +179,7 @@ class NoteListViewModel(
                     _noteListState.value = NoteListState.Error("Защита не установлена")
                     return@launch
                 }
-                val unlocked = unlockNotebookUseCase(notebookPath, context)
+                val unlocked = unlockNotebookUseCase(notebookPath, context, "Для снятия защиты")
                 if (!unlocked) {
                     _noteListState.value =
                         NoteListState.Error("Не удалось подтвердить личность")
@@ -287,7 +288,7 @@ class NoteListViewModel(
         }
     }
 
-    fun deleteNotebook(context:Context) {
+    fun deleteNotebook(context: Context) {
         if (notebookPath != null)
             viewModelScope.launch {
                 try {
@@ -322,11 +323,15 @@ class NoteListViewModel(
     }
 
     fun onNotebookExited(toNote: Boolean) {
-        if (toNote) return
-        if (notebookPath != null) {
-            println("DEBUG: Блокируем записную книжку при выходе: $notebookPath")
-            lockNotebookUseCase(notebookPath)
-        }
+        val state = _noteListState.value
+
+        if (toNote || state !is NoteListState.Success) return
+
+        if (notebookPath != null)
+            if (!state.isEncrypted) {
+                println("DEBUG: убираем признак разблокировки при выходе: $notebookPath")
+                lockNotebookUseCase(notebookPath)
+            }
     }
 
     override fun onCleared() {

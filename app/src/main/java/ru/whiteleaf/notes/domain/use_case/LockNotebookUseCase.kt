@@ -6,6 +6,6 @@ class LockNotebookUseCase(
     private val encryptionRepository: EncryptionRepository
 ) {
     operator fun invoke(notebookPath: String) {
-        encryptionRepository.lockNotebook(notebookPath)
+        encryptionRepository.clearUnlockedFlag(notebookPath)
     }
 }
