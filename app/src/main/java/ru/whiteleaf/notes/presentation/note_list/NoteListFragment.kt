@@ -94,9 +94,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         when (event) {
             NavigationEvent.Idle -> {}
 
-            is NavigationEvent.ExportLink -> {
-                shareExportFile(event.uri)
-            }
+            is NavigationEvent.ExportLink -> shareExportFile(event.uri)
+
 
             is NavigationEvent.NavigateToNote -> {
                 navigateToNote = true
@@ -107,9 +106,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 navigateToNotebook(event.path)
             }
 
-            NavigationEvent.NavigateUp -> {
-                findNavController().navigateUp()
-            }
+            NavigationEvent.NavigateUp ->  findNavController().navigateUp()
+
+            NavigationEvent.ShowBiometric -> viewModel.unlockNotebook(requireActivity())
         }
         viewModel.onNavigated()
     }
