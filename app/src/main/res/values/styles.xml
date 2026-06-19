@@ -63,9 +63,50 @@
         <item name="fontFamily">@font/nunito_semibold</item>
     </style>
 
+
+    <style name="WhiteLeafDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:backgroundTint">?attr/colorPrimarySurface</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Alert.Button.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Alert.Button.Negative</item>
+    </style>
+
+
     <style name="DialogTitle">
-        <item name="android:textSize">18sp</item>
-        <item name="fontFamily">@font/nunito_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="fontFamily">@font/comfortaa_bold</item>
+    </style>
+
+    <style name="DialogSubtitle">
+        <item name="android:textSize">12sp</item>
+        <item name="fontFamily">@font/nunito_medium</item>
+    </style>
+
+    <style name="Alert.Button.Positive" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/button_positive_text_color_selector</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:fontFamily">@font/nunito_bold</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="Alert.Button.Negative" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/text_secondary_light</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:fontFamily">@font/nunito_bold</item>
+    </style>
+
+    <style name="WhiteLeafChipStyle" parent="Widget.Material3.Chip.Filter">
+        <item name="android:textAppearance">@style/CustomChipTextAppearance</item>
+        <item name="chipBackgroundColor">@color/chip_background_color_selector</item>
+        <item name="android:textColor">@color/chip_text_color_selector</item>
+        <item name="chipCornerRadius">16dp</item>
+    </style>
+
+    <style name="CustomChipTextAppearance" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">@font/nunito_medium</item>
     </style>
 
     <style name="NoteEditTitle">

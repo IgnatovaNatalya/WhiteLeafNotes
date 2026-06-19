@@ -21,10 +21,11 @@
     <string name="no_notes">Вы пока не создали\nни одной заметки</string>
 
     <string name="create_notebook">Создать записную книжку</string>
-    <string name="creating_notebook">Создание записной книжки</string>
+    <string name="creating_notebook">Новая записная\nкнижка</string>
+    <string name="creating_notebook_description">Дайте название папке, в которой будут группироваться ваши заметки</string>
 
     <string name="move_note">Перемещение заметки</string>
-    <string name="enter_notebook_title">Введите название записной книжки</string>
+    <string name="enter_notebook_title">Введите название, например: Работа</string>
 
     <string name="title">Название</string>
 
@@ -67,5 +68,9 @@
     <string name="view_mode">Режим отображения</string>
     <string name="view_list">Список</string>
     <string name="view_planner">Планер</string>
+    <string name="chip_work">Работа</string>
+    <string name="chip_study">Учеба</string>
+    <string name="chip_private">Личное</string>
+    <string name="chip_projects">Проекты</string>
 </resources>
 

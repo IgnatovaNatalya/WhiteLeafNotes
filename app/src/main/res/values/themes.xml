@@ -29,6 +29,10 @@
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
         <item name="colorControlNormal">@color/text_primary_light</item>
 
+        <item name="colorPrimarySurface">@color/white</item>
+
+        <item name="colorSurfaceVariant">@color/popup_light</item>
+
         <!-- Устанавливаем фон окна через windowBackground -->
         <item name="android:windowBackground">@color/white</item>
 
