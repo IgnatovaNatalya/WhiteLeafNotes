@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
@@ -43,6 +44,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var isEditing = false
     private var isMoved = false
     private var wasInterrupted = false
+
+    private var isNotebookProtected = false
 
     private var lastCursorPosition = -1 //-1 если не была открыта клавиатура и не вводился текст
 
@@ -103,6 +106,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun setupObservers() {
         viewModel.noteEditState.observe(viewLifecycleOwner) { state ->
             renderNote(state)
+        }
+
+        viewModel.isNotebookProtected.observe(viewLifecycleOwner) { isProtected ->
+            toggleSecurePreview(isProtected)
         }
 
         viewModel.message.observe(viewLifecycleOwner) { message ->
@@ -323,7 +330,23 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         //println("DEBUG: NoteEditFragment: Scroll saved to prefs: $lastScrollPosition")
     }
 
+    fun toggleSecurePreview(isSecure:Boolean) {
+        println("DEBUG: toggleSecurePreview isSecure: $isSecure")
+        if (isSecure) {
+            requireActivity().window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+            )
+        }
+        else {
+            requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+    }
+
+
     override fun onPause() {
+        super.onPause()
+
         if (!isMoved) {
             viewModel.updateFullNote(
                 titleEditText.text.toString(),
@@ -332,17 +355,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
 
         println("Debug: NoteEditFragment: Paused")
-
-        super.onPause()
     }
-
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        viewModel.updateFullNote(
-//            titleEditText.text.toString(),
-//            contentEditText.text.toString()
-//        )
-//    }
 
     fun checkKeyboard(editText: EditText): Boolean {
         val imm =

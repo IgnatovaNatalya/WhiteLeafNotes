@@ -198,6 +198,7 @@ val koinModule = module {
             notebookPath = notebookPath,
             unlockNotebookUseCase = get(),
             preferencesRepository = get(),
+            isNotebookProtectedUseCase = get(),
         )
     }
 

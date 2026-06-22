@@ -17,6 +17,7 @@ import ru.whiteleaf.notes.domain.use_case.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
+import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
@@ -36,7 +37,8 @@ class NoteEditViewModel(
     private val noteId: String?,
     private val notebookPath: String?,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase
 ) : ViewModel() {
 
     private val _noteEditState = MutableLiveData<NoteEditState>()
@@ -44,6 +46,9 @@ class NoteEditViewModel(
 
     private val _note = MutableLiveData<Note>()
     val note: LiveData<Note> = _note
+
+    private val _isNotebookProtected = MutableLiveData<Boolean>()
+    val isNotebookProtected: LiveData<Boolean> = _isNotebookProtected
 
     private val _noteFile = MutableLiveData<Uri?>()
     val noteFile: LiveData<Uri?> = _noteFile
@@ -62,6 +67,7 @@ class NoteEditViewModel(
         loadNote()
     }
 
+
     private fun loadNote() {
         if (noteId != null) viewModelScope.launch {
             _noteEditState.postValue(NoteEditState.Loading)
@@ -69,6 +75,10 @@ class NoteEditViewModel(
                 val note = getNoteUseCase(noteId, notebookPath) ?: return@launch
 
                 _note.postValue(note)
+
+                if (note.notebookPath != null) viewModelScope.launch {
+                    _isNotebookProtected.postValue(isNotebookProtectedUseCase(note.notebookPath))
+                }
 
                 val scrollPosition = getNoteScrollPosition()
 
@@ -103,9 +113,6 @@ class NoteEditViewModel(
                     _note.postValue(currentNote.copy(id = newNoteId, title = newTitle))
                 }
             } catch (e: Exception) {
-//                if (e.cause is InvalidKeyException) {
-//                    _noteEditState.value = NoteEditState.Blocked
-//                } else
                 showMessage("Ошибка при переименовании заметки: ${e.message}")
             }
         }
