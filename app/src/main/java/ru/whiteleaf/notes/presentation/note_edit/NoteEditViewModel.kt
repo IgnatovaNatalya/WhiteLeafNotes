@@ -179,29 +179,15 @@ class NoteEditViewModel(
         }
     }
 
-
     fun updateFullNote(newTitle: String, content: String) { ///
         showMessage("Сохранение заметки")
         println("DEBUG: NoteEditVM: Updating full note title=$newTitle, content=$content")
 
-//        viewModelScope.launch {
-//            try {
-//                val currentNote = _note.value ?: return@launch
-//                val newNote = updateFullNoteUseCase(currentNote, newTitle, content)
-//                _note.postValue(newNote)
-//            } catch (e: AuthenticationRequiredException) {
-//                _noteEditState.value = NoteEditState.Blocked
-//                println("DEBUG: NoteEditVM: Authentication required while updating full note: ${e.message}")
-//            } catch (e: Exception) {
-//                println("DEBUG: NoteEditVM: Error updating full note")
-//                showMessage("Ошибка сохранения заметки: ${e.message}")
-//            }
-//        }
-
         viewModelScope.launch {
             try {
-                updateNoteTitle(newTitle)
-                updateNoteContent(content)
+                val currentNote = _note.value ?: return@launch
+                val newNote = updateFullNoteUseCase(currentNote, newTitle, content)
+                _note.postValue(newNote)
             } catch (e: AuthenticationRequiredException) {
                 _noteEditState.value = NoteEditState.Blocked
                 println("DEBUG: NoteEditVM: Authentication required while updating full note: ${e.message}")
@@ -210,7 +196,20 @@ class NoteEditViewModel(
                 showMessage("Ошибка сохранения заметки: ${e.message}")
             }
         }
-
+//
+//        viewModelScope.launch {
+//            try {
+//                updateNoteTitle(newTitle)
+//                updateNoteContent(content)
+//            } catch (e: AuthenticationRequiredException) {
+//                _noteEditState.value = NoteEditState.Blocked
+//                println("DEBUG: NoteEditVM: Authentication required while updating full note: ${e.message}")
+//            } catch (e: Exception) {
+//                println("DEBUG: NoteEditVM: Error updating full note")
+//                showMessage("Ошибка сохранения заметки: ${e.message}")
+//            }
+//        }
+//
     }
 
     fun shareNoteFile() { ///
