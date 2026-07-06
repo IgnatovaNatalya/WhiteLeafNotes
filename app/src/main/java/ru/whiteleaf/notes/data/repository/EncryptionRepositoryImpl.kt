@@ -24,7 +24,7 @@ import javax.crypto.spec.GCMParameterSpec
 import kotlin.coroutines.resume
 
 const val NOTEBOOK_KEY_ALIAS_PREFIX = "notebook_"
-const val NOTEBOOK_KEY_AUTH_DURATION = 10
+const val NOTEBOOK_KEY_AUTH_DURATION = 300
 
 class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepository {
 
