@@ -293,6 +293,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
+                    btnLockIndicator.setOnClickListener { viewModel.lockNotebook() }
                 } else btnLockIndicator.visibility = View.GONE
 
                 binding.createNote.visibility = View.VISIBLE

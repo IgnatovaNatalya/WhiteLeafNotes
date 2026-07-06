@@ -148,6 +148,13 @@ class NoteListViewModel(
             }
     }
 
+    fun lockNotebook() {
+        if (notebookPath != null) {
+            lockNotebookUseCase(notebookPath)
+            _noteListState.postValue(NoteListState.Blocked)
+        }
+    }
+
     fun encryptNotebook(context: Context) {
         if (notebookPath != null) viewModelScope.launch {
             try {
@@ -334,7 +341,7 @@ class NoteListViewModel(
         val state = _noteListState.value
 
         if (toNote || state !is NoteListState.Success) return
-        println ("DEBUG: isEncrypted = ${state.isEncrypted} ")
+        println("DEBUG: isEncrypted = ${state.isEncrypted} ")
 
         if (notebookPath != null)
             if (state.isEncrypted) {
