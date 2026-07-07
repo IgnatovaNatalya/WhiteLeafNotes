@@ -70,4 +70,7 @@ dependencies {
     //biometric
     implementation(libs.biometric)
 
+    //zip with password
+    implementation(libs.zip4j)
+
 }

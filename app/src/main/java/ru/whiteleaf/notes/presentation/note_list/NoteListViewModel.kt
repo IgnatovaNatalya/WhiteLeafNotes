@@ -285,17 +285,27 @@ class NoteListViewModel(
             }
     }
 
-    fun shareNotebook() {
+    fun shareNotebook(context: Context) {
         viewModelScope.launch {
             if (notebookPath != null)
                 try {
-                    val result = shareNotebookUseCase(notebookPath)
+                    val unlocked =
+                        unlockNotebookUseCase(notebookPath, context, reason = "Для экспорта")
+
+                    if (!unlocked) {
+                        _message.postValue("Не удалось подтвердить личность")
+                        return@launch
+                    }
+
+                    val result = shareNotebookUseCase(notebookPath, "123")
 
                     if (result.isSuccess)
                         _navigationEvent.postValue(NavigationEvent.ExportLink(result.getOrNull()))
                     else
                         showMessage(result.exceptionOrNull()?.message ?: "Unknown error")
 
+                } catch (e: AuthenticationRequiredException) {
+                    _message.postValue("Записная книжка заблокирована: ${e.message}")
                 } catch (e: Exception) {
                     showMessage("Ошибка передачи файла записной книжки: ${e.message}")
                 }

@@ -204,7 +204,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook(requireContext())
     private fun onOptionsDecryptNotebook() = viewModel.decryptNotebook(requireContext())
 
-    private fun onOptionsShareNotebook() = viewModel.shareNotebook()
+    private fun onOptionsShareNotebook() = viewModel.shareNotebook(requireContext())
 
     private fun onOptionsDeleteNotebook() {
         DialogHelper.createDeleteNotebookDialog(

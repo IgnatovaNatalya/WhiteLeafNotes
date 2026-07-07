@@ -14,13 +14,15 @@ import ru.whiteleaf.notes.domain.repository.ExportRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.model.ZipParameters
+import net.lingala.zip4j.model.enums.AesKeyStrength
+import net.lingala.zip4j.model.enums.CompressionLevel
+import net.lingala.zip4j.model.enums.EncryptionMethod
 
 class ExportRepositoryImpl(
     private val context: Context,
@@ -37,12 +39,13 @@ class ExportRepositoryImpl(
                 deleteRecursively()
                 mkdirs()
             }
+
             try {
                 createExportStructure(tempDir, notes, notebooks)
-                val zipFile = createZipFile(tempDir, password)
+                val zipFile = createPasswordProtectedZip(tempDir, password)
                 saveToExternalStorage(zipFile)
+
             } finally {
-                // Очищаем временные файлы
                 tempDir.deleteRecursively()
             }
         }
@@ -60,42 +63,46 @@ class ExportRepositoryImpl(
 
         // Копируем все заметки
         notes.forEach { note ->
-            val sourceFile = fileNoteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-            val targetDir = if (note.notebookPath != null) {
-                File(tempDir, note.notebookPath)
-            } else {
-                tempDir
-            }
-            val targetFile = File(targetDir, "${note.id}.txt")
+            val targetDir =
+                if (note.notebookPath != null) File(tempDir, note.notebookPath) else tempDir
+            val targetFile = File(targetDir, "${note.title}.txt")
 
-            if (sourceFile.exists()) {
-                sourceFile.copyTo(targetFile, overwrite = true)
-                targetFile.setLastModified(note.modifiedAt)
-            }
+            fileNoteDataSource.writeNoteContent(targetFile, note.content)
+            targetFile.setLastModified(note.modifiedAt)
         }
     }
 
-    private fun createZipFile(
-        tempDir: File,
-        password: String? = null  //todo сделать с паролем
-    ): File {
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val zipFile = File(context.cacheDir, "$EXPORT_ZIP_PREFIX$timestamp.zip")
+    fun createPasswordProtectedZip(tempDir: File, password: String? = null): File {
 
-        ZipOutputStream(FileOutputStream(zipFile)).use { zipOut ->
-            tempDir.walk().forEach { file ->
-                if (file.isFile) {
-                    val relativePath = file.relativeTo(tempDir).path
-                    val zipEntry = ZipEntry(relativePath).apply {
-                        time = file.lastModified()
-                    }
-                    zipOut.putNextEntry(zipEntry)
-                    file.inputStream().use { it.copyTo(zipOut) }
-                    zipOut.closeEntry()
-                }
+        require(tempDir.exists() && tempDir.isDirectory) {
+            "$tempDir должен быть существующей директорией"
+        }
+
+        val timestamp = SimpleDateFormat("dd_MM_yyyy_HHmmss", Locale.getDefault()).format(Date())
+        val outputZipFile = File(context.cacheDir, "$EXPORT_ZIP_PREFIX$timestamp.zip")
+
+        val zipFile = if (password != null) {
+            ZipFile(outputZipFile, password.toCharArray())
+        } else {
+            ZipFile(outputZipFile)
+        }
+
+        val zipParameters = ZipParameters().apply {
+            compressionLevel = CompressionLevel.NORMAL
+            if (password != null) {
+                encryptionMethod = EncryptionMethod.AES
+                aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
+                isEncryptFiles = true
             }
         }
-        return zipFile
+
+        tempDir.walk().forEach { file ->
+            if (file.isFile) {
+                zipParameters.fileNameInZip = file.relativeTo(tempDir).path.replace('\\', '/')
+                zipFile.addFile(file, zipParameters)
+            }
+        }
+        return outputZipFile
     }
 
     private fun saveToExternalStorage(zipFile: File): Uri {
@@ -103,7 +110,10 @@ class ExportRepositoryImpl(
         val contentValues = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, zipFile.name)
             put(MediaStore.Downloads.MIME_TYPE, "application/zip")
-            put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$DEFAULT_DIR")
+            put(
+                MediaStore.Downloads.RELATIVE_PATH,
+                "${Environment.DIRECTORY_DOWNLOADS}/$DEFAULT_DIR"
+            )
         }
 
         val resolver = context.contentResolver
