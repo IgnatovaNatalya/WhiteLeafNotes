@@ -6,7 +6,6 @@
     <string name="rename">Переименовать</string>
     <string name="move">Переместить</string>
     <string name="share">Поделиться</string>
-    <string name="share_file">Поделиться файлом</string>
     <string name="delete">Удалить</string>
 
     <string name="search">Поиск</string>
@@ -32,15 +31,8 @@
     <string name="empty_notebooks">Записных книжек пока нет</string>
 
     <string name="create_note">Создать заметку</string>
-    <string name="export_notes">Экспорт заметок</string>
-    <string name="import_notes">Импорт заметок</string>
-    <string name="do_export">Выполнить экспорт</string>
 
     <string name="rename_notebook">Переименовать записную книжку</string>
-
-    <string name="use_password">Использовать пароль</string>
-    <string name="export_zip_password">Введите пароль</string>
-    <string name="select_import_zip_archive">Выбрать файл ZIP</string>
 
     <string name="fragment_note_list_label">Записная книжка</string>
     <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
@@ -65,6 +57,13 @@
         <item quantity="other">%d заметок</item>
     </plurals>
 
+    <plurals name="objects_required_count">
+        <item quantity="one">%d объект потребует</item>
+        <item quantity="few">%d объекта потребуют</item>
+        <item quantity="many">%d объектов потребуют</item>
+        <item quantity="other">%d объектов потребуют</item>
+    </plurals>
+
     <string name="view_mode">Режим отображения</string>
     <string name="view_list">Список</string>
     <string name="view_planner">Планер</string>
@@ -72,5 +71,20 @@
     <string name="chip_study">Учеба</string>
     <string name="chip_private">Личное</string>
     <string name="chip_projects">Проекты</string>
+
+
+    <string name="export_notes">Экспортировать все заметки</string>
+    <string name="import_notes">Загрузить из архива ZIP</string>
+
+    <string name="set_password">Защитить архив паролем</string>
+    <string name="export_zip_password">Введите пароль</string>
+    <string name="select_import_zip_archive">Выбрать файл ZIP</string>
+
+    <string name="export_dialog_title">Настройки экспорта</string>
+    <string name="export_dialog_subtitle">Архив записных книжек будет сохранен в формате ZIP в следующую папку:</string>
+    <string name="share_file">Поделиться файлом</string>
+    <string name="export_encrypted">Включить зашифрованные</string>
+
+
 </resources>
 

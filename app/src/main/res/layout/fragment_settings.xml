@@ -1,218 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".presentation.settings.SettingsFragment">
 
-    <com.google.android.material.card.MaterialCardView
-        style="@style/cardViewStyle"
+    <TextView
+        android:id="@+id/tv_export"
+        style="@style/StartScreenItemTitle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/marginHorizontal"
-        android:padding="6dp">
+        android:layout_height="42dp"
+        android:clickable="true"
+        android:drawableEnd="@drawable/ic_chevron"
+        android:gravity="center_vertical"
+        android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="4dp"
+        android:text="@string/export_notes"
+        android:textColor="?android:attr/textColorPrimary" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                style="@style/NoteEditTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginTop="22dp"
-                android:text="@string/export_notes"
-                android:textColor="?attr/android:textColorPrimary"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <LinearLayout
-                android:id="@+id/export_folder"
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:importantForAccessibility="no"
-                    app:tint="?attr/android:textColorPrimary"
-                    android:src="@drawable/ic_folder" />
-
-                <TextView
-                    android:id="@+id/folder_path"
-                    style="@style/NoteEditText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="?attr/android:textColorPrimary"
-                    tools:text="/Download/..." />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_chevron"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/share_zip"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="4dp"
-                android:checked="true"
-                android:text="@string/share_file"
-                android:textAppearance="@style/NoteEditText"
-                app:thumbTint="@drawable/switch_thumb_selector"
-                app:trackTint="@drawable/switch_track_selector" />
-
-
-            <EditText
-                android:id="@+id/export_password"
-                style="@style/NoteEditText"
-                android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="12dp"
-                android:background="@drawable/bg_stroke_field"
-                android:hint="@string/export_zip_password"
-                android:importantForAutofill="no"
-                android:inputType="textPassword"
-                android:paddingHorizontal="8dp"
-                android:textColor="?attr/android:textColorPrimary"
-                android:visibility="gone" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="4dp"
-                android:gravity="center">
-
-                <Button
-                    android:id="@+id/export_button"
-                    style="@style/StartScreenItemAdd"
-                    android:layout_width="200dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_button_round"
-                    android:padding="0dp"
-                    android:text="@string/do_export"
-                    android:textColor="?attr/colorOnPrimary" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/export_status"
-                style="@style/NoteEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginBottom="12dp"
-                android:gravity="center"
-                android:text=""
-                android:textColor="?attr/android:textColorPrimary"
-                app:layout_constraintStart_toStartOf="parent" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-
-    <com.google.android.material.card.MaterialCardView
-        style="@style/cardViewStyle"
+    <TextView
+        android:id="@+id/tv_import"
+        style="@style/StartScreenItemTitle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/marginHorizontal"
-        android:padding="6dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                style="@style/NoteEditTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="22dp"
-                android:text="@string/import_notes"
-                android:textColor="?attr/android:textColorPrimary"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_folder" />
-
-                <TextView
-                    style="@style/NoteEditText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="?attr/android:textColorPrimary"
-                    tools:text="/Android/..." />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_chevron" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginVertical="4dp"
-                android:gravity="center">
-
-                <Button
-                    android:id="@+id/import_button"
-                    style="@style/StartScreenItemAdd"
-                    android:layout_width="200dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/bg_button_round"
-                    android:padding="0dp"
-                    android:text="@string/select_import_zip_archive"
-                    android:textColor="?attr/colorOnPrimary" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/import_status"
-                style="@style/NoteEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/marginHorizontal"
-                android:layout_marginBottom="12dp"
-                android:gravity="center"
-                android:text=""
-                android:textColor="?attr/android:textColorPrimary"
-                app:layout_constraintStart_toStartOf="parent" />
-
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
+        android:layout_height="42dp"
+        android:clickable="true"
+        android:drawableEnd="@drawable/ic_chevron"
+        android:gravity="center_vertical"
+        android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="4dp"
+        android:text="@string/import_notes"
+        android:textColor="?android:attr/textColorPrimary" />
 </LinearLayout>

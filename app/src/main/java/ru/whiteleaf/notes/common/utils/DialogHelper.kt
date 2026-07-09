@@ -6,13 +6,90 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SwitchCompat
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.whiteleaf.notes.R
 
 object DialogHelper {
+
+    //export all notes
+
+    fun createExportAllDialog(
+        context: Context,
+        pathToSave: String,
+        numberEncrypted: Int = 0,
+        onExportConfirmed: (Boolean, String?) -> Unit
+    ): AlertDialog {
+
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_export_all, null)
+        builder.setView(view)
+
+
+        val tvPath = view.findViewById<TextView>(R.id.path_to_save)
+        tvPath.text = pathToSave
+
+        //Поделиться
+        val swShareZip = view.findViewById<SwitchCompat>(R.id.sw_share_zip)
+
+        //Экспортировать зашифрованные?
+        val llExportEncrypted = view.findViewById<LinearLayout>(R.id.ll_export_encrypted)
+
+        if (numberEncrypted == 0) {
+            llExportEncrypted.visibility = View.GONE
+        } else {
+            val tvCountProtectedText = view.findViewById<TextView>(R.id.tv_export_encrypted_text)
+            //tvCountProtectedText.text = "$numberEncrypted объекта(ов) потребуют биометрию"
+            tvCountProtectedText.text = view.resources.getQuantityString(
+                R.plurals.objects_required_count,
+                numberEncrypted,
+                numberEncrypted
+            ) + " биометрию"
+        }
+        val swExportEncrypted = view.findViewById<SwitchCompat>(R.id.sw_export_encrypted)
+
+        //пароль
+        val swSetPassword = view.findViewById<SwitchCompat>(R.id.sw_set_password)
+        val etPassword = view.findViewById<EditText>(R.id.et_password)
+
+        swSetPassword.setOnCheckedChangeListener { _, isChecked ->
+            etPassword.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
+        }
+
+        //делаем диалог
+        val dialog = builder
+            .setPositiveButton("Экспортировать", null) // пока null, переопределим позже
+            .setNegativeButton("Отмена", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+
+            positiveButton.setOnClickListener {
+                val password = etPassword.text.toString().takeIf { it.isNotBlank() }
+                onExportConfirmed(swExportEncrypted.isChecked, password)
+                dialog.dismiss()
+            }
+        }
+
+//        return builder
+//            .setPositiveButton("Экспортировать") { _, _ ->
+//                onExportConfirmed(
+//                    swExportEncrypted.isChecked,
+//                    if (swSetPassword.isChecked) etPassword.text.toString()
+//                        .takeIf { it.isNotBlank() } else null
+//                )
+//            }
+//            .setNegativeButton("Отмена", null)
+//            .create()
+
+        return dialog
+    }
+
     //notes
     fun createMoveNoteDialog(
         context: Context,

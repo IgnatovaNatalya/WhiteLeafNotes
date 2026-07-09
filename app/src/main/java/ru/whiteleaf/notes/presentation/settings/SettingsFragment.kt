@@ -6,10 +6,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.databinding.FragmentSettingsBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.common.utils.DialogHelper
 import ru.whiteleaf.notes.presentation.state.ExportState
 import ru.whiteleaf.notes.presentation.state.ImportState
 
@@ -38,29 +40,32 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
 
     private fun setupUI() {
 
-        binding.importButton.setOnClickListener {
+        binding.tvImport.setOnClickListener {
             openFilePicker()
         }
 //        binding.usePassword.setOnCheckedChangeListener { _, isChecked ->
 //            binding.exportPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
 //        }
 
-        binding.exportButton.setOnClickListener {
-//            val password = if (binding.usePassword.isChecked) {
-//                binding.exportPassword.text.toString().takeIf { it.isNotBlank() }
-//            } else {
-//                null
-//            }
-//            viewModel.exportNotes(password)
-            viewModel.exportNotes(requireContext(), true,"123")
+        binding.tvExport.setOnClickListener {
+
+            DialogHelper.createExportAllDialog(
+                requireContext(),
+                "Загрузки",
+                10
+            ) { exportEncrypted, password ->
+                viewModel.exportNotes(requireContext(), exportEncrypted, password)
+            }.show()
+
+
         }
     }
 
     private fun setupObservers() {
-
-        viewModel.exportPath.observe(viewLifecycleOwner) { path ->
-            binding.folderPath.text = path
-        }
+//
+//        viewModel.exportPath.observe(viewLifecycleOwner) { path ->
+//            binding.folderPath.text = path
+//        }
 
         viewModel.exportState.observe(viewLifecycleOwner) { state ->
             when (state) {
@@ -88,46 +93,48 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         }
     }
 
+    private fun showToast(msg: String) =
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+
     private fun renderImportStateSuccess() {
-        binding.importButton.isEnabled = true
-        binding.importStatus.text = "Импорт выполнен успешно"
+        binding.tvImport.isEnabled = true
+        showToast("Импорт выполнен успешно")
+
     }
 
     private fun renderImportStateLoading() {
-        binding.importButton.isEnabled = false
-        binding.importStatus.text = "Распаковка архива..."
+        binding.tvImport.isEnabled = false
+        showToast("Распаковка архива...")
     }
 
     private fun renderImportStateIdle() {
-        binding.importButton.isEnabled = true
-        binding.importStatus.text = ""
+        binding.tvImport.isEnabled = true
     }
 
     private fun renderImportStateError(message: String) {
-        binding.importButton.isEnabled = true
-        binding.importStatus.text = "Ошибка: $message"
+        binding.tvImport.isEnabled = true
+        showToast("Ошибка: $message")
     }
 
     private fun renderExportIdle() {
-        binding.exportStatus.text = ""
-        binding.exportButton.isEnabled = true
+        binding.tvExport.isEnabled = true
     }
 
     private fun renderExportLoading() {
-        binding.exportButton.isEnabled = false
-        binding.exportStatus.text = "Создание архива..."
+        binding.tvExport.isEnabled = false
+        showToast("Создание архива...")
     }
 
     private fun renderExportSuccess(fileUri: Uri?) {
-        binding.exportButton.isEnabled = true
-        binding.exportStatus.text = "Экспорт завершен успешно"
+        binding.tvExport.isEnabled = true
+        showToast("Экспорт завершен успешно")
 
-        if (binding.shareZip.isChecked == true) shareExportFile(fileUri)
+        //if (binding.shareZip.isChecked == true) shareExportFile(fileUri)
     }
 
     private fun renderExportError(message: String) {
-        binding.exportButton.isEnabled = true
-        binding.exportStatus.text = "Ошибка: $message"
+        binding.tvExport.isEnabled = true
+        showToast("Ошибка: $message")
     }
 
     private fun shareExportFile(uri: Uri?) {
