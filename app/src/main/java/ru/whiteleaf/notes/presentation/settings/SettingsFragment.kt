@@ -52,7 +52,7 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
 //                null
 //            }
 //            viewModel.exportNotes(password)
-            viewModel.exportNotes(null)
+            viewModel.exportNotes(requireContext(), true,"123")
         }
     }
 

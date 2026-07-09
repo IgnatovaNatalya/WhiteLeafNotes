@@ -1,6 +1,10 @@
 package ru.whiteleaf.notes.domain.use_case
 
+import android.content.Context
 import android.net.Uri
+import ru.whiteleaf.notes.domain.model.Note
+import ru.whiteleaf.notes.domain.model.Notebook
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.ExportRepository
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
@@ -8,13 +12,52 @@ import ru.whiteleaf.notes.domain.repository.NotebookRepository
 class ExportAllNotesUseCase(
     private val noteRepository: NotesRepository,
     private val notebookRepository: NotebookRepository,
-    private val exportRepository: ExportRepository
+    private val exportRepository: ExportRepository,
+    private val encryptionRepository: EncryptionRepository
 ) {
-    suspend operator fun invoke(password: String? = null): Result<Uri> {
+    suspend operator fun invoke(
+        context: Context,
+        exportEncrypted: Boolean,
+        password: String? = null
+    ): Result<Uri> {
         return try {
-            val notes = noteRepository.getAllNotes(notebookRepository.getNotebooks())
+            val notesToExport = mutableListOf<Note>()
+            val noteBooksToExport = mutableListOf<Notebook>()
             val notebooks = notebookRepository.getNotebooks()
-            val result = exportRepository.createExportZip(notes, notebooks, password)
+
+            for (notebook in notebooks) {
+
+                if (encryptionRepository.hasKey(notebook.path)) {
+                    //если зашифрованная
+                    if (exportEncrypted) {
+                        val unlocked = encryptionRepository.unlockNotebook(
+                            notebook.path,
+                            context,
+                            "Экспорт защищенной книжки «${notebook.name}»",
+                            "Для экспорта"
+                        )
+                        if (unlocked) {
+                            notesToExport.addAll(noteRepository.getNotes(notebook.path))
+                            noteBooksToExport.add(notebook)
+                            println("DEBUG: ExportAllNotesUseCase: Unlock success protected notebook ${notebook.name} added to export")
+                        }
+                        else {
+                            println("DEBUG: ExportAllNotesUseCase: Unlock failed, skip protected notebook ${notebook.name}")
+                        }
+                    }
+
+                } else {
+                    //если не зашифрованная
+                    notesToExport.addAll(noteRepository.getNotes(notebook.path))
+                    noteBooksToExport.add(notebook)
+                    println("DEBUG: ExportAllNotesUseCase: Open notebook ${notebook.name} added to export")
+                }
+            }
+
+            //val notes = noteRepository.getAllNotes(notebookRepository.getNotebooks())
+
+            val result = exportRepository.createExportZip(notesToExport, noteBooksToExport, password)
+
             Result.success(result)
         } catch (e: Exception) {
             Result.failure(e)

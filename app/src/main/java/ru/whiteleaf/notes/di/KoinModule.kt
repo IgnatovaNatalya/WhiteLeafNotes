@@ -109,7 +109,7 @@ val koinModule = module {
 
     factory { ShareNotebookUseCase(get(), get(), get()) }
 
-    factory { ExportAllNotesUseCase(get(), get(), get()) }
+    factory { ExportAllNotesUseCase(get(), get(), get(), get()) }
     factory { ImportZipNotesUseCase(get(), get(), get()) }
 
     factory { GetSharedContentUseCase(get()) }

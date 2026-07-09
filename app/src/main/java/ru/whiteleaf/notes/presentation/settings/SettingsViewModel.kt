@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.settings
 
+import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import androidx.lifecycle.LiveData
@@ -32,11 +33,11 @@ class SettingsViewModel(
             .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR")
     }
 
-    fun exportNotes(password: String? = null) {
+    fun exportNotes(context: Context, exportEncrypted:Boolean, password: String? = null) {
         viewModelScope.launch {
             _exportState.postValue(ExportState.Loading)
             try {
-                val result = exportNotesUseCase(password)
+                val result = exportNotesUseCase(context,exportEncrypted, password)
                 if (result.isSuccess) {
                     _exportState.postValue(ExportState.Success(result.getOrNull()))
                 } else {

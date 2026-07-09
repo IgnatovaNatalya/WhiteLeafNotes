@@ -297,7 +297,7 @@ class NoteListViewModel(
                         return@launch
                     }
 
-                    val result = shareNotebookUseCase(notebookPath, "123")
+                    val result = shareNotebookUseCase(notebookPath, "123") //todo пароль спрашивать
 
                     if (result.isSuccess)
                         _navigationEvent.postValue(NavigationEvent.ExportLink(result.getOrNull()))
