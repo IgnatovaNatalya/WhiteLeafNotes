@@ -47,18 +47,6 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
 //            binding.exportPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
 //        }
 
-        binding.tvExport.setOnClickListener {
-
-            DialogHelper.createExportAllDialog(
-                requireContext(),
-                "Загрузки",
-                10
-            ) { exportEncrypted, password ->
-                viewModel.exportNotes(requireContext(), exportEncrypted, password)
-            }.show()
-
-
-        }
     }
 
     private fun setupObservers() {
@@ -69,8 +57,8 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
 
         viewModel.exportState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is ExportState.Idle -> renderExportIdle()
-                is ExportState.Loading -> renderExportLoading()
+                is ExportState.Idle -> renderExportIdle(state.path, state.numberEncrypted)
+                is ExportState.Loading -> renderExportLoading(state.message)
                 is ExportState.Success -> renderExportSuccess(state.fileUri)
                 is ExportState.Error -> renderExportError(state.message)
             }
@@ -116,20 +104,30 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         showToast("Ошибка: $message")
     }
 
-    private fun renderExportIdle() {
+    private fun renderExportIdle(path: String, number: Int) {
         binding.tvExport.isEnabled = true
+
+        binding.tvExport.setOnClickListener {
+            DialogHelper.createExportAllDialog(
+                requireContext(),
+                path,
+                number
+            ) { shareFile, exportEncrypted, password ->
+                viewModel.exportNotes(requireContext(), shareFile, exportEncrypted, password)
+            }.show()
+        }
     }
 
-    private fun renderExportLoading() {
+    private fun renderExportLoading(msg: String) {
         binding.tvExport.isEnabled = false
-        showToast("Создание архива...")
+        showToast(msg)
     }
 
     private fun renderExportSuccess(fileUri: Uri?) {
         binding.tvExport.isEnabled = true
         showToast("Экспорт завершен успешно")
 
-        //if (binding.shareZip.isChecked == true) shareExportFile(fileUri)
+        if (fileUri != null) shareExportFile(fileUri)
     }
 
     private fun renderExportError(message: String) {

@@ -44,6 +44,7 @@ import ru.whiteleaf.notes.common.AppConstants.WHITE_LEAF_PREFS
 import ru.whiteleaf.notes.data.repository.PreferencesRepositoryImpl
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
+import ru.whiteleaf.notes.domain.use_case.CountEncryptedNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteKeyForNotebookUseCase
@@ -126,6 +127,7 @@ val koinModule = module {
 
     factory { DecryptNotebookUseCase(get()) }
     factory { EncryptNotebookUseCase(get()) }
+    factory { CountEncryptedNotebooksUseCase(get(), get()) }
 
     //interactor
     factory { PreferencesInteractor(get()) }
@@ -205,7 +207,8 @@ val koinModule = module {
     viewModel {
         SettingsViewModel(
             exportNotesUseCase = get(),
-            importNotesUseCase = get()
+            importNotesUseCase = get(),
+            countEncryptedNotebooksUseCase = get(),
         )
     }
 

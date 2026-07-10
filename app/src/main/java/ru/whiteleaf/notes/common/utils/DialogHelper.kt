@@ -2,6 +2,7 @@ package ru.whiteleaf.notes.common.utils
 
 import android.app.AlertDialog as AndroidAlertDialog
 import android.content.Context
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputLayout
 import ru.whiteleaf.notes.R
 
 object DialogHelper {
@@ -22,13 +24,12 @@ object DialogHelper {
         context: Context,
         pathToSave: String,
         numberEncrypted: Int = 0,
-        onExportConfirmed: (Boolean, String?) -> Unit
+        onExportConfirmed: (Boolean, Boolean, String?) -> Unit
     ): AlertDialog {
 
         val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_export_all, null)
         builder.setView(view)
-
 
         val tvPath = view.findViewById<TextView>(R.id.path_to_save)
         tvPath.text = pathToSave
@@ -43,7 +44,6 @@ object DialogHelper {
             llExportEncrypted.visibility = View.GONE
         } else {
             val tvCountProtectedText = view.findViewById<TextView>(R.id.tv_export_encrypted_text)
-            //tvCountProtectedText.text = "$numberEncrypted объекта(ов) потребуют биометрию"
             tvCountProtectedText.text = view.resources.getQuantityString(
                 R.plurals.objects_required_count,
                 numberEncrypted,
@@ -54,11 +54,9 @@ object DialogHelper {
 
         //пароль
         val swSetPassword = view.findViewById<SwitchCompat>(R.id.sw_set_password)
+        val tilPassword = view.findViewById<TextInputLayout>(R.id.til_password)
         val etPassword = view.findViewById<EditText>(R.id.et_password)
 
-        swSetPassword.setOnCheckedChangeListener { _, isChecked ->
-            etPassword.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
-        }
 
         //делаем диалог
         val dialog = builder
@@ -67,11 +65,54 @@ object DialogHelper {
             .create()
 
         dialog.setOnShowListener {
+
             val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+
+            positiveButton.isEnabled = true
+
+            swSetPassword.setOnCheckedChangeListener { _, isChecked ->
+                //tilPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
+
+                if (isChecked) {
+                    tilPassword.visibility = View.VISIBLE
+                    positiveButton.isEnabled = false
+                    etPassword.requestFocus()
+                    val imm =
+                        etPassword.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.showSoftInput(etPassword, InputMethodManager.SHOW_IMPLICIT)
+                } else {
+                    etPassword.setText("")
+                    tilPassword.visibility = View.GONE
+                    positiveButton.isEnabled = true
+                }
+            }
+
+            etPassword.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    positiveButton.isEnabled = true
+                    if (s.isNullOrBlank()) {
+                        swSetPassword.isChecked = false
+                        val imm =
+                            etPassword.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.hideSoftInputFromWindow(etPassword.windowToken, 0)
+                        tilPassword.visibility = View.GONE
+                        //positiveButton.isEnabled = false
+                    }
+                }
+            })
 
             positiveButton.setOnClickListener {
                 val password = etPassword.text.toString().takeIf { it.isNotBlank() }
-                onExportConfirmed(swExportEncrypted.isChecked, password)
+                onExportConfirmed(swShareZip.isChecked, swExportEncrypted.isChecked, password)
                 dialog.dismiss()
             }
         }
