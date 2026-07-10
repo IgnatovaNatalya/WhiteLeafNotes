@@ -71,7 +71,6 @@ object DialogHelper {
             positiveButton.isEnabled = true
 
             swSetPassword.setOnCheckedChangeListener { _, isChecked ->
-                //tilPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
 
                 if (isChecked) {
                     tilPassword.visibility = View.VISIBLE
@@ -105,7 +104,6 @@ object DialogHelper {
                             etPassword.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                         imm.hideSoftInputFromWindow(etPassword.windowToken, 0)
                         tilPassword.visibility = View.GONE
-                        //positiveButton.isEnabled = false
                     }
                 }
             })
@@ -117,16 +115,6 @@ object DialogHelper {
             }
         }
 
-//        return builder
-//            .setPositiveButton("Экспортировать") { _, _ ->
-//                onExportConfirmed(
-//                    swExportEncrypted.isChecked,
-//                    if (swSetPassword.isChecked) etPassword.text.toString()
-//                        .takeIf { it.isNotBlank() } else null
-//                )
-//            }
-//            .setNegativeButton("Отмена", null)
-//            .create()
 
         return dialog
     }
@@ -218,24 +206,6 @@ object DialogHelper {
 
         return alertDialogBuilder
             .setPositiveButton("Удалить") { _, _ -> onDeleteConfirmed() }
-            .setNegativeButton("Отмена", null)
-            .create()
-    }
-
-    fun createCreateNotebookDialog1(
-        context: Context,
-        onCreateConfirmed: (String) -> Unit
-    )
-            : AndroidAlertDialog {
-        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
-        val createDialogView =
-            LayoutInflater.from(context).inflate(R.layout.dialog_create_notebook, null)
-        alertDialogBuilder.setView(createDialogView)
-
-        val notebookName = createDialogView.findViewById<EditText>(R.id.notebook_name)
-
-        return alertDialogBuilder
-            .setPositiveButton("Создать") { _, _ -> onCreateConfirmed(notebookName.text.toString()) }
             .setNegativeButton("Отмена", null)
             .create()
     }
