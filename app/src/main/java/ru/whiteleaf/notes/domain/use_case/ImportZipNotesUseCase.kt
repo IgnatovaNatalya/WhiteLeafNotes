@@ -107,6 +107,10 @@ class ImportZipNotesUseCase(
                         }
                     }
 
+                    if (entry.time != -1L) {
+                        file.setLastModified(entry.time)
+                    }
+
                     zipStream.closeEntry()
                     entry = zipStream.nextEntry
                 }
