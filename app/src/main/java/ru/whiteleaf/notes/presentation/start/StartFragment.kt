@@ -131,14 +131,14 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         val dialog = DialogHelper.createDeleteNotebookDialog(
             context = requireContext(),
             notebookTitle = notebook.name,
-            onDeleteConfirmed = { viewModel.deleteNotebook(notebook) }
+            onDeleteConfirmed = { viewModel.deleteNotebook(notebook, requireContext()) }
         )
         dialog.show()
     }
 
     override fun onRenameNotebook(notebook: Notebook) {
         DialogHelper.createRenameNotebookDialog(requireContext(), notebook.name) { newName ->
-            viewModel.renameNotebook(notebook, newName)
+            viewModel.renameNotebook(notebook, newName, requireContext())
         }.show()
     }
 

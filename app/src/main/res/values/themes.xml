@@ -16,6 +16,9 @@
         <item name="colorSecondaryContainer">@color/accent_blue</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
 
+        <item name="colorTertiary">@color/dark_blue</item>
+        <item name="android:colorControlHighlight">@color/accent_blue</item>
+
         <item name="colorContainer">@color/popup_light</item>
         <item name="android:colorPressedHighlight">@color/item_pressed</item>
 
@@ -25,6 +28,10 @@
         <item name="android:textColorPrimary">@color/text_primary_light</item>
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
         <item name="colorControlNormal">@color/text_primary_light</item>
+
+        <item name="colorPrimarySurface">@color/white</item>
+
+        <item name="colorSurfaceVariant">@color/popup_light</item>
 
         <!-- Устанавливаем фон окна через windowBackground -->
         <item name="android:windowBackground">@color/white</item>

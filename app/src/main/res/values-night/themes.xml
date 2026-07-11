@@ -11,12 +11,15 @@
         <item name="colorPrimary">@color/accent_coral</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/container_dark</item>
-        <item name="colorOnPrimaryContainer">@color/text_secondary_dark</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
 
         <item name="colorSecondary">@color/text_primary_dark</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/accent_blue</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
+
+        <item name="colorTertiary">@color/text_primary_dark</item>
+        <item name="android:colorControlHighlight">@color/popup_dark</item>
 
         <item name="colorContainer">@color/popup_dark</item>
         <item name="android:colorPressedHighlight">@color/item_pressed_dark</item>
@@ -28,8 +31,11 @@
         <item name="android:textColorSecondary">@color/text_secondary_dark</item>
         <item name="colorControlNormal">@color/text_primary_dark</item>
 
+        <item name="colorPrimarySurface">@color/container_dark</item>
+
+
         <!-- Устанавливаем фон окна через windowBackground -->
-        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:windowBackground">@color/divider_dark</item>
 
         <!-- Стиль для текста -->
         <item name="textAppearanceBodyLarge">@style/TextAppearance.WhiteList.BodyLarge.Dark

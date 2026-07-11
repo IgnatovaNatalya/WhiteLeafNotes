@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.start
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -17,7 +18,9 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
+import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import kotlin.collections.forEach
 
 class StartViewModel(
@@ -30,7 +33,8 @@ class StartViewModel(
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
-    private val shareNotebookUseCase: ShareNotebookUseCase
+    private val shareNotebookUseCase: ShareNotebookUseCase,
+    private val unlockNotebookUseCase: UnlockNotebookUseCase
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -155,14 +159,24 @@ class StartViewModel(
         }
     }
 
-    fun renameNotebook(notebook: Notebook, newName: String) {
+    fun renameNotebook(notebook: Notebook, newName: String, context: Context) {
         viewModelScope.launch {
             try {
+                val unlocked =
+                    unlockNotebookUseCase(notebook.path, context, reason = "Для переименования")
+
+                if (!unlocked) {
+                    _message.postValue("Не удалось подтвердить личность")
+                    return@launch
+                }
+
                 if (newName != notebook.name) {
                     renameNotebookUseCase(notebook.path, newName)
                     loadData()
                     _message.postValue("Название записной книжки изменено")
                 }
+            } catch (e: AuthenticationRequiredException) {
+                _message.postValue("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
                 _message.postValue("Ошибка переименования: ${e.message}")
             }
@@ -207,11 +221,22 @@ class StartViewModel(
         }
     }
 
-    fun deleteNotebook(notebook: Notebook) {
+    fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {
             try {
-                deleteNotebookUseCase(notebook.path)
-                loadData()
+                val unlocked =
+                    unlockNotebookUseCase(notebook.path, context, reason = "Для удаления")
+
+                if (unlocked) {
+                    deleteNotebookUseCase(notebook.path)
+                    loadData()
+                    _message.postValue("Записная книжка удалена")
+                } else {
+                    _message.postValue("Не удалось подтвердить личность")
+                    return@launch
+                }
+            } catch (e: AuthenticationRequiredException) {
+                _message.postValue("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
                 _message.postValue("Ошибка удаления записной книжки: ${e.message}")
             }

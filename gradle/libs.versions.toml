@@ -17,6 +17,7 @@ koin = "4.1.1"
 datetime = "0.7.1"
 biometric = "1.1.0"
 lifecycleProcess = "2.9.4"
+zip4j = "2.11.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,8 +37,9 @@ navigation-fragment = { group = "androidx.navigation", name = "navigation-fragme
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
 koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
-biometric = { group ="androidx.biometric", name = "biometric", version.ref = "biometric"}
+biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
+zip4j = { group = "net.lingala.zip4j", name = "zip4j", version.ref = "zip4j" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

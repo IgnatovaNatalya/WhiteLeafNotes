@@ -3,405 +3,246 @@ package ru.whiteleaf.notes.data.repository
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.security.keystore.UserNotAuthenticatedException
+import android.util.Base64
+import android.util.Log
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import kotlinx.coroutines.suspendCancellableCoroutine
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
+import java.io.ByteArrayOutputStream
+import java.security.InvalidKeyException
 import java.security.KeyStore
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import android.util.Base64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import ru.whiteleaf.notes.domain.repository.EncryptionRepository
-import ru.whiteleaf.notes.domain.repository.NotesRepository
-import ru.whiteleaf.notes.domain.repository.SecurityPreferences
+import kotlin.coroutines.resume
 
-class EncryptionRepositoryImpl(
-    private val context: Context,
-    private val notesRepository: NotesRepository,
-    private val securityPreferences: SecurityPreferences
-) : EncryptionRepository {
+const val NOTEBOOK_KEY_ALIAS_PREFIX = "notebook_"
+const val NOTEBOOK_KEY_AUTH_DURATION = 300
 
-    private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-    private val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-    private val keyGenerator =
-        KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepository {
 
-    // Кэш для временного хранения ключей в памяти
-    private val unlockedKeys = mutableMapOf<String, SecretKey>()
-    private val noteContentCache = mutableMapOf<String, Pair<String, String>>()
+    // Храним идентификаторы разблокированных блокнотов (для быстрой проверки,
+    // но реальную проверку делает Keystore при каждой операции)
+    private val unlockedNotebooks = mutableSetOf<String>()
 
-    companion object {
-        private fun getKeyAlias(notebookPath: String): String {
-            return "notebook_key_${notebookPath.hashCode()}"
-        }
+    // Вспомогательный метод для получения SecretKey из Keystore
+    private fun getSecretKey(notebookPath: String): SecretKey {
+
+        //val alias = "notebook_$notebookPath"
+        val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
+
+        return (keyStore.getKey(alias, null) as? SecretKey)
+            ?: throw IllegalStateException("Key for notebook $notebookPath not found")
     }
 
-    override suspend fun encryptNotebook(notebookPath: String): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            return@withContext try {
-                println("🔐 Удаляем старые ключи: $notebookPath")
-                clearProblematicKeys(notebookPath)
-
-                println("🔐 Шифруем блокнот: $notebookPath")
-
-                // Создаем ОДИН ключ без аутентификации
-                val key = generateKeyWithoutAuth(notebookPath)
-                println("✅ Ключ создан")
-
-                // Получаем все заметки ДО шифрования
-                val notes = notesRepository.getNotes(notebookPath)
-                println("📝 Найдено заметок: ${notes.size}")
-
-                // Шифруем все заметки в блокноте
-                notes.forEachIndexed { index, note ->
-                    println("🔒 Шифруем заметку ${index + 1}/${notes.size}: ${note.title}")
-
-                    val encryptedContent = encryptData(note.content, key)
-//                    val encryptedTitle =
-//                        if (note.title.isNotEmpty() && note.title != "[ENCRYPTED]") {
-//                            encryptData(note.title, key)
-//                        } else {
-//                            "[ENCRYPTED]"
-//                        }
-
-                    // Сохраняем зашифрованную заметку
-                    val encryptedNote = note.copy(
-                        content = "ENCRYPTED:$encryptedContent"
-                    )
-                    notesRepository.saveNote(encryptedNote)
-                    println("✅ Заметка зашифрована и сохранена")
-                }
-
-                // Сохраняем ключ в памяти
-                unlockedKeys[notebookPath] = key
-                println("🎯 Шифрование завершено успешно")
-                Result.success(Unit)
-            } catch (e: Exception) {
-                println("❌ Ошибка шифрования: ${e.message}")
-                e.printStackTrace()
-                Result.failure(e)
-            }
-        }
-
-    override fun debugKeyStoreState(notebookPath: String) {
+    override fun createKeyForNotebook(notebookPath: String) {
         try {
-            val keyAlias = "notebook_key_${notebookPath.hashCode()}"
-            println("🔍 ДЕБАГ KEYSTORE ДЛЯ: $notebookPath")
-            println("🔑 ALIAS: $keyAlias")
 
-            val aliases = keyStore.aliases().toList()
-            println("📋 ВСЕ ALIASES В KEYSTORE: $aliases")
-            println("🔍 НАШ ALIAS СУЩЕСТВУЕТ: ${keyStore.containsAlias(keyAlias)}")
+            val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
 
-            if (keyStore.containsAlias(keyAlias)) {
-                val key = (keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry).secretKey
-                println("✅ КЛЮЧ ДОСТУПЕН: ${key.algorithm}")
-            } else {
-                println("❌ КЛЮЧ НЕ ДОСТУПЕН")
-            }
+            if (keyStore.containsAlias(alias)) return
+
+            val keyGenerator =
+                KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+            val spec = KeyGenParameterSpec.Builder(
+                alias,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            )
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setUserAuthenticationRequired(true)
+                .setUserAuthenticationValidityDurationSeconds(NOTEBOOK_KEY_AUTH_DURATION) // 0 — значит, каждый раз нужна свежая биометрия
+                .build()
+            keyGenerator.init(spec)
+            keyGenerator.generateKey()
+            println("DEBUG: EncryptionRepo: created key $alias")
         } catch (e: Exception) {
-            println("❌ ОШИБКА ДЕБАГА KEYSTORE: ${e.message}")
+            println("DEBUG: EncryptionRepo: Failed to create key for notebook $notebookPath")
+            throw RuntimeException("Failed to create key for notebook $notebookPath", e)
         }
     }
 
-    private fun generateKeyWithoutAuth(notebookPath: String): SecretKey {
-        val keyAlias = getKeyAlias(notebookPath) //"notebook_key_${notebookPath.hashCode()}"
-
-        val keyGenParameterSpec = KeyGenParameterSpec.Builder(
-            keyAlias,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setUserAuthenticationRequired(false) // БЕЗ аутентификации
-            .setInvalidatedByBiometricEnrollment(false)
-            .build()
-
-        keyGenerator.init(keyGenParameterSpec)
-        return keyGenerator.generateKey()
+    override fun hasKey(notebookPath: String): Boolean {
+//        val alias = "notebook_$notebookPath"
+        val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
+        return keyStore.containsAlias(alias)
     }
 
-
-    private fun decryptData(encryptedData: String, key: SecretKey): String {
-        return try {
-            println("🔓 Дешифруем данные: ${encryptedData.take(20)}...")
-
-            val decoded = Base64.decode(encryptedData, Base64.DEFAULT)
-            println("✅ Данные декодированы из Base64, размер: ${decoded.size} байт")
-
-            val iv = decoded.copyOfRange(0, 12) // GCM IV size
-            val encrypted = decoded.copyOfRange(12, decoded.size)
-            println("✅ IV извлечен, размер зашифрованных данных: ${encrypted.size} байт")
-
-            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-            cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, iv))
-            val decrypted = cipher.doFinal(encrypted)
-            println("✅ Данные расшифрованы, размер: ${decrypted.size} байт")
-
-            String(decrypted, Charsets.UTF_8)
-        } catch (e: Exception) {
-            println("❌ Ошибка в decryptData: ${e.message}")
-            throw e
-        }
+    override fun isUnlocked(notebookPath: String): Boolean {
+        return unlockedNotebooks.contains(notebookPath)
     }
 
-    override fun debugKeyInfo(notebookPath: String?) {
-        val key = unlockedKeys[notebookPath ?: "default"]
-        if (key == null) {
-            println("❌ Ключ не найден для блокнота: $notebookPath")
-            println("📋 Доступные ключи: ${unlockedKeys.keys}")
-        } else {
-            println("✅ Ключ найден: ${key.algorithm}, ${key.format}")
-        }
-    }
+    override suspend fun unlockNotebook(
+        notebookPath: String,
+        context: Context,
+        title: String,
+        reason: String
+    ): Boolean {
+        return suspendCancellableCoroutine { continuation ->
 
-    private fun getKeyForNotebook(notebookPath: String): SecretKey {
-        val keyAlias = getKeyAlias(notebookPath) //"notebook_key_${notebookPath.hashCode()}"
-        println("🔑 ПОЛУЧАЕМ КЛЮЧ С ALIAS: $keyAlias")
-        //return (keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry).secretKey
-        try {
-            // Проверим существует ли alias
-            val aliases = keyStore.aliases().toList()
-            println("📋 Все aliases в KeyStore: $aliases")
-            println("🔍 Наш alias существует: ${keyStore.containsAlias(keyAlias)}")
+            println("DEBUG: EncryptionRepo: all keys:  ${getAllKeyAliases()}")
 
-            if (!keyStore.containsAlias(keyAlias)) {
-                println("❌ ALIAS НЕ НАЙДЕН В KEYSTORE!")
-                throw IllegalStateException("Ключ не найден в KeyStore")
+            val activity = context as? FragmentActivity
+            if (activity == null) {
+                Log.e("DEBUG: EncryptionRepo", "Context is not FragmentActivity")
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
             }
 
-            val key = (keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry).secretKey
-            println("✅ КЛЮЧ УСПЕШНО ПОЛУЧЕН ИЗ KEYSTORE")
-            return key
-        } catch (e: Exception) {
-            println("❌ ОШИБКА ПОЛУЧЕНИЯ КЛЮЧА: ${e.message}")
-            e.printStackTrace()
-            throw e
-        }
-    }
+            // Проверка наличия биометрии
+            val biometricManager = BiometricManager.from(activity)
+            val canAuth =
+                biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
+                Log.e("DEBUG: EncryptionRepo", "Biometric not available: $canAuth")
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
+            }
 
-    fun clearProblematicKeys(notebookPath: String) {
-        try {
-            val tempAlias = "temp_key_${notebookPath.hashCode()}"
-            val permAlias = "perm_key_${notebookPath.hashCode()}"
+            val executor = ContextCompat.getMainExecutor(activity)
 
-            keyStore.deleteEntry(tempAlias)
-            keyStore.deleteEntry(permAlias)
-            println("🗑️ Старые ключи удалены")
-        } catch (e: Exception) {
-            println("⚠️ Не удалось удалить старые ключи: ${e.message}")
-        }
-    }
+            val isResumed = AtomicBoolean(false)
 
-    override suspend fun decryptNotebook(notebookPath: String): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            return@withContext try {
-                println("🔓 ДЕШИФРУЕМ БЛОКНОТ: $notebookPath")
-                val key = getKeyForNotebook(notebookPath)
-                println("✅ Ключ получен из KeyStore")
+            val biometricPrompt = BiometricPrompt(
+                activity,
+                executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        if (isResumed.compareAndSet(false, true)) {
+                            unlockedNotebooks.add(notebookPath)
+                            continuation.resume(true)
+                        }
+                    }
 
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        if (isResumed.compareAndSet(false, true)) {
+                            Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
+                            continuation.resume(false)
+                        }
+                    }
 
-                // Получаем все заметки
-                val notes = notesRepository.getNotes(notebookPath)
-
-                // Декриптуем заметки в памяти (не сохраняем в файл)
-                notes.forEach { note ->
-                    if (note.content.startsWith("ENCRYPTED:") && note.title.startsWith("ENCRYPTED:")) {
-                        val decryptedContent =
-                            decryptData(note.content.removePrefix("ENCRYPTED:"), key)
-//                        val decryptedTitle = if (note.title != "ENCRYPTED:[ENCRYPTED]") {
-//                            decryptData(note.title.removePrefix("ENCRYPTED:"), key)
-//                        } else {
-//                            "" // Заголовок будет восстановлен из контента
-//                        }
-
-                        // Кэшируем декриптованный контент
-                        noteContentCache[note.id] = decryptedContent to note.id
+                    override fun onAuthenticationFailed() {
+                        if (isResumed.compareAndSet(false, true)) {
+                            Log.e("DEBUG: Biometric", "Неверный отпечаток")
+                            continuation.resume(false)
+                        }
                     }
                 }
+            )
 
-                // Сохраняем ключ в памяти
-                unlockedKeys[notebookPath] = key
-                println("✅ Ключ сохранен в памяти. Теперь unlockedKeys: ${unlockedKeys.keys}")
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle(title)
+                .setSubtitle("$reason подтвердите личность")
+                .setNegativeButtonText("Отмена")
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                .build()
 
-                Result.success(Unit)
+            try {
+                biometricPrompt.authenticate(promptInfo)
             } catch (e: Exception) {
-                println("❌ КРИТИЧЕСКАЯ ОШИБКА в decryptNotebook: ${e.message}")
-                e.printStackTrace()
-                Result.failure(e)
+                Log.e("Biometric", "Error starting biometric", e)
+                continuation.resume(false)
             }
         }
-
-    override suspend fun encryptNote(noteId: String, notebookPath: String?): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            return@withContext try {
-                val note = notesRepository.getNotes(notebookPath).find { it.id == noteId }
-                    ?: return@withContext Result.failure(IllegalArgumentException("Заметка не найдена"))
-
-                val key = unlockedKeys[notebookPath ?: "default"]
-                    ?: return@withContext Result.failure(IllegalStateException("Блокнот не разблокирован"))
-
-                val encryptedContent = encryptData(note.content, key)
-//                val encryptedTitle = if (note.title.isNotEmpty()) {
-//                    encryptData(note.title, key)
-//                } else {
-//                    "[ENCRYPTED]"
-//                }
-
-                // Сохраняем зашифрованную заметку
-                val encryptedNote = note.copy(
-                    content = "ENCRYPTED:$encryptedContent"
-                )
-                notesRepository.saveNote(encryptedNote)
-
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-
-    override suspend fun decryptNote(noteId: String, notebookPath: String?): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            return@withContext try {
-                println("🔓 Начало дешифровки заметки: $noteId")
-
-                val note = notesRepository.getNotes(notebookPath).find { it.id == noteId }
-                    ?: return@withContext Result.failure(IllegalArgumentException("Заметка не найдена"))
-
-                println("📄 Заметка найдена: ${note.title}")
-                println("🔍 Контент начинается с: ${note.content.take(20)}...")
-
-                // Если заметка не зашифрована, ничего не делаем
-                if (!note.content.startsWith("ENCRYPTED:")) {
-                    println("⚠️ Заметка не зашифрована, пропускаем дешифровку")
-                    noteContentCache[noteId] = note.content to note.id//note.title
-                    return@withContext Result.success(Unit)
-                }
-
-                val key = unlockedKeys[notebookPath ?: "default"]
-                    ?: return@withContext Result.failure(IllegalStateException("Блокнот не разблокирован"))
-
-                println("✅ Ключ найден, начинаем дешифровку...")
-
-                val encryptedContent = note.content.removePrefix("ENCRYPTED:")
-                val decryptedContent = decryptData(encryptedContent, key)
-
-                println("✅ Контент расшифрован: ${decryptedContent.take(20)}...")
-
-                // Обрабатываем заголовок
-//                val decryptedTitle =
-//                    if (note.title.startsWith("ENCRYPTED:") && note.title != "ENCRYPTED:[ENCRYPTED]") {
-//                        decryptData(note.title.removePrefix("ENCRYPTED:"), key)
-//                    } else {
-//                        "" // Заголовок будет восстановлен из контента
-//                    }
-
-                println("✅ Заголовок расшифрован: ${note.title}")
-
-                // Кэшируем декриптованный контент
-                noteContentCache[noteId] = decryptedContent to note.id //decryptedTitle
-
-                println("🎯 Дешифровка завершена успешно")
-                Result.success(Unit)
-            } catch (e: Exception) {
-                println("❌ Ошибка дешифровки: ${e.message}")
-                e.printStackTrace()
-                Result.failure(e)
-            }
-        }
-
-
-    // Добавляем методы для работы с кэшем
-    override fun getDecryptedContent(noteId: String): String? {
-        return noteContentCache[noteId]?.first
     }
 
-//    override fun getDecryptedTitle(noteId: String): String? {
-//        return noteContentCache[noteId]?.second
-//    }
-
-    override fun cacheDecryptedContent(noteId: String, content: String, title: String) {
-        noteContentCache[noteId] = content to title
+    override fun clearUnlockedFlag(notebookPath: String) {
+        unlockedNotebooks.remove(notebookPath)
     }
 
-    override fun removeFromCache(noteId: String) {
-        noteContentCache.remove(noteId)
+    override fun lockAllNotebooks() {
+        unlockedNotebooks.clear()
     }
 
-    override fun clearAllKeys() {
-        unlockedKeys.clear()
-        noteContentCache.clear()
-        securityPreferences.clearUnlockedState()
-    }
 
-    override fun isNotebookUnlocked(notebookPath: String): Boolean {
-        val isUnlocked = unlockedKeys.containsKey(notebookPath)
-        println("🔍 Проверка ключа в памяти для $notebookPath: $isUnlocked")
-        println("📋 Все ключи в памяти: ${unlockedKeys.keys}")
-        return isUnlocked
-    }
+    override suspend fun encryptNote(notebookPath: String, plaintext: String): String {
 
-    override fun lockNotebook(notebookPath: String) {
-        println("🔒 Блокируем записную книжку в репозитории: $notebookPath")
-        println("📋 Ключи до блокировки: ${unlockedKeys.keys}")
-        unlockedKeys.remove(notebookPath)
+        // Шифрование строки -> Base64 (с сохранением IV)
+        val key = getSecretKey(notebookPath)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
-        // Очищаем кэш контента для этого блокнота
-        noteContentCache.keys.removeAll { key ->
-            key.startsWith("$notebookPath/") || key.contains(notebookPath)
-        }
-        println("📋 Ключи после блокировки: ${unlockedKeys.keys}")
-        println("✅ Записная книжка заблокирована в репозитории")
+        // Для шифрования биометрия не нужна, но ключ должен быть разблокирован (если требуется)
+        // Если ключ требует аутентификации и не разблокирован, вызов init выбросит исключение
 
-    }
-
-    override fun clearNotebookKeys(notebookPath: String) {
         try {
-            println("🗑️ Очищаем ключи для блокнота: $notebookPath")
+            cipher.init(Cipher.ENCRYPT_MODE, key)
+            val iv = cipher.iv // получаем IV, сгенерированный автоматически
+            val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+            // Склеиваем IV + шифротекст и кодируем в Base64
+            val combined = ByteArrayOutputStream().apply {
+                write(iv)
+                write(ciphertext)
+            }.toByteArray()
 
-            val keyAlias = "notebook_key_${notebookPath.hashCode()}"
-            val tempAlias = "temp_key_${notebookPath.hashCode()}"
-            val permAlias = "perm_key_${notebookPath.hashCode()}"
+            return Base64.encodeToString(combined, Base64.NO_WRAP)
 
-            val aliasesToDelete = listOf(keyAlias, tempAlias, permAlias)
-            println("🔑 Ключи для удаления: $aliasesToDelete")
-
-            // Проверим что есть до удаления
-            val existingAliases = keyStore.aliases().toList()
-            println("📋 Ключи до удаления: $existingAliases")
-
-
-            listOf(keyAlias, tempAlias, permAlias).forEach { alias ->
-                if (keyStore.containsAlias(alias)) {
-                    keyStore.deleteEntry(alias)
-                    println("✅ Удален ключ: $alias")
-                } else {
-                    println("⚠️ Ключ не найден: $alias")
-                }
+        } catch (e: InvalidKeyException) {
+            // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+            throw AuthenticationRequiredException("Key is locked for encrypting $notebookPath").apply {
+                initCause(e)
             }
 
-            val remainingAliases = keyStore.aliases().toList()
-            println("📋 Ключи после удаления: $remainingAliases")
+        } catch (e: UserNotAuthenticatedException) {
+            throw AuthenticationRequiredException("User not authenticated").apply { initCause(e) }
 
-            // Удаляем из памяти
-            unlockedKeys.remove(notebookPath)
-            noteContentCache.keys.removeAll { it.contains(notebookPath) }
-            println("🎯 Очистка ключей завершена")
         } catch (e: Exception) {
-            println("❌ Ошибка очистки ключей записной книжки: ${e.message}")
-            e.printStackTrace()
+            // Другие ошибки пробрасываем как есть
+            throw e
         }
     }
 
-    private fun encryptData(data: String, key: SecretKey): String {
-        return try {
-            cipher.init(Cipher.ENCRYPT_MODE, key)
-            val iv = cipher.iv
-            val encrypted = cipher.doFinal(data.toByteArray(Charsets.UTF_8))
-            Base64.encodeToString(iv + encrypted, Base64.DEFAULT)
+
+    override suspend fun decryptNote(notebookPath: String, ciphertext: String): String {
+        // Расшифровка строки из Base64 (ожидается IV + шифротекст)
+        val combined = Base64.decode(ciphertext, Base64.DEFAULT)
+        // Первые 12 байт – IV (для GCM стандартный размер 12)
+        val iv = combined.copyOfRange(0, 12)
+        val ciphertext = combined.copyOfRange(12, combined.size)
+
+        val key = getSecretKey(notebookPath)
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val gcmSpec = GCMParameterSpec(128, iv)
+
+        try {
+            cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
+            val plaintext = cipher.doFinal(ciphertext)
+            return String(plaintext, Charsets.UTF_8)
+
+        } catch (e: InvalidKeyException) {
+            // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+            throw AuthenticationRequiredException("Key is locked for decrypting $notebookPath").apply {
+                initCause(e)
+            }
         } catch (e: Exception) {
-            println("❌ Ошибка encryptData: ${e.message}")
+            // Другие ошибки (повреждённые данные, неправильный IV и т.п.) пробрасываем как есть
             throw e
+        }
+    }
+
+    override fun deleteKeyForNotebook(notebookPath: String) {
+        //val alias = "notebook_$notebookPath"
+        val alias = NOTEBOOK_KEY_ALIAS_PREFIX + notebookPath
+        keyStore.deleteEntry(alias)
+        clearUnlockedFlag(notebookPath) // также очищаем флаг разблокировки
+    }
+
+    /**
+     * Возвращает список псевдонимов всех ключей, созданных приложением в Keystore.
+     */
+    fun getAllKeyAliases(): List<String> {
+        return try {
+            keyStore.aliases().toList().filter { alias ->
+                alias.startsWith(NOTEBOOK_KEY_ALIAS_PREFIX ) && keyStore.isKeyEntry(alias)
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 }

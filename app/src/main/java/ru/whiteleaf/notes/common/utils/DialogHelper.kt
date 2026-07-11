@@ -1,20 +1,129 @@
 package ru.whiteleaf.notes.common.utils
 
-import android.app.AlertDialog
+import android.app.AlertDialog as AndroidAlertDialog
 import android.content.Context
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SwitchCompat
+import com.google.android.material.chip.Chip
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputLayout
 import ru.whiteleaf.notes.R
 
 object DialogHelper {
-//notes
+
+    //export all notes
+    fun createExportAllDialog(
+        context: Context,
+        pathToSave: String,
+        numberEncrypted: Int = 0,
+        onExportConfirmed: (Boolean, Boolean, String?) -> Unit
+    ): AlertDialog {
+
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_export_all, null)
+        builder.setView(view)
+
+        val tvPath = view.findViewById<TextView>(R.id.path_to_save)
+        tvPath.text = pathToSave
+
+        //Поделиться
+        val swShareZip = view.findViewById<SwitchCompat>(R.id.sw_share_zip)
+
+        //Экспортировать зашифрованные?
+        val llExportEncrypted = view.findViewById<LinearLayout>(R.id.ll_export_encrypted)
+
+        if (numberEncrypted == 0) {
+            llExportEncrypted.visibility = View.GONE
+        } else {
+            val tvCountProtectedText = view.findViewById<TextView>(R.id.tv_export_encrypted_text)
+            tvCountProtectedText.text = view.resources.getQuantityString(
+                R.plurals.objects_required_count,
+                numberEncrypted,
+                numberEncrypted
+            )
+        }
+        val swExportEncrypted = view.findViewById<SwitchCompat>(R.id.sw_export_encrypted)
+
+        //пароль
+        val swSetPassword = view.findViewById<SwitchCompat>(R.id.sw_set_password)
+        val tilPassword = view.findViewById<TextInputLayout>(R.id.til_password)
+        val etPassword = view.findViewById<EditText>(R.id.et_password)
+
+
+        //делаем диалог
+        val dialog = builder
+            .setPositiveButton("Экспортировать", null) // пока null, переопределим позже
+            .setNegativeButton("Отмена", null)
+            .create()
+
+        dialog.setOnShowListener {
+
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+
+            positiveButton.isEnabled = true
+
+            swSetPassword.setOnCheckedChangeListener { _, isChecked ->
+
+                if (isChecked) {
+                    tilPassword.visibility = View.VISIBLE
+                    positiveButton.isEnabled = false
+                    etPassword.requestFocus()
+                    val imm =
+                        etPassword.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.showSoftInput(etPassword, InputMethodManager.SHOW_IMPLICIT)
+                } else {
+                    etPassword.setText("")
+                    tilPassword.visibility = View.GONE
+                    positiveButton.isEnabled = true
+                }
+            }
+
+            etPassword.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    positiveButton.isEnabled = true
+                    if (s.isNullOrBlank()) {
+                        swSetPassword.isChecked = false
+                        val imm =
+                            etPassword.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.hideSoftInputFromWindow(etPassword.windowToken, 0)
+                        tilPassword.visibility = View.GONE
+                    }
+                }
+            })
+
+            positiveButton.setOnClickListener {
+                val password = etPassword.text.toString().takeIf { it.isNotBlank() }
+                onExportConfirmed(swShareZip.isChecked, swExportEncrypted.isChecked, password)
+                dialog.dismiss()
+            }
+        }
+
+
+        return dialog
+    }
+
+    //notes
     fun createMoveNoteDialog(
         context: Context,
         onMoveClicked: (String) -> Unit
-    ): AlertDialog {
-        val alertDialogBuilder = AlertDialog.Builder(context)
+    ): AndroidAlertDialog {
+        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
         val moveDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_note_move, null)
         alertDialogBuilder.setView(moveDialogView)
@@ -33,8 +142,8 @@ object DialogHelper {
         context: Context,
         noteTitle: String,
         onDeleteConfirmed: () -> Unit
-    ): AlertDialog {
-        val alertDialogBuilder = AlertDialog.Builder(context)
+    ): AndroidAlertDialog {
+        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
         val deleteDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
         alertDialogBuilder.setView(deleteDialogView)
@@ -56,8 +165,8 @@ object DialogHelper {
         context: Context,
         currentTitle: String,
         onRenameConfirmed: (String) -> Unit
-    ): AlertDialog {
-        val alertDialogBuilder = AlertDialog.Builder(context)
+    ): AndroidAlertDialog {
+        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
         val renameDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_rename, null)
         alertDialogBuilder.setView(renameDialogView)
@@ -81,8 +190,8 @@ object DialogHelper {
         context: Context,
         notebookTitle: String,
         onDeleteConfirmed: () -> Unit
-    ): AlertDialog {
-        val alertDialogBuilder = AlertDialog.Builder(context)
+    ): AndroidAlertDialog {
+        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
         val deleteDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
         alertDialogBuilder.setView(deleteDialogView)
@@ -102,18 +211,75 @@ object DialogHelper {
 
     fun createCreateNotebookDialog(
         context: Context,
-        onCreateConfirmed: (String) -> Unit)
-    : AlertDialog {
-        val alertDialogBuilder = AlertDialog.Builder(context)
-        val createDialogView = LayoutInflater.from(context).inflate(R.layout.dialog_create_notebook, null)
-        alertDialogBuilder.setView(createDialogView)
+        onCreateConfirmed: (String) -> Unit
+    ): AlertDialog {
 
-        val notebookName = createDialogView.findViewById<EditText>(R.id.notebook_name)
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_create_notebook, null)
+        builder.setView(view)
 
-        return alertDialogBuilder
-            .setPositiveButton("Создать") { _, _ ->onCreateConfirmed(notebookName.text.toString())}
+        val editText = view.findViewById<EditText>(R.id.notebook_name)
+
+        val chips = listOf(
+            view.findViewById<Chip>(R.id.chip_work),
+            view.findViewById(R.id.chip_study),
+            view.findViewById(R.id.chip_personal),
+        )
+
+        chips.forEach { chip ->
+            chip.setOnClickListener {
+                // Заполняем поле текстом чипа
+                editText.setText(chip.text)
+                // Устанавливаем курсор в конец
+                editText.setSelection(editText.text?.length ?: 0)
+                // Делаем чип выбранным (если нужно, чтобы он подсвечивался)
+                // Для ChipGroup с singleSelection=false можно вручную управлять checked
+                //chip.isChecked = true
+                // Сбрасываем другие чипы (если хотим единственный выбор)
+                //chips.filter { it != chip }.forEach { it.isChecked = false }
+            }
+        }
+
+        val dialog = builder
+            .setPositiveButton("Создать", null) // пока null, переопределим позже
             .setNegativeButton("Отмена", null)
             .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+
+            positiveButton.isEnabled = false
+
+            editText.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    positiveButton.isEnabled = !s.isNullOrBlank()
+                }
+            })
+
+            positiveButton.setOnClickListener {
+                val name = editText.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    onCreateConfirmed(name)
+                    dialog.dismiss()
+                }
+            }
+
+            // Автоматически показываем клавиатуру и фокусируем поле
+            editText.requestFocus()
+            val imm = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+        }
+
+        return dialog
     }
 
     fun createRenameNotebookDialog(
@@ -138,5 +304,4 @@ object DialogHelper {
             .setNegativeButton("Отмена", null)
             .create()
     }
-
 }

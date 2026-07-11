@@ -1,14 +1,15 @@
 package ru.whiteleaf.notes.di
 
-import BiometricRepositoryImpl
-import SecurityPreferencesImpl
+
 import android.content.ContentResolver
 import android.content.Context
 import ru.whiteleaf.notes.data.repository.NoteRepositoryImpl
 import ru.whiteleaf.notes.data.repository.NotebookRepositoryImpl
+import ru.whiteleaf.notes.data.repository.EncryptionRepositoryImpl
 import ru.whiteleaf.notes.data.repository.ExportRepositoryImpl
 import ru.whiteleaf.notes.data.datasource.FileNoteDataSource
 import ru.whiteleaf.notes.data.datasource.FileNotebookDataSource
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.ExportRepository
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
@@ -27,7 +28,7 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.ImportZipNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.SaveNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNoteFileUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import ru.whiteleaf.notes.presentation.note_edit.NoteEditViewModel
@@ -40,19 +41,21 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import ru.whiteleaf.notes.common.AppConstants.WHITE_LEAF_PREFS
-import ru.whiteleaf.notes.data.repository.EncryptionRepositoryImpl
 import ru.whiteleaf.notes.data.repository.PreferencesRepositoryImpl
 import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
-import ru.whiteleaf.notes.domain.repository.BiometricRepository
-import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
-import ru.whiteleaf.notes.domain.repository.SecurityPreferences
-import ru.whiteleaf.notes.domain.use_case.CheckNotebookAccessUseCase
-import ru.whiteleaf.notes.domain.use_case.ClearNotebookKeysUseCase
+import ru.whiteleaf.notes.domain.use_case.CountEncryptedNotebooksUseCase
+import ru.whiteleaf.notes.domain.use_case.CreateKeyForNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.DeleteKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
+import ru.whiteleaf.notes.domain.use_case.IsNotebookUnlockedUseCase
 import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
+import java.security.KeyStore
 
 val koinModule = module {
 
@@ -71,50 +74,60 @@ val koinModule = module {
         )
     }
 
+    //keystore
+    single {
+        KeyStore.getInstance("AndroidKeyStore").apply {
+            load(null)
+        }
+    }
+
     // Repositories
-    single<NotesRepository> { NoteRepositoryImpl(get(), get()) }
-    single<NotebookRepository> { NotebookRepositoryImpl(get()) }
+    single<NotesRepository> { NoteRepositoryImpl(get(), get(), get()) }
+    single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get()) }
     single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
 
-    single<BiometricRepository> { BiometricRepositoryImpl(get()) }
-    single<EncryptionRepository> { EncryptionRepositoryImpl(get(), get(), get()) }
+    single<EncryptionRepository> { EncryptionRepositoryImpl(get()) }
 
-    single<SecurityPreferences> { SecurityPreferencesImpl(get()) }
     single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
 
     // Use cases
     factory { GetNotesUseCase(get()) }
     factory { GetNoteUseCase(get()) }
-    factory { SaveNoteUseCase(get()) }
     factory { CreateNoteUseCase(get()) }
+    factory { RenameNoteUseCase(get()) }
+    factory { SaveNoteContentUseCase(get()) }
+    factory { UpdateFullNoteUseCase(get(), get()) }
     factory { DeleteNoteUseCase(get()) }
     factory { MoveNoteUseCase(get()) }
-    factory { RenameNoteUseCase(get()) }
+
     factory { ShareNoteFileUseCase(get()) }
 
     factory { GetNotebooksUseCase(get()) }
     factory { CreateNotebookUseCase(get()) }
     factory { DeleteNotebookUseCase(get()) }
-    factory { RenameNotebookUseCase(get()) }
+    factory { RenameNotebookUseCase(get(), get(), get()) }
+    factory { DeleteNotebookByPathUseCase(get()) }//, get(), get()) }
 
-    factory { DeleteNotebookByPathUseCase(get(), get(), get()) }
     factory { ShareNotebookUseCase(get(), get(), get()) }
 
-    factory { ExportAllNotesUseCase(get(), get(), get()) }
+    factory { ExportAllNotesUseCase(get(), get(), get(), get()) }
     factory { ImportZipNotesUseCase(get(), get(), get()) }
 
     factory { GetSharedContentUseCase(get()) }
     factory { InsertNoteUseCase(get()) }
 
-    factory { EncryptNotebookUseCase(get(), get()) }
-    factory { UnlockNotebookUseCase(get(), get(), get()) }
-    factory { CheckNotebookAccessUseCase(get(), get()) }
-    factory { LockNotebookUseCase(get(), get()) }
-
-    factory { ClearNotebookKeysUseCase(get()) }
-
     factory { UpdateNoteDateUseCase(get()) }
 
+    factory { CreateKeyForNotebookUseCase(get()) }
+    factory { DeleteKeyForNotebookUseCase(get()) }
+    factory { IsNotebookProtectedUseCase(get()) }
+    factory { IsNotebookUnlockedUseCase(get()) }
+    factory { LockNotebookUseCase(get()) }
+    factory { UnlockNotebookUseCase(get()) }
+
+    factory { DecryptNotebookUseCase(get()) }
+    factory { EncryptNotebookUseCase(get()) }
+    factory { CountEncryptedNotebooksUseCase(get(), get()) }
 
     //interactor
     factory { PreferencesInteractor(get()) }
@@ -133,6 +146,7 @@ val koinModule = module {
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
+            unlockNotebookUseCase = get(),
         )
     }
 
@@ -157,16 +171,18 @@ val koinModule = module {
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
 
-            encryptNotebookUseCase = get(),
-            clearNotebookKeys = get(),
-            unlockNotebookUseCase = get(),
-            checkNotebookAccessUseCase = get(),
-            lockNotebookUseCase = get(),
-
             preferencesInteractor = get(),
 
+            isNotebookProtectedUseCase = get(),
+            isNotebookUnlockedUseCase = get(),
+            unlockNotebookUseCase = get(),
+            lockNotebookUseCase = get(),
+            createKeyForNotebookUseCase = get(),
+            deleteKeyForNotebookUseCase = get(),
+            encryptNotebookUseCase = get(),
+            decryptNotebookUseCase = get(),
+
             notebookPath = notebookPath,
-            securityPreferences = get(),
         )
     }
 
@@ -176,25 +192,23 @@ val koinModule = module {
             deleteNoteUseCase = get(),
             renameNoteUseCase = get(),
             moveNoteUseCase = get(),
-            saveNoteUseCase = get(),
+            saveNoteContentUseCase = get(),
+            updateFullNoteUseCase = get(),
             shareNoteFileUseCase = get(),
-            createNoteUseCase = get(),
-
-            encryptionRepository = get(),
-            securityPreferences = get(),
-            checkNotebookAccessUseCase = get(),
-
             updateNoteDateUseCase = get(),
-
             noteId = noteId,
             notebookPath = notebookPath,
+            unlockNotebookUseCase = get(),
+            preferencesRepository = get(),
+            isNotebookProtectedUseCase = get(),
         )
     }
 
     viewModel {
         SettingsViewModel(
             exportNotesUseCase = get(),
-            importNotesUseCase = get()
+            importNotesUseCase = get(),
+            countEncryptedNotebooksUseCase = get(),
         )
     }
 

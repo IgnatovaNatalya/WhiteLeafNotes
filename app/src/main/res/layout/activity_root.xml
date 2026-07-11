@@ -37,7 +37,6 @@
                 android:src="@drawable/ic_options"
                 app:tint="?attr/android:textColorPrimary" />
 
-
             <ImageButton
                 android:id="@+id/btn_lock_indicator"
                 android:layout_width="wrap_content"
@@ -45,18 +44,7 @@
                 android:layout_gravity="end"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_unlocked"
-                android:visibility="visible"
-                app:tint="?attr/android:textColorPrimary" />
-
-            <ImageButton
-                android:id="@+id/btn_protect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:importantForAccessibility="no"
-                android:src="@drawable/ic_finger"
+                android:src="@drawable/ic_ind_unlocked"
                 android:visibility="visible"
                 app:tint="?attr/android:textColorPrimary" />
 

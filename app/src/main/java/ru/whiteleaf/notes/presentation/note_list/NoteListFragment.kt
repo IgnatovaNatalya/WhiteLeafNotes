@@ -14,7 +14,6 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
@@ -37,7 +36,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private lateinit var noteLinearAdapter: NotesLinearAdapter
     private lateinit var plannerAdapter: NotesGridAdapter
 
-    private lateinit var btnProtectNotebook: ImageButton
     private lateinit var btnLockIndicator: ImageButton
 
     private var navigateToNote = false
@@ -53,11 +51,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        navigateToNote = false
+
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
 
         notebookTitle = args.notebookPath.toString()
 
-        btnProtectNotebook = (requireActivity() as AppCompatActivity).findViewById(R.id.btn_protect)
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
@@ -73,8 +72,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun setupSecurityUI() {
-        btnProtectNotebook.setOnClickListener { viewModel.encryptNotebook() }
-        binding.unlockButton.setOnClickListener { viewModel.unlockNotebook(requireActivity()) }
+        binding.unlockButton.setOnClickListener {
+            viewModel.unlockNotebook(requireActivity())
+        }
     }
 
     private fun setupObservers() {
@@ -85,23 +85,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 viewModel.clearMessage()
             }
         }
-
         viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> navigateEvent(event) }
-
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
-
-        viewModel.encryptionResult.observe(viewLifecycleOwner) { result ->
-            result?.onSuccess {
-                Toast.makeText(requireContext(), "Записная книжка зашифрована", Toast.LENGTH_SHORT)
-                    .show()
-            }?.onFailure {
-                Toast.makeText(
-                    requireContext(),
-                    "Ошибка шифрования: ${it.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
     }
 
     private fun navigateEvent(event: NavigationEvent) {
@@ -109,9 +94,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         when (event) {
             NavigationEvent.Idle -> {}
 
-            is NavigationEvent.ExportLink -> {
-                shareExportFile(event.uri)
-            }
+            is NavigationEvent.ExportLink -> shareExportFile(event.uri)
+
 
             is NavigationEvent.NavigateToNote -> {
                 navigateToNote = true
@@ -122,9 +106,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 navigateToNotebook(event.path)
             }
 
-            NavigationEvent.NavigateUp -> {
-                findNavController().navigateUp()
-            }
+            NavigationEvent.NavigateUp ->  findNavController().navigateUp()
+
+            NavigationEvent.ShowBiometric -> viewModel.unlockNotebook(requireActivity())
         }
         viewModel.onNavigated()
     }
@@ -177,7 +161,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 anchorView = optionsButton,
                 items = ContextMenuHelper.getOptionsMenuItemsNoteList(
                     optionsButton.context,
-                    isProtected = isEncrypted,
+                    isProtected = isEncrypted,///
                     isPlannerView = isPlannerView
                 ),
                 onItemSelected = { itemId ->
@@ -186,6 +170,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                         R.id.options_view_list -> switchViewMode(false)
                         R.id.options_view_planner -> switchViewMode(true)
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
+                        R.id.options_unprotect_notebook -> onOptionsDecryptNotebook()
+                        R.id.options_protect_notebook -> onOptionsEncryptNotebook()
                         R.id.options_share_notebook -> onOptionsShareNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()
                     }
@@ -212,16 +198,19 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun onOptionsRenameNotebook() {
         DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
-        { newName -> viewModel.renameNotebook(newName) }.show()
+        { newName -> viewModel.renameNotebook(newName, requireContext()) }.show()
     }
 
-    private fun onOptionsShareNotebook() = viewModel.shareNotebook()
+    private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook(requireContext())
+    private fun onOptionsDecryptNotebook() = viewModel.decryptNotebook(requireContext())
+
+    private fun onOptionsShareNotebook() = viewModel.shareNotebook(requireContext())
 
     private fun onOptionsDeleteNotebook() {
         DialogHelper.createDeleteNotebookDialog(
             context = requireContext(),
             notebookTitle = notebookTitle,
-            onDeleteConfirmed = { viewModel.deleteNotebook() }
+            onDeleteConfirmed = { viewModel.deleteNotebook(requireContext()) }
         ).show()
     }
 
@@ -273,21 +262,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         findNavController().navigate(action)
     }
 
-    private fun showAuthenticationDialog() {
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Требуется аутентификация")
-            .setMessage("Для доступа к защищенному блокноту требуется отпечаток пальца")
-            .setPositiveButton("Разблокировать") { _, _ ->
-                viewModel.unlockNotebook(requireActivity())
-            }
-            .setNegativeButton("Отмена") { _, _ ->
-                findNavController().navigateUp()
-            }
-            .setCancelable(false)
-            .create()
-        dialog.show()
-    }
-
     private fun renderState(state: NoteListState) {
         println("👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
@@ -317,8 +291,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
                 isEncrypted = state.isEncrypted
                 if (state.isEncrypted) {
-                    btnLockIndicator.setImageResource(R.drawable.ic_unlocked)
+                    btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
+                    btnLockIndicator.setOnClickListener { viewModel.lockNotebook() }
                 } else btnLockIndicator.visibility = View.GONE
 
                 binding.createNote.visibility = View.VISIBLE
@@ -327,16 +302,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             is NoteListState.Blocked -> {
                 println("⏳ Fragment showing Blocked")
                 isEncrypted = true
-
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.VISIBLE
                 binding.createNote.visibility = View.GONE
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
-                btnLockIndicator.setImageResource(R.drawable.ic_locked)
+                btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-                //showAuthenticationDialog()
             }
 
             is NoteListState.Error -> {
@@ -371,11 +344,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onPause() {
         super.onPause()
-        viewModel.onNotebookExited(navigateToNote)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
         viewModel.onNotebookExited(navigateToNote)
     }
 }

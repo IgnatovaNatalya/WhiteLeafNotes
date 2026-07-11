@@ -8,4 +8,5 @@ sealed class NavigationEvent {
     object NavigateUp : NavigationEvent()
     data class NavigateToNotebook(val path: String) : NavigationEvent()
     data class ExportLink(val uri: Uri?) : NavigationEvent()
+    object ShowBiometric: NavigationEvent()
 }

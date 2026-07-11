@@ -11,34 +11,55 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import java.io.File
 import java.io.IOException
 
 class NoteRepositoryImpl(
     private val context: Context,
-    private val noteDataSource: FileNoteDataSource
+    private val noteDataSource: FileNoteDataSource,
+    private val encryptionRepository: EncryptionRepository,
 ) : NotesRepository {
 
     override suspend fun getNotes(notebookPath: String?): List<Note> {
         return withContext(Dispatchers.IO) {
             val dir =
                 notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
+            val isProtected = notebookPath?.let { encryptionRepository.hasKey(it) } ?: false
+
+            // Если блокнот защищён и ключ не разблокирован – сразу бросаем исключение
+            if (isProtected && !encryptionRepository.isUnlocked(notebookPath)) {
+                throw AuthenticationRequiredException("Key is locked for getting notes in notebook $notebookPath")
+            }
 
             noteDataSource.listFilesInDirectory(dir)
                 ?.filter { it.isFile && it.name.endsWith(".txt") }
-                ?.mapNotNull { file ->
+                ?.map { file ->
                     try {
+                        val lastModified = file.lastModified()
                         val name = file.nameWithoutExtension
-                        val content = noteDataSource.readNoteContent(file)
+                        val rawContent = noteDataSource.readNoteContent(file)
+                        val content = if (isProtected) {
+                            encryptionRepository.decryptNote(notebookPath, rawContent)
+                        } else {
+                            rawContent
+                        }
+
                         Note(
                             id = name,
                             title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
                             content = content,
-                            modifiedAt = file.lastModified(),
+                            modifiedAt = lastModified,
                             notebookPath = notebookPath
                         )
-                    } catch (_: Exception) {
-                        null
+                    } catch (e: AuthenticationRequiredException) {
+                        // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+                        throw e
+                    } catch (e: Exception) {
+                        // Любая ошибка при чтении/расшифровке файла прерывает загрузку списка
+                        println("DEBUG: NoteRepositoryImpl get notes: ${e.message}")
+                        throw IOException("Failed to read note ${file.name}", e)
                     }
                 }?.sortedByDescending { it.modifiedAt } ?: emptyList()
         }
@@ -47,15 +68,28 @@ class NoteRepositoryImpl(
     override suspend fun saveNote(note: Note) {
         withContext(Dispatchers.IO) {
             try {
+                val isEncrypted =
+                    if (note.notebookPath != null) encryptionRepository.hasKey(note.notebookPath) else true
+
                 val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                noteDataSource.writeNoteContent(noteFile, note.content)
+
+                val content =
+                    if (note.notebookPath != null && isEncrypted) encryptionRepository.encryptNote(
+                        note.notebookPath,
+                        note.content
+                    )
+                    else note.content
+
+                noteDataSource.writeNoteContent(noteFile, content)
 
                 //записываем в дату обновления файла дату существующую заметки, чтобы даты не слетали при сохранении
                 if (note.modifiedAt > 0) noteDataSource.setNoteDate(
                     noteFile,
                     note.modifiedAt
                 )
-
+            } catch (e: AuthenticationRequiredException) {
+                // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+                throw e
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка сохранения заметки: ${e.message}")
                 throw IOException("Ошибка сохранения заметки: ${e.message}")
@@ -68,7 +102,7 @@ class NoteRepositoryImpl(
             try {
                 noteDataSource.deleteNote(note.notebookPath ?: "", note.id)
             } catch (e: Exception) {
-                Log.e("NoteRepository", "Ошибка удаления заметки: ${e.message}")
+                Log.e("NoteRepositoryImpl", "Ошибка удаления заметки: ${e.message}")
                 throw IOException("Ошибка удаления заметки: ${e.message}")
             }
         }
@@ -189,7 +223,10 @@ class NoteRepositoryImpl(
                 if (!success) {
                     throw IOException("Не удалось обновить дату заметки")
                 }
-                Log.d("NoteRepository", "Дата заметки ${note.id} изменена с ${note.modifiedAt} на $newTimestamp")
+                Log.d(
+                    "NoteRepository",
+                    "Дата заметки ${note.id} изменена с ${note.modifiedAt} на $newTimestamp"
+                )
 
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка обновления даты заметки: ${e.message}")
@@ -209,6 +246,42 @@ class NoteRepositoryImpl(
             val newTimestamp = calendar.timeInMillis
 
             updateNoteDate(note, newTimestamp)
+        }
+    }
+
+    override suspend fun encryptAllNotes(notebookPath: String) {
+        withContext(Dispatchers.IO) {
+            println("DEBUG: NoteRepositoryImpl: start encrypting notes in notebook $notebookPath")
+            val dir = File(noteDataSource.baseDir, notebookPath)
+            val files = noteDataSource.listFilesInDirectory(dir)
+                ?.filter { it.isFile && it.name.endsWith(".txt") } ?: return@withContext
+
+            for (file in files) {
+                val plaintext = noteDataSource.readNoteContent(file)          // исходный текст
+                val encrypted = encryptionRepository.encryptNote(notebookPath, plaintext) // шифруем
+
+                val lastModified = file.lastModified()
+
+                noteDataSource.writeNoteContent(file, encrypted)             // перезаписываем
+                noteDataSource.setNoteDate(file, lastModified)
+            }
+            println("DEBUG: NoteRepositoryImpl: all notes encrypted in notebook $notebookPath")
+        }
+    }
+
+    override suspend fun decryptAllNotes(notebookPath: String) {
+        withContext(Dispatchers.IO) {
+            val dir = File(noteDataSource.baseDir, notebookPath)
+            val files = noteDataSource.listFilesInDirectory(dir)
+                ?.filter { it.isFile && it.name.endsWith(".txt") } ?: return@withContext
+
+            for (file in files) {
+                val encrypted = noteDataSource.readNoteContent(file)
+                val plaintext = encryptionRepository.decryptNote(notebookPath, encrypted)
+                val lastModified = file.lastModified()
+                noteDataSource.writeNoteContent(file, plaintext)
+                noteDataSource.setNoteDate(file, lastModified)
+            }
         }
     }
 }

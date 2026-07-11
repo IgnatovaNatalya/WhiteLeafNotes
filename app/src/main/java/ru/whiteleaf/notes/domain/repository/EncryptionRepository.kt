@@ -1,21 +1,27 @@
 package ru.whiteleaf.notes.domain.repository
 
+import android.content.Context
+
 interface EncryptionRepository {
-    suspend fun encryptNotebook(notebookPath: String): Result<Unit>
-    suspend fun decryptNotebook(notebookPath: String): Result<Unit>
-    suspend fun encryptNote(noteId: String, notebookPath: String?): Result<Unit>
-    suspend fun decryptNote(noteId: String, notebookPath: String?): Result<Unit>
-    fun isNotebookUnlocked(notebookPath: String): Boolean
-    fun lockNotebook(notebookPath: String)
-    fun clearAllKeys()
+    // Управление ключами
+    fun hasKey(notebookPath: String): Boolean
 
-    fun debugKeyInfo(notebookPath: String?)
+    @Throws(Exception::class)
+    fun createKeyForNotebook(notebookPath: String)
 
-    fun getDecryptedContent(noteId: String): String?
-   // fun getDecryptedTitle(noteId: String): String?
-    fun cacheDecryptedContent(noteId: String, content: String, title: String)
-    fun removeFromCache(noteId: String)
-    fun debugKeyStoreState(notebookPath: String)
+    fun deleteKeyForNotebook(notebookPath: String)
 
-    fun clearNotebookKeys(notebookPath: String)
+    // Управление состоянием разблокировки
+    fun isUnlocked(notebookPath: String): Boolean
+
+    suspend fun unlockNotebook(notebookPath: String, context: Context, title: String, reason: String): Boolean
+
+    fun clearUnlockedFlag(notebookPath: String)
+    fun lockAllNotebooks()
+
+    // Криптографические операции над содержимым заметок
+    suspend fun encryptNote(notebookPath: String, plaintext: String): String
+    suspend fun decryptNote(notebookPath: String, ciphertext: String): String
 }
+
+class AuthenticationRequiredException(message: String) : Exception(message)

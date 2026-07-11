@@ -70,17 +70,19 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:itemCount="12"
         android:paddingHorizontal="16dp"
+        android:visibility="gone"
         tools:listitem="@layout/item_planner_note" />
 
     <TextView
         android:id="@+id/empty_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:text="@string/no_notes"
-        android:visibility="gone"
+        android:visibility="visible"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

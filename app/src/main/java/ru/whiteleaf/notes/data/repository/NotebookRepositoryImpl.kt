@@ -6,13 +6,21 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
+import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import java.io.IOException
 
 class NotebookRepositoryImpl(
-    private val notebookDataSource: FileNotebookDataSource
+    private val notebookDataSource: FileNotebookDataSource,
+    private val encryptionRepository: EncryptionRepository,
+    private val preferencesRepository: PreferencesRepository
 ) : NotebookRepository {
 
     override suspend fun getNotebooks(): List<Notebook> {
+
+        val lastOpened = preferencesRepository.getLastOpenedNotebook()
+
         return withContext(Dispatchers.IO) {
             try {
                 notebookDataSource.getAllNotebooks()
@@ -20,8 +28,11 @@ class NotebookRepositoryImpl(
                         Notebook(
                             path = dir.name,
                             createdAt = dir.lastModified(),
-                            noteCount = notebookDataSource.getNoteCount(dir)
-                            //modifiedAt = notebookDataSource.getLastModifiedDate(dir)
+                            noteCount = notebookDataSource.getNoteCount(dir),
+                            //modifiedAt = notebookDataSource.getLastModifiedDate(dir),
+                            isEncrypted = encryptionRepository.hasKey(dir.name),
+                            isUnlocked = encryptionRepository.isUnlocked(dir.name),
+                            isLastOpened = lastOpened == dir.name
                         )
                     }
                 //.sortedByDescending { it.modifiedAt }
@@ -61,9 +72,23 @@ class NotebookRepositoryImpl(
         withContext(Dispatchers.IO) {
             try {
                 val notebookDir = notebookDataSource.getNotebookDir(notebook.path)
+                val isProtected = encryptionRepository.hasKey(notebook.path)
+
+                // Если блокнот защищён и ключ не разблокирован – выбрасываем исключение
+                if (isProtected && !encryptionRepository.isUnlocked(notebook.path)) {
+                    throw AuthenticationRequiredException("Notebook '${notebook.path}' is locked. Biometric authentication required to delete it.")
+                }
+
+                if (isProtected) {
+                    encryptionRepository.clearUnlockedFlag(notebook.path) //убираем из списка разблокированных
+                    encryptionRepository.deleteKeyForNotebook( notebook.path)
+                }
+
                 if (!notebookDataSource.deleteNotebook(notebookDir)) {
                     throw IOException("Не удалось удалить записную книжку")
                 }
+            } catch (e: AuthenticationRequiredException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка удаления записной книжки: ${e.message}")
                 throw IOException("Не удалось удалить записную книжку: ${e.message}")
@@ -124,7 +149,10 @@ class NotebookRepositoryImpl(
             try {
                 notebookDataSource.notebookExists(path)
             } catch (e: Exception) {
-                Log.e("NotebookRepository", "Ошибка проверки существования записной книжки: ${e.message}")
+                Log.e(
+                    "NotebookRepository",
+                    "Ошибка проверки существования записной книжки: ${e.message}"
+                )
                 false
             }
         }

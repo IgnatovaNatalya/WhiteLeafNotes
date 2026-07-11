@@ -7,8 +7,11 @@
     android:fitsSystemWindows="true"
     tools:context=".presentation.note_edit.NoteEditFragment">
 
+
     <ru.whiteleaf.notes.common.classes.CustomNestedScrollView
-        android:id="@+id/scroll_view"
+
+        android:id="@+id/note_edit_scroll_view"
+        android:focusable="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
@@ -80,6 +83,34 @@
         android:indeterminateTint="?attr/colorOnSurface"
         android:visibility="gone" />
 
+    <LinearLayout
+        android:id="@+id/note_in_protected_notebook"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
+            android:gravity="center"
+            android:text="@string/note_is_protected" />
+
+        <Button
+            android:id="@+id/unlockButton"
+            style="@style/StartScreenItemAdd"
+            android:layout_width="150dp"
+            android:layout_height="32dp"
+            android:layout_marginVertical="8dp"
+            android:background="@drawable/bg_button_round"
+            android:padding="0dp"
+            android:textColor="?attr/colorOnPrimary"
+            android:text="@string/unlock" />
+    </LinearLayout>
+
     <ImageButton
         android:id="@+id/note_scroll_down"
         android:layout_width="52dp"
@@ -91,7 +122,7 @@
         android:paddingTop="3dp"
         android:scaleType="centerInside"
         android:src="@drawable/ic_down"
-        app:layout_anchor="@id/scroll_view"
+        app:layout_anchor="@id/note_edit_scroll_view"
         app:layout_anchorGravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
