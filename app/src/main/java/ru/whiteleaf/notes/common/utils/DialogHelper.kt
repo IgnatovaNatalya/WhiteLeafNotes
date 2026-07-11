@@ -19,7 +19,6 @@ import ru.whiteleaf.notes.R
 object DialogHelper {
 
     //export all notes
-
     fun createExportAllDialog(
         context: Context,
         pathToSave: String,
@@ -48,7 +47,7 @@ object DialogHelper {
                 R.plurals.objects_required_count,
                 numberEncrypted,
                 numberEncrypted
-            ) + " биометрию"
+            )
         }
         val swExportEncrypted = view.findViewById<SwitchCompat>(R.id.sw_export_encrypted)
 
@@ -276,7 +275,7 @@ object DialogHelper {
 
             // Автоматически показываем клавиатуру и фокусируем поле
             editText.requestFocus()
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            val imm = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
         }
 

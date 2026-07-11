@@ -52,6 +52,7 @@
         app:trackTint="@drawable/switch_track_selector" />
 
     <LinearLayout
+        android:id="@+id/ll_export_encrypted"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
@@ -60,7 +61,6 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:id="@+id/ll_export_encrypted"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -103,19 +103,6 @@
         android:textAppearance="@style/DialogText"
         app:thumbTint="@drawable/switch_thumb_selector"
         app:trackTint="@drawable/switch_track_selector" />
-
-    <!--EditText
-        android:id="@+id/et_password"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@drawable/bg_rounded_corners"
-        android:drawableStart="@drawable/ic_edit"
-        android:drawablePadding="8dp"
-        android:hint="@string/export_zip_password"
-        android:inputType="textPassword"
-        android:paddingHorizontal="16dp"
-        android:textAppearance="@style/DialogText"
-        android:visibility="invisible"/-->
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/til_password"

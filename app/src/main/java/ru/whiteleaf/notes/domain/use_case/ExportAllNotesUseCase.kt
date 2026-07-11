@@ -18,7 +18,8 @@ class ExportAllNotesUseCase(
     suspend operator fun invoke(
         context: Context,
         exportEncrypted: Boolean,
-        password: String? = null
+        password: String? = null,
+        progressCallback: ExportProgressCallback? = null
     ): Result<Uri> {
         return try {
             val notesToExport = mutableListOf<Note>()
@@ -26,7 +27,7 @@ class ExportAllNotesUseCase(
             val notebooks = notebookRepository.getNotebooks()
 
             for (notebook in notebooks) {
-
+                progressCallback?.onNotebookExportStarted(notebook.name)
                 if (encryptionRepository.hasKey(notebook.path)) {
                     //если зашифрованная
                     if (exportEncrypted) {
@@ -63,4 +64,8 @@ class ExportAllNotesUseCase(
             Result.failure(e)
         }
     }
+}
+
+interface ExportProgressCallback {
+    fun onNotebookExportStarted(notebookName: String)
 }

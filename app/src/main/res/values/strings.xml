@@ -58,10 +58,10 @@
     </plurals>
 
     <plurals name="objects_required_count">
-        <item quantity="one">%d объект потребует</item>
-        <item quantity="few">%d объекта потребуют</item>
-        <item quantity="many">%d объектов потребуют</item>
-        <item quantity="other">%d объектов потребуют</item>
+        <item quantity="one">%d объект потребует биометрию</item>
+        <item quantity="few">%d объекта потребуют биометрию</item>
+        <item quantity="many">%d объектов потребуют биометрию</item>
+        <item quantity="other">%d объектов потребуют биометрию</item>
     </plurals>
 
     <string name="view_mode">Режим отображения</string>

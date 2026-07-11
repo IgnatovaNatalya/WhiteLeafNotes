@@ -12,6 +12,7 @@ import ru.whiteleaf.notes.domain.use_case.ExportAllNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.ImportZipNotesUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.use_case.CountEncryptedNotebooksUseCase
+import ru.whiteleaf.notes.domain.use_case.ExportProgressCallback
 import ru.whiteleaf.notes.presentation.state.ExportState
 import ru.whiteleaf.notes.presentation.state.ImportState
 
@@ -47,9 +48,14 @@ class SettingsViewModel(
         password: String? = null
     ) {
         viewModelScope.launch {
-            _exportState.postValue(ExportState.Loading("Создание архива..."))
+            _exportState.postValue(ExportState.Loading("Подготовка к экспорту"))
             try {
-                val result = exportNotesUseCase(context, exportEncrypted, password)
+                val result = exportNotesUseCase(context, exportEncrypted, password,
+                    progressCallback = object : ExportProgressCallback {
+                        override fun onNotebookExportStarted(notebookName: String) {
+                            _exportState.postValue(ExportState.Loading("Экспорт: $notebookName"))
+                        }
+                    })
                 if (result.isSuccess) {
                     _exportState.postValue(ExportState.Success(if (shareFile) result.getOrNull() else null))
                 } else {

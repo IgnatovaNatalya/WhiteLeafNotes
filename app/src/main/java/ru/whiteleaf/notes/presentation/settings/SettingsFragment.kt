@@ -43,17 +43,9 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         binding.tvImport.setOnClickListener {
             openFilePicker()
         }
-//        binding.usePassword.setOnCheckedChangeListener { _, isChecked ->
-//            binding.exportPassword.visibility = if (isChecked) View.VISIBLE else View.GONE
-//        }
-
     }
 
     private fun setupObservers() {
-//
-//        viewModel.exportPath.observe(viewLifecycleOwner) { path ->
-//            binding.folderPath.text = path
-//        }
 
         viewModel.exportState.observe(viewLifecycleOwner) { state ->
             when (state) {
@@ -87,7 +79,6 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
     private fun renderImportStateSuccess() {
         binding.tvImport.isEnabled = true
         showToast("Импорт выполнен успешно")
-
     }
 
     private fun renderImportStateLoading() {
