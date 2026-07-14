@@ -16,6 +16,7 @@ import ru.whiteleaf.notes.databinding.FragmentStartBinding
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.data.model.RecentNote
 
 class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteActionHandler,
     ContextNotebookActionHandler {
@@ -43,6 +44,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     private fun setupRecyclerView() {
         val adapter = StartAdapter(
+            onRecentNoteClicked = { recentNote -> navigateToRecentNote(recentNote)},
             onNotebookClicked = { notebook -> navigateToNotebook(notebook) },
             onNoteClicked = { note -> navigateToNote(note) },
             onAddNotebookClicked = {
@@ -101,6 +103,14 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                 viewModel.clearMessage()
             }
         }
+    }
+
+    private fun navigateToRecentNote(note: RecentNote) {
+        val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
+            noteId = note.id,
+            notebookPath = note.notebookPath
+        )
+        findNavController().navigate(action)
     }
 
     private fun navigateToNotebook(notebook: Notebook) {

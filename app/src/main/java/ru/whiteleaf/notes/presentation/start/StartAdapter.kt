@@ -9,9 +9,11 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
 import ru.whiteleaf.notes.common.interfaces.ContextNotebookActionHandler
+import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.model.Note
 
 class StartAdapter(
+    private val onRecentNoteClicked: (RecentNote) -> Unit,
     private val onNotebookClicked: (Notebook) -> Unit,
     private val onNoteClicked: (Note) -> Unit,
     private val onAddNotebookClicked: () -> Unit,
@@ -22,6 +24,7 @@ class StartAdapter(
 
     companion object {
         private const val TYPE_HEADER = 0
+        private const val TYPE_RECENT_NOTE = 7
         private const val TYPE_NOTEBOOK = 1
         private const val TYPE_NOTE = 2
         private const val TYPE_ADD_NOTEBOOK = 3
@@ -33,12 +36,14 @@ class StartAdapter(
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
             is StartListItem.Header -> TYPE_HEADER
+            is StartListItem.RecentNoteItem -> TYPE_RECENT_NOTE
             is StartListItem.NotebookItem -> TYPE_NOTEBOOK
             is StartListItem.NoteItem -> TYPE_NOTE
             is StartListItem.AddNotebookButton -> TYPE_ADD_NOTEBOOK
             is StartListItem.AddNoteButton -> TYPE_ADD_NOTE
             is StartListItem.Divider -> TYPE_DIVIDER
             is StartListItem.EmptyNotebooks, is StartListItem.EmptyNotes, is StartListItem.Spacing -> TYPE_EMPTY
+
         }
     }
 
@@ -47,6 +52,12 @@ class StartAdapter(
             TYPE_HEADER -> HeaderViewHolder(
                 LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_start_header, parent, false)
+            )
+
+            TYPE_RECENT_NOTE -> RecentNoteViewHolder(
+                LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_start_recent, parent, false),
+                onRecentNoteClicked
             )
 
             TYPE_NOTEBOOK -> NotebookViewHolder(
@@ -92,6 +103,7 @@ class StartAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
             is StartListItem.Header -> (holder as HeaderViewHolder).bind(item.title)
+            is StartListItem.RecentNoteItem -> (holder as RecentNoteViewHolder).bind(item.recentNote)
             is StartListItem.NotebookItem -> (holder as NotebookViewHolder).bind(item.notebook)
             is StartListItem.NoteItem -> (holder as NoteViewHolder).bind(item.note)
             is StartListItem.AddNotebookButton -> (holder as AddButtonViewHolder).bind()
@@ -106,6 +118,11 @@ class StartAdapter(
     class StartDiffCallback : DiffUtil.ItemCallback<StartListItem>() {
         override fun areItemsTheSame(oldItem: StartListItem, newItem: StartListItem): Boolean {
             return when {
+
+                oldItem is StartListItem.RecentNoteItem && newItem is StartListItem.RecentNoteItem ->
+                    oldItem.recentNote.title == newItem.recentNote.notebookPath &&
+                            oldItem.recentNote.title == newItem.recentNote.title
+
                 oldItem is StartListItem.NotebookItem && newItem is StartListItem.NotebookItem ->
                     oldItem.notebook.path == newItem.notebook.path
 

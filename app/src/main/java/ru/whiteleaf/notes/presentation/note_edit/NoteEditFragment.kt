@@ -354,6 +354,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             )
         }
 
+        viewModel.saveToRecent()
+
         println("Debug: NoteEditFragment: Paused")
     }
 

@@ -3,6 +3,7 @@ package ru.whiteleaf.notes.di
 
 import android.content.ContentResolver
 import android.content.Context
+import com.google.gson.Gson
 import ru.whiteleaf.notes.data.repository.NoteRepositoryImpl
 import ru.whiteleaf.notes.data.repository.NotebookRepositoryImpl
 import ru.whiteleaf.notes.data.repository.EncryptionRepositoryImpl
@@ -49,9 +50,11 @@ import ru.whiteleaf.notes.domain.use_case.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DecryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.DeleteKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.EncryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.IsNotebookUnlockedUseCase
 import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
@@ -81,14 +84,15 @@ val koinModule = module {
         }
     }
 
+    //Gson
+    single<Gson> { Gson() }
+
     // Repositories
     single<NotesRepository> { NoteRepositoryImpl(get(), get(), get()) }
     single<NotebookRepository> { NotebookRepositoryImpl(get(), get(), get()) }
     single<ExportRepository> { ExportRepositoryImpl(get(), get()) }
-
     single<EncryptionRepository> { EncryptionRepositoryImpl(get()) }
-
-    single<PreferencesRepository> { PreferencesRepositoryImpl(get()) }
+    single<PreferencesRepository> { PreferencesRepositoryImpl(get(), get()) }
 
     // Use cases
     factory { GetNotesUseCase(get()) }
@@ -129,6 +133,9 @@ val koinModule = module {
     factory { EncryptNotebookUseCase(get()) }
     factory { CountEncryptedNotebooksUseCase(get(), get()) }
 
+    factory { GetRecentNotesUseCase(get(), get()) }
+    factory { SaveRecentNoteUseCase(get()) }
+
     //interactor
     factory { PreferencesInteractor(get()) }
 
@@ -147,6 +154,7 @@ val koinModule = module {
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
             unlockNotebookUseCase = get(),
+            getRecentNotesUseCase = get()
         )
     }
 
@@ -201,6 +209,7 @@ val koinModule = module {
             unlockNotebookUseCase = get(),
             preferencesRepository = get(),
             isNotebookProtectedUseCase = get(),
+            saveRecentNoteUseCase = get(),
         )
     }
 

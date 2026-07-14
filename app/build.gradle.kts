@@ -73,4 +73,7 @@ dependencies {
     //zip with password
     implementation(libs.zip4j)
 
+    //для недавних
+    implementation(libs.gson)
+
 }

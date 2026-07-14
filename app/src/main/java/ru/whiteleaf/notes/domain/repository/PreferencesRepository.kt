@@ -1,5 +1,8 @@
 package ru.whiteleaf.notes.domain.repository
 
+import ru.whiteleaf.notes.data.model.RecentNoteData
+import ru.whiteleaf.notes.domain.model.Note
+
 interface PreferencesRepository {
     fun saveLastOpenedNotebook(notebookPath: String)
     fun getLastOpenedNotebook():String?
@@ -13,4 +16,8 @@ interface PreferencesRepository {
         noteId: String,
         notebookPath: String
     ): Int?   // null – нет сохранённой позиции
+
+    fun getRecentNoteDataList(): List<RecentNoteData>
+    fun saveRecentNote(note:Note)
+
 }

@@ -18,8 +18,10 @@ import ru.whiteleaf.notes.domain.use_case.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.ShareNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
+import ru.whiteleaf.notes.domain.use_case.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import kotlin.collections.forEach
 
@@ -34,7 +36,8 @@ class StartViewModel(
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
-    private val unlockNotebookUseCase: UnlockNotebookUseCase
+    private val unlockNotebookUseCase: UnlockNotebookUseCase,
+    private val getRecentNotesUseCase: GetRecentNotesUseCase
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -64,6 +67,7 @@ class StartViewModel(
 
         viewModelScope.launch {
             try {
+                val recent = getRecentNotesUseCase()
                 val notebooks = getNotebooksUseCase()
                 val rootNotes = getNotesUseCase(null) // Заметки в корневой папке
 
@@ -74,7 +78,7 @@ class StartViewModel(
                     }
                 }
 
-                val items = buildStartItems(notebooks, rootNotes.filter { it.isNotEmpty() })
+                val items = buildStartItems(recent, notebooks, rootNotes.filter { it.isNotEmpty() })
                 _startItems.value = items
             } catch (e: Exception) {
                 _message.value = "Ошибка загрузки данных: ${e.message}"
@@ -85,10 +89,19 @@ class StartViewModel(
     }
 
     private fun buildStartItems(
+        recent: List<RecentNote>,
         notebooks: List<Notebook>,
         rootNotes: List<Note>
     ): List<StartListItem> {
         val items = mutableListOf<StartListItem>()
+
+        // Секция Недавние
+        if (recent.isNotEmpty()) {
+            items.add(StartListItem.Header("НЕДАВНИЕ"))
+            recent.forEach { note ->
+                items.add(StartListItem.RecentNoteItem(note))
+            }
+        }
 
         // Секция записных книжек
         items.add(StartListItem.Header("ЗАПИСНЫЕ КНИЖКИ"))

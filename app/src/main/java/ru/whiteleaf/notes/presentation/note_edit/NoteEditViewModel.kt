@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
+import ru.whiteleaf.notes.domain.use_case.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateNoteDateUseCase
@@ -38,7 +39,8 @@ class NoteEditViewModel(
     private val notebookPath: String?,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
     private val preferencesRepository: PreferencesRepository,
-    private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase
+    private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
+    private val saveRecentNoteUseCase: SaveRecentNoteUseCase
 ) : ViewModel() {
 
     private val _noteEditState = MutableLiveData<NoteEditState>()
@@ -196,20 +198,17 @@ class NoteEditViewModel(
                 showMessage("Ошибка сохранения заметки: ${e.message}")
             }
         }
-//
-//        viewModelScope.launch {
-//            try {
-//                updateNoteTitle(newTitle)
-//                updateNoteContent(content)
-//            } catch (e: AuthenticationRequiredException) {
-//                _noteEditState.value = NoteEditState.Blocked
-//                println("DEBUG: NoteEditVM: Authentication required while updating full note: ${e.message}")
-//            } catch (e: Exception) {
-//                println("DEBUG: NoteEditVM: Error updating full note")
-//                showMessage("Ошибка сохранения заметки: ${e.message}")
-//            }
-//        }
-//
+    }
+
+    fun saveToRecent() {
+        viewModelScope.launch {
+            try {
+                val currentNote = _note.value ?: return@launch
+                saveRecentNoteUseCase(currentNote)
+            } catch (e: Exception) {
+                println("DEBUG: NoteEditVM: Error saving note to recent: ${e.message}")
+            }
+        }
     }
 
     fun shareNoteFile() { ///
@@ -289,7 +288,6 @@ class NoteEditViewModel(
             }
         }
     }
-
 
     fun refreshNote() = loadNote()
 
