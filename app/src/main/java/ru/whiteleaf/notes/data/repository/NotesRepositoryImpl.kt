@@ -11,7 +11,6 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import java.io.File
@@ -209,25 +208,16 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun getRecentNoteInNotebookById(
+    override suspend fun getRecentNoteTitle(
         notebookPath: String,
         noteId: String
-    ): RecentNote {
-        val notefile = noteDataSource.getNoteFile(notebookPath, noteId)
-
+    ): String {
+        val name = noteDataSource.getNoteFile(notebookPath, noteId).nameWithoutExtension
         return try {
-            val lastModified = notefile.lastModified()
-            val name = notefile.nameWithoutExtension
-
-            RecentNote(
-                id = name,
-                title = if (name.startsWith(FILE_NAME_PREFIX)) "Без названия" else name,
-                modifiedAt = lastModified,
-                notebookPath = notebookPath
-            )
+            if (name.startsWith(FILE_NAME_PREFIX)) "Без названия" else name
         } catch (e: Exception) {
-            println("DEBUG: NoteRepositoryImpl getRecentNoteInNotebookById: ${e.message}")
-            throw IOException("Failed to get  ${notefile.name}", e)
+            println("DEBUG: NoteRepositoryImpl getRecentNoteTitle: ${e.message}")
+            throw IOException("Failed to get  ${name}", e)
         }
     }
 

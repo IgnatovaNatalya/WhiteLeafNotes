@@ -23,15 +23,11 @@ import ru.whiteleaf.notes.common.utils.ShareHelper
 import ru.whiteleaf.notes.common.utils.TextWatcherManager
 import ru.whiteleaf.notes.databinding.FragmentNoteEditBinding
 import ru.whiteleaf.notes.domain.model.Note
-import kotlin.time.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
-import ru.whiteleaf.notes.common.utils.DateHelper
+import ru.whiteleaf.notes.common.utils.formatDate
 import java.util.Calendar
-import kotlin.time.ExperimentalTime
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
@@ -371,11 +367,4 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         imm.showSoftInput(contentEditText, InputMethodManager.SHOW_IMPLICIT)
     }
 
-    @OptIn(ExperimentalTime::class)
-    private fun formatDate(timestamp: Long): String {
-        val date = Instant.fromEpochMilliseconds(timestamp)
-            .toLocalDateTime(TimeZone.currentSystemDefault())
-
-        return "${date.day} ${DateHelper.getMonthName(date.month)} ${date.year}"
-    }
 }

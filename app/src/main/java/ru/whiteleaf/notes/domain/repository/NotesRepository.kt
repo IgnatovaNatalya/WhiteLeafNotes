@@ -1,7 +1,6 @@
 package ru.whiteleaf.notes.domain.repository
 
 import android.net.Uri
-import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 
@@ -21,5 +20,5 @@ interface NotesRepository {
     suspend fun encryptAllNotes(notebookPath: String)
     suspend fun decryptAllNotes(notebookPath: String)
 
-    suspend fun getRecentNoteInNotebookById(notebookPath: String, noteId: String): RecentNote
+    suspend fun getRecentNoteTitle(notebookPath: String, noteId: String): String
 }

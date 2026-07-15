@@ -3,30 +3,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
+    android:layout_height="46dp"
     android:clickable="true"
     android:gravity="center_vertical"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:paddingHorizontal="16dp"
     android:paddingVertical="4dp">
 
-    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/note_title"
-        style="@style/StartScreenItemTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="fdsfdsfdsf"
-        android:textColor="?android:attr/textColorPrimary"
-        tools:text="Заметка с длинным названием которое не помещается на экран целиком" />
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/note_title"
+            style="@style/StartScreenItemTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="fdsfdsfdsf"
+            android:textColor="?android:attr/textColorPrimary"
+            tools:text="Заметка с длинным названием которое не помещается на экран целиком" />
+
+        <TextView
+            android:id="@+id/notebook_title"
+            style="@style/StartScreenItemNotebookCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?android:attr/textColorSecondary"
+            tools:text="/Работа" />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/notebook_title"
-        style="@style/StartScreenItemNotebookCount"
+        android:id="@+id/note_date"
+        style="@style/StartScreenItemHeader"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="?android:attr/textColorSecondary"
-        tools:text="/Работа" />
+        android:layout_height="match_parent"
+        android:text="Вчера"
+        android:gravity="center_vertical"
+        android:layout_marginStart="16dp"
+        android:textColor="?android:attr/textColorSecondary" />
+
 </LinearLayout>

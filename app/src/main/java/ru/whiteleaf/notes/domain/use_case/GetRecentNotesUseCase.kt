@@ -8,18 +8,18 @@ class GetRecentNotesUseCase(
     private val preferencesRepository: PreferencesRepository,
     private val notesRepository: NotesRepository
 ) {
-    suspend operator fun invoke():List<RecentNote> {
-//        val recentNotes = mutableListOf<RecentNote>()
-//        val recentNoteDataList = preferencesRepository.getRecentNoteDataList()
-//        for (recentEntry in recentNoteDataList) {
-//            val recentNote = notesRepository.getRecentNoteInNotebookById(recentEntry.notebookPath, recentEntry.id)
-//            recentNotes.add(recentNote)
-//        }
-//        return recentNotes.toList()
-
+    suspend operator fun invoke(): List<RecentNote> {
         return preferencesRepository.getRecentNoteDataList()
             .map { recentEntry ->
-                notesRepository.getRecentNoteInNotebookById(recentEntry.notebookPath, recentEntry.id)
+                RecentNote(
+                    id = recentEntry.id,
+                    title = notesRepository.getRecentNoteTitle(
+                        recentEntry.notebookPath,
+                        recentEntry.id,
+                    ),
+                    notebookPath = recentEntry.notebookPath,
+                    recentDate = recentEntry.recentDate
+                )
             }
     }
 }
