@@ -111,7 +111,7 @@ class NoteRepositoryImpl(
     override suspend fun moveNote(note: Note, targetNotebookPath: String?) {
         withContext(Dispatchers.IO) {
             try {
-                val sourceFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
+                val sourceFile = noteDataSource.getNoteFile(note.notebookPath, note.id)
                 val targetDir = if (targetNotebookPath != null) {
                     File(noteDataSource.baseDir, targetNotebookPath).apply {
                         noteDataSource.createDirectory(this)
@@ -199,7 +199,7 @@ class NoteRepositoryImpl(
         return allNotes
     }
 
-    override suspend fun existsNote(notebookPath: String, noteId: String): Boolean {
+    override suspend fun existsNote(notebookPath: String?, noteId: String): Boolean {
         return try {
             noteDataSource.existsNote(notebookPath, noteId)
         } catch (_: Exception) {
@@ -209,7 +209,7 @@ class NoteRepositoryImpl(
     }
 
     override suspend fun getRecentNoteTitle(
-        notebookPath: String,
+        notebookPath: String?,
         noteId: String
     ): String {
         val name = noteDataSource.getNoteFile(notebookPath, noteId).nameWithoutExtension

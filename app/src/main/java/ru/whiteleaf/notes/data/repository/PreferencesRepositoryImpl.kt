@@ -38,12 +38,16 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
 
     override fun saveNoteScrollPosition(noteId: String, notebookPath: String, scrollY: Int) {
         val key = makeScrollKey(noteId, notebookPath)
-        prefs.edit().putInt(key, scrollY).apply()
+        prefs.edit { putInt(key, scrollY) }
     }
 
     override fun getNoteScrollPosition(noteId: String, notebookPath: String): Int? {
         val key = makeScrollKey(noteId, notebookPath)
         return if (prefs.contains(key)) prefs.getInt(key, 0) else null
+    }
+
+    private fun makeScrollKey(noteId: String, notebookPath: String): String {
+        return "$KEY_NOTE_SCROLL_POSITION_PREFIX${notebookPath}_${noteId}"
     }
 
     private val noteType = object : TypeToken<List<RecentNoteData>>() {}.type
@@ -53,7 +57,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         val currentList = getRecentNoteDataList().toMutableList()
 
         // Проверяем, есть ли уже такая заметка
-        val existingIndex = currentList.indexOfFirst { it.id == note.id }
+        val existingIndex = currentList.indexOfFirst { it.id == note.id && it.notebookPath == note.notebookPath }
 
         when {
             // Если заметка уже первая - ничего не делаем
@@ -79,7 +83,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
 
         // Сохраняем обновленный список
         val json = gson.toJson(currentList)
-        prefs.edit().putString(KEY_RECENT_NOTES, json).apply()
+        prefs.edit { putString(KEY_RECENT_NOTES, json) }
     }
 
     override fun getRecentNoteDataList(): List<RecentNoteData> {
@@ -91,8 +95,29 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         }
     }
 
+    override fun updateRecentNoteNotebookPath(
+        noteId: String,
+        oldNotebookPath: String?,
+        newNotebookPath: String?
+    ): Boolean {
+        val currentList = getRecentNoteDataList().toMutableList()
+        val index =
+            currentList.indexOfFirst { it.id == noteId && it.notebookPath == oldNotebookPath }
 
-    private fun makeScrollKey(noteId: String, notebookPath: String): String {
-        return "$KEY_NOTE_SCROLL_POSITION_PREFIX${notebookPath}_${noteId}"
+        return if (index != -1) {
+            val oldEntry = currentList[index]
+            val updatedEntry = RecentNoteData(
+                id = oldEntry.id,
+                notebookPath = newNotebookPath,
+                recentDate = oldEntry.recentDate
+            )
+            currentList[index] = updatedEntry
+
+            val json = gson.toJson(currentList)
+            prefs.edit { putString(KEY_RECENT_NOTES, json) }
+            true
+        } else {
+            false
+        }
     }
 }

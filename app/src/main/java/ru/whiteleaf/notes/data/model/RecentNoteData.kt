@@ -4,7 +4,7 @@ import ru.whiteleaf.notes.domain.model.Note
 
 data class RecentNoteData(
     val id: String,
-    val notebookPath: String,
+    val notebookPath: String?,
     val recentDate: Long = 0
 ) {
     companion object {

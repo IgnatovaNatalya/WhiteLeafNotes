@@ -102,7 +102,7 @@ val koinModule = module {
     factory { SaveNoteContentUseCase(get()) }
     factory { UpdateFullNoteUseCase(get(), get()) }
     factory { DeleteNoteUseCase(get()) }
-    factory { MoveNoteUseCase(get()) }
+    factory { MoveNoteUseCase(get(), get()) }
 
     factory { ShareNoteFileUseCase(get()) }
 

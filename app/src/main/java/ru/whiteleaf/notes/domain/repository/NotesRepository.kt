@@ -12,7 +12,7 @@ interface NotesRepository {
     suspend fun renameNote(note: Note, newName: String): String
     suspend fun shareNoteFile(note: Note): Uri?
     suspend fun getAllNotes(notebooks: List<Notebook>): List<Note>
-    suspend fun existsNote(notebookPath: String, noteId: String): Boolean
+    suspend fun existsNote(notebookPath: String?, noteId: String): Boolean
 
     suspend fun updateNoteDate(note: Note, newTimestamp: Long)
     suspend fun moveNoteToMonth(note: Note, year: Int, month: Int)
@@ -20,5 +20,5 @@ interface NotesRepository {
     suspend fun encryptAllNotes(notebookPath: String)
     suspend fun decryptAllNotes(notebookPath: String)
 
-    suspend fun getRecentNoteTitle(notebookPath: String, noteId: String): String
+    suspend fun getRecentNoteTitle(notebookPath: String?, noteId: String): String
 }

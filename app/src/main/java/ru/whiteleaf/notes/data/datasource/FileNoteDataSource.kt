@@ -18,8 +18,8 @@ class FileNoteDataSource(
         }
     }
 
-    fun getNoteFile(notebookPath: String, noteId: String): File {
-        val dir = if (notebookPath.isNotEmpty()) {
+    fun getNoteFile(notebookPath: String?, noteId: String): File {
+        val dir = if (!notebookPath.isNullOrEmpty()) {
             File(baseDir, notebookPath).apply {
                 if (!exists()) {
                     mkdirs()
@@ -32,7 +32,7 @@ class FileNoteDataSource(
     }
 
     // Удаление заметки
-    fun deleteNote(notebookPath: String, noteId: String): Boolean {
+    fun deleteNote(notebookPath: String?, noteId: String): Boolean {
         val file = getNoteFile(notebookPath, noteId)
         return if (file.exists()) {
             file.delete()
@@ -42,7 +42,7 @@ class FileNoteDataSource(
     }
 
     // Проверка существования файла
-    fun existsNote(notebookPath: String, noteId: String): Boolean {
+    fun existsNote(notebookPath: String?, noteId: String): Boolean {
         val file = getNoteFile(notebookPath, noteId)
         return file.exists()
     }
