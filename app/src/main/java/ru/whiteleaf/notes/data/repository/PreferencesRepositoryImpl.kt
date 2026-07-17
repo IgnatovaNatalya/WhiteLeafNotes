@@ -151,26 +151,28 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         oldNoteId: String,
         newNoteId: String,
         notebookPath: String?
-    ) {
+    ) : Boolean {
         val currentList = getRecentNotes().toMutableList()
         val normalizedPath = notebookPath ?: ""
 
         val index =
             currentList.indexOfFirst { it.id == oldNoteId && it.notebookPath == normalizedPath }
 
-        if (index != -1) {
+        return if (index != -1) {
             val oldEntry = currentList[index]
             val updatedEntry = RecentNote(
                 id = newNoteId,
                 recentTitle = newNoteId,
-                notebookPath = normalizedPath,
+                notebookPath = oldEntry.notebookPath,
                 recentDate = oldEntry.recentDate,
             )
             currentList[index] = updatedEntry
 
             val json = gson.toJson(currentList)
             prefs.edit { putString(KEY_RECENT_NOTES, json) }
+            true
         }
+        else false
     }
 
     override fun removeRecentNotesByNotebookPath(notebookPath: String) {

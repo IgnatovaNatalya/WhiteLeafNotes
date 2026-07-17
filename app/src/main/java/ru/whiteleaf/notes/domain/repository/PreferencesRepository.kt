@@ -5,7 +5,7 @@ import ru.whiteleaf.notes.domain.model.Note
 
 interface PreferencesRepository {
     fun saveLastOpenedNotebook(notebookPath: String)
-    fun getLastOpenedNotebook():String?
+    fun getLastOpenedNotebook(): String?
 
     fun saveViewMode(notebookPath: String, isPlannerMode: Boolean)
     fun getViewMode(notebookPath: String, defaultIsPlanner: Boolean = false): Boolean
@@ -18,9 +18,15 @@ interface PreferencesRepository {
     ): Int?   // null – нет сохранённой позиции
 
     fun getRecentNotes(): List<RecentNote>
-    fun saveNoteToRecent(note:Note)
-    fun updateRecentNoteNotebookPath(noteId: String, oldNotebookPath: String?, newNotebookPath: String?): Boolean
-    fun updateRecentNoteTitle(oldNoteId:String, newNoteId:String, notebookPath:String?)
+    fun saveNoteToRecent(note: Note)
+    fun updateRecentNoteNotebookPath(
+        noteId: String,
+        oldNotebookPath: String?,
+        newNotebookPath: String?
+    ): Boolean
+
+    fun updateRecentNoteTitle(oldNoteId: String, newNoteId: String, notebookPath: String?): Boolean
+
     fun removeRecentNotesByNotebookPath(notebookPath: String)
     fun removeRecentNote(noteId: String, notebookPath: String?)
 }

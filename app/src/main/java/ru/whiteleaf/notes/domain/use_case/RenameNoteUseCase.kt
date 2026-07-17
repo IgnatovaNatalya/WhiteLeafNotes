@@ -11,7 +11,8 @@ class RenameNoteUseCase(
 ) {
     suspend operator fun invoke(note: Note, newName: String): String {
         val clearTitle = sanitizeFileName(newName)
-        preferencesRepository.updateRecentNoteTitle(note.title, clearTitle, note.notebookPath)
+        if (!preferencesRepository.updateRecentNoteTitle(note.title, clearTitle, note.notebookPath))
+            preferencesRepository.saveNoteToRecent(note.copy(id = newName))
         return repository.renameNote(note, clearTitle)
     }
 }
