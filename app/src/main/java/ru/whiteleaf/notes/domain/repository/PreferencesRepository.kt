@@ -20,5 +20,5 @@ interface PreferencesRepository {
     fun getRecentNoteDataList(): List<RecentNoteData>
     fun saveRecentNote(note:Note)
     fun updateRecentNoteNotebookPath(noteId: String, oldNotebookPath: String?, newNotebookPath: String?): Boolean
-
+    fun updateRecentNoteTitle(oldNoteId:String, newNoteId:String, notebookPath:String?)
 }

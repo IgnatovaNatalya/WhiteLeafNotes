@@ -125,4 +125,30 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
             false
         }
     }
+
+    override fun updateRecentNoteTitle(
+        oldNoteId: String,
+        newNoteId: String,
+        notebookPath: String?
+    ) {
+        val currentList = getRecentNoteDataList().toMutableList()
+
+        val normalizedPath = notebookPath ?: ""
+
+        val index =
+            currentList.indexOfFirst { it.id == oldNoteId && it.notebookPath == normalizedPath }
+
+        if (index != -1) {
+            val oldEntry = currentList[index]
+            val updatedEntry = RecentNoteData(
+                id = newNoteId,
+                notebookPath = normalizedPath,
+                recentDate = oldEntry.recentDate
+            )
+            currentList[index] = updatedEntry
+
+            val json = gson.toJson(currentList)
+            prefs.edit { putString(KEY_RECENT_NOTES, json) }
+        }
+    }
 }
