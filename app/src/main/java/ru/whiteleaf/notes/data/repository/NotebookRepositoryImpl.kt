@@ -73,9 +73,11 @@ class NotebookRepositoryImpl(
             try {
                 val notebookDir = notebookDataSource.getNotebookDir(notebook.path)
                 val isProtected = encryptionRepository.hasKey(notebook.path)
+                val isMarkedAsUnlocked = encryptionRepository.isUnlocked(notebook.path)
 
+                println("DEBUG: Notebook repository: deleteNotebook: isProtected=$isProtected isMarkedAsUnlocked=$isMarkedAsUnlocked")
                 // Если блокнот защищён и ключ не разблокирован – выбрасываем исключение
-                if (isProtected && !encryptionRepository.isUnlocked(notebook.path)) {
+                if (isProtected && !isMarkedAsUnlocked) {
                     throw AuthenticationRequiredException("Notebook '${notebook.path}' is locked. Biometric authentication required to delete it.")
                 }
 
@@ -83,14 +85,18 @@ class NotebookRepositoryImpl(
                     encryptionRepository.clearUnlockedFlag(notebook.path) //убираем из списка разблокированных
                     encryptionRepository.deleteKeyForNotebook( notebook.path)
                 }
+                println("DEBUG: Notebook repository: start delete notebook")
 
                 if (!notebookDataSource.deleteNotebook(notebookDir)) {
                     throw IOException("Не удалось удалить записную книжку")
                 }
+                println("DEBUG: Notebook repository: notebook deleted")
+
             } catch (e: AuthenticationRequiredException) {
+                println("DEBUG: Notebook repository: AuthenticationRequiredException: ${e.message}")
                 throw e
             } catch (e: Exception) {
-                Log.e("NotebookRepository", "Ошибка удаления записной книжки: ${e.message}")
+                println("DEBUG: Notebook repository: Ошибка удаления записной книжки: ${e.message}")
                 throw IOException("Не удалось удалить записную книжку: ${e.message}")
             }
         }

@@ -6,7 +6,7 @@ import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import ru.whiteleaf.notes.data.model.RecentNoteData
+import ru.whiteleaf.notes.data.model.RecentNote
 
 class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private val gson: Gson) :
     PreferencesRepository {
@@ -50,15 +50,35 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         return "$KEY_NOTE_SCROLL_POSITION_PREFIX${notebookPath}_${noteId}"
     }
 
-    private val noteType = object : TypeToken<List<RecentNoteData>>() {}.type
+    private val noteType = object : TypeToken<List<RecentNote>>() {}.type
 
-    override fun saveRecentNote(note: Note) {
+    override fun saveNoteToRecent(note: Note) { //просто сохраняем сверху
         // Получаем текущий список
-        val currentList = getRecentNoteDataList().toMutableList()
+        val currentList = getRecentNotes().toMutableList()
+
+        println("DEBUG: PreferencesRepositoryImpl saveNoteToRecent ${note.id}")
+
+        // Добавляем в начало
+        currentList.add(0, RecentNote.fromNote(note))
+
+        // Если больше MAX_SIZE, удаляем последний
+        if (currentList.size > MAX_SIZE) {
+            currentList.removeAt(currentList.size - 1)
+        }
+        // Сохраняем обновленный список
+        val json = gson.toJson(currentList)
+        prefs.edit { putString(KEY_RECENT_NOTES, json) }
+    }
+
+
+    fun saveRecentNoteOld(note: Note) {
+        // Получаем текущий список
+        val currentList = getRecentNotes().toMutableList()
         val normalizedPath = note.notebookPath ?: ""
 
         // Проверяем, есть ли уже такая заметка
-        val existingIndex = currentList.indexOfFirst { it.id == note.id && it.notebookPath == normalizedPath }
+        val existingIndex =
+            currentList.indexOfFirst { it.id == note.id && it.notebookPath == normalizedPath }
 
         when {
             // Если заметка уже первая - ничего не делаем
@@ -67,13 +87,13 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
             // Если заметка есть в списке - перемещаем в начало
             existingIndex > 0 -> {
                 currentList.removeAt(existingIndex)
-                currentList.add(0, RecentNoteData.fromNote(note))
+                currentList.add(0, RecentNote.fromNote(note))
             }
 
             // Если заметки нет в списке
             else -> {
                 // Добавляем в начало
-                currentList.add(0, RecentNoteData.fromNote(note))
+                currentList.add(0, RecentNote.fromNote(note))
 
                 // Если больше MAX_SIZE, удаляем последний
                 if (currentList.size > MAX_SIZE) {
@@ -87,7 +107,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         prefs.edit { putString(KEY_RECENT_NOTES, json) }
     }
 
-    override fun getRecentNoteDataList(): List<RecentNoteData> {
+    override fun getRecentNotes(): List<RecentNote> {
         val json = prefs.getString(KEY_RECENT_NOTES, null) ?: return emptyList()
         return try {
             gson.fromJson(json, noteType) ?: emptyList()
@@ -101,7 +121,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         oldNotebookPath: String?,
         newNotebookPath: String?
     ): Boolean {
-        val currentList = getRecentNoteDataList().toMutableList()
+        val currentList = getRecentNotes().toMutableList()
 
         val normalizedOldPath = oldNotebookPath ?: ""
         val normalizedNewPath = newNotebookPath ?: ""
@@ -111,8 +131,9 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
 
         return if (index != -1) {
             val oldEntry = currentList[index]
-            val updatedEntry = RecentNoteData(
+            val updatedEntry = RecentNote(
                 id = oldEntry.id,
+                recentTitle = oldEntry.recentTitle,
                 notebookPath = normalizedNewPath,
                 recentDate = oldEntry.recentDate
             )
@@ -131,8 +152,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         newNoteId: String,
         notebookPath: String?
     ) {
-        val currentList = getRecentNoteDataList().toMutableList()
-
+        val currentList = getRecentNotes().toMutableList()
         val normalizedPath = notebookPath ?: ""
 
         val index =
@@ -140,13 +160,38 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
 
         if (index != -1) {
             val oldEntry = currentList[index]
-            val updatedEntry = RecentNoteData(
+            val updatedEntry = RecentNote(
                 id = newNoteId,
+                recentTitle = newNoteId,
                 notebookPath = normalizedPath,
-                recentDate = oldEntry.recentDate
+                recentDate = oldEntry.recentDate,
             )
             currentList[index] = updatedEntry
 
+            val json = gson.toJson(currentList)
+            prefs.edit { putString(KEY_RECENT_NOTES, json) }
+        }
+    }
+
+    override fun removeRecentNotesByNotebookPath(notebookPath: String) {
+        println("DEBUG: PreferencesRepositoryImpl removeRecentNotesByNotebookPath $notebookPath")
+        val currentList = getRecentNotes().toMutableList()
+        val removed = currentList.removeAll { it.notebookPath == notebookPath }
+
+        if (removed) {
+            val json = gson.toJson(currentList)
+            prefs.edit { putString(KEY_RECENT_NOTES, json) }
+        }
+    }
+
+    override fun removeRecentNote(noteId: String, notebookPath:String?) {
+        println("DEBUG: PreferencesRepositoryImpl removeRecentNote $noteId")
+        val currentList = getRecentNotes().toMutableList()
+        val normalizedPath = notebookPath ?: ""
+
+        val removed = currentList.removeAll { it.notebookPath == normalizedPath && it.id == noteId }
+
+        if (removed) {
             val json = gson.toJson(currentList)
             prefs.edit { putString(KEY_RECENT_NOTES, json) }
         }

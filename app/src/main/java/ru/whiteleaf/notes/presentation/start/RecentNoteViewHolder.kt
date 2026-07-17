@@ -17,8 +17,8 @@ class RecentNoteViewHolder(
 
     fun bind(note: RecentNote) {
 
-        title.text = note.title
-        notebookTitle.text = "/ ${note.notebookPath}"
+        title.text = note.recentTitle
+        notebookTitle.text = "/ ${note.notebookPath.toString()}"
         noteDate.text = formatDateRecent(note.recentDate)
 
         itemView.setOnClickListener { onRecentNoteClicked(note) }

@@ -22,6 +22,7 @@ import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.GetRecentNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import kotlin.collections.forEach
 
@@ -37,7 +38,8 @@ class StartViewModel(
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
-    private val getRecentNotesUseCase: GetRecentNotesUseCase
+    private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
+    private val getRecentNotesUseCase: GetRecentNotesUseCase,
 ) : ViewModel() {
 
     private val _startItems = MutableLiveData<List<StartListItem>>()
@@ -237,16 +239,23 @@ class StartViewModel(
     fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {
             try {
-                val unlocked =
-                    unlockNotebookUseCase(notebook.path, context, reason = "Для удаления")
 
-                if (unlocked) {
+                if (isNotebookProtectedUseCase(notebook.path)) {
+                    val unlocked =
+                        unlockNotebookUseCase(notebook.path, context, reason = "Для удаления")
+
+                    if (unlocked) {
+                        deleteNotebookUseCase(notebook.path)
+                        loadData()
+                        _message.postValue("Записная книжка удалена")
+                    } else {
+                        _message.postValue("Не удалось подтвердить личность")
+                        return@launch
+                    }
+                }
+                else {
                     deleteNotebookUseCase(notebook.path)
                     loadData()
-                    _message.postValue("Записная книжка удалена")
-                } else {
-                    _message.postValue("Не удалось подтвердить личность")
-                    return@launch
                 }
             } catch (e: AuthenticationRequiredException) {
                 _message.postValue("Записная книжка заблокирована: ${e.message}")

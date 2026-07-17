@@ -120,8 +120,8 @@ class StartAdapter(
             return when {
 
                 oldItem is StartListItem.RecentNoteItem && newItem is StartListItem.RecentNoteItem ->
-                    oldItem.recentNote.title == newItem.recentNote.notebookPath &&
-                            oldItem.recentNote.title == newItem.recentNote.title
+                    oldItem.recentNote.recentTitle == newItem.recentNote.notebookPath &&
+                            oldItem.recentNote.recentTitle == newItem.recentNote.recentTitle
 
                 oldItem is StartListItem.NotebookItem && newItem is StartListItem.NotebookItem ->
                     oldItem.notebook.path == newItem.notebook.path

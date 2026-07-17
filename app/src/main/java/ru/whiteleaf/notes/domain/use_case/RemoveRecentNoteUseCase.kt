@@ -3,11 +3,11 @@ package ru.whiteleaf.notes.domain.use_case
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 
-class SaveRecentNoteUseCase(
+class RemoveRecentNoteUseCase(
     private val preferencesRepository: PreferencesRepository
 ) {
     operator fun invoke(note: Note) {
-        preferencesRepository.saveNoteToRecent(note)
+        preferencesRepository.removeRecentNote(note.id, note.notebookPath)
     }
 
 }

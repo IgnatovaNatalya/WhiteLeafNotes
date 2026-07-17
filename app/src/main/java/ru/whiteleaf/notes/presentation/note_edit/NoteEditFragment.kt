@@ -153,6 +153,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             saveScrollPosition()
             showMaterialDatePickerDialog()
         }
+
         binding.unlockButton.setOnClickListener {
             viewModel.unlockNotebook(requireContext())
         }
@@ -348,6 +349,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 titleEditText.text.toString(),
                 contentEditText.text.toString()
             )
+            saveScrollPosition()
             viewModel.saveToRecent()
         }
         println("Debug: NoteEditFragment: Paused")

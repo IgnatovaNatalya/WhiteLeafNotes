@@ -54,6 +54,7 @@ import ru.whiteleaf.notes.domain.use_case.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.IsNotebookUnlockedUseCase
 import ru.whiteleaf.notes.domain.use_case.LockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateFullNoteUseCase
@@ -108,7 +109,7 @@ val koinModule = module {
 
     factory { GetNotebooksUseCase(get()) }
     factory { CreateNotebookUseCase(get()) }
-    factory { DeleteNotebookUseCase(get()) }
+    factory { DeleteNotebookUseCase(get(), get()) }
     factory { RenameNotebookUseCase(get(), get(), get()) }
     factory { DeleteNotebookByPathUseCase(get()) }//, get(), get()) }
 
@@ -133,8 +134,9 @@ val koinModule = module {
     factory { EncryptNotebookUseCase(get()) }
     factory { CountEncryptedNotebooksUseCase(get(), get()) }
 
-    factory { GetRecentNotesUseCase(get(), get()) }
+    factory { GetRecentNotesUseCase(get()) }
     factory { SaveRecentNoteUseCase(get()) }
+    factory { RemoveRecentNoteUseCase(get()) }
 
     //interactor
     factory { PreferencesInteractor(get()) }
@@ -154,7 +156,8 @@ val koinModule = module {
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
             unlockNotebookUseCase = get(),
-            getRecentNotesUseCase = get()
+            isNotebookProtectedUseCase = get(),
+            getRecentNotesUseCase = get(),
         )
     }
 
@@ -210,6 +213,7 @@ val koinModule = module {
             preferencesRepository = get(),
             isNotebookProtectedUseCase = get(),
             saveRecentNoteUseCase = get(),
+            removeRecentNoteUseCase = get(),
         )
     }
 

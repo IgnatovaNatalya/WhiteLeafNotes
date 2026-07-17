@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import ru.whiteleaf.notes.domain.use_case.IsNotebookProtectedUseCase
+import ru.whiteleaf.notes.domain.use_case.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.UpdateFullNoteUseCase
@@ -40,7 +41,8 @@ class NoteEditViewModel(
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
     private val preferencesRepository: PreferencesRepository,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
-    private val saveRecentNoteUseCase: SaveRecentNoteUseCase
+    private val saveRecentNoteUseCase: SaveRecentNoteUseCase,
+    private val removeRecentNoteUseCase: RemoveRecentNoteUseCase
 ) : ViewModel() {
 
     private val _noteEditState = MutableLiveData<NoteEditState>()
@@ -69,12 +71,13 @@ class NoteEditViewModel(
         loadNote()
     }
 
-
     private fun loadNote() {
         if (noteId != null) viewModelScope.launch {
             _noteEditState.postValue(NoteEditState.Loading)
             try {
                 val note = getNoteUseCase(noteId, notebookPath) ?: return@launch
+
+
 
                 _note.postValue(note)
 
@@ -90,6 +93,9 @@ class NoteEditViewModel(
                         scrollPosition = scrollPosition
                     )
                 )
+
+                removeRecentNoteUseCase(note)
+
             } catch (e: AuthenticationRequiredException) {
                 _noteEditState.value = NoteEditState.Blocked
                 println("DEBUG: NoteEditVM: Key not unlocked while loading note: ${e.message}")
@@ -199,6 +205,7 @@ class NoteEditViewModel(
             }
         }
     }
+
 
     fun saveToRecent() {
         viewModelScope.launch {
