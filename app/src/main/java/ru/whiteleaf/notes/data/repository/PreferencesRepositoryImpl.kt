@@ -55,9 +55,10 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
     override fun saveRecentNote(note: Note) {
         // Получаем текущий список
         val currentList = getRecentNoteDataList().toMutableList()
+        val normalizedPath = note.notebookPath ?: ""
 
         // Проверяем, есть ли уже такая заметка
-        val existingIndex = currentList.indexOfFirst { it.id == note.id && it.notebookPath == note.notebookPath }
+        val existingIndex = currentList.indexOfFirst { it.id == note.id && it.notebookPath == normalizedPath }
 
         when {
             // Если заметка уже первая - ничего не делаем
@@ -101,14 +102,18 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         newNotebookPath: String?
     ): Boolean {
         val currentList = getRecentNoteDataList().toMutableList()
+
+        val normalizedOldPath = oldNotebookPath ?: ""
+        val normalizedNewPath = newNotebookPath ?: ""
+
         val index =
-            currentList.indexOfFirst { it.id == noteId && it.notebookPath == oldNotebookPath }
+            currentList.indexOfFirst { it.id == noteId && it.notebookPath == normalizedOldPath }
 
         return if (index != -1) {
             val oldEntry = currentList[index]
             val updatedEntry = RecentNoteData(
                 id = oldEntry.id,
-                notebookPath = newNotebookPath,
+                notebookPath = normalizedNewPath,
                 recentDate = oldEntry.recentDate
             )
             currentList[index] = updatedEntry

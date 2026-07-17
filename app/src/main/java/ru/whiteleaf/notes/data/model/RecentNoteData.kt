@@ -11,7 +11,7 @@ data class RecentNoteData(
         fun fromNote(note: Note): RecentNoteData {
             return RecentNoteData(
                 id = note.id,
-                notebookPath = note.notebookPath?:"",
+                notebookPath = note.notebookPath ?: "",
                 recentDate = System.currentTimeMillis()
             )
         }
