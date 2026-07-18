@@ -289,20 +289,22 @@ class NoteListViewModel(
         viewModelScope.launch {
             if (notebookPath != null)
                 try {
-                    val unlocked =
+                    val unlocked = if (isNotebookProtectedUseCase(notebookPath))
                         unlockNotebookUseCase(notebookPath, context, reason = "Для экспорта")
+                    else
+                        true
 
-                    if (!unlocked) {
+                    if (unlocked) {
+                        val result = shareNotebookUseCase(notebookPath, "123") //todo пароль спрашивать
+
+                        if (result.isSuccess)
+                            _navigationEvent.postValue(NavigationEvent.ExportLink(result.getOrNull()))
+                        else
+                            showMessage(result.exceptionOrNull()?.message ?: "Unknown error")
+                    } else {
                         _message.postValue("Не удалось подтвердить личность")
                         return@launch
                     }
-
-                    val result = shareNotebookUseCase(notebookPath, "123") //todo пароль спрашивать
-
-                    if (result.isSuccess)
-                        _navigationEvent.postValue(NavigationEvent.ExportLink(result.getOrNull()))
-                    else
-                        showMessage(result.exceptionOrNull()?.message ?: "Unknown error")
 
                 } catch (e: AuthenticationRequiredException) {
                     _message.postValue("Записная книжка заблокирована: ${e.message}")
@@ -316,12 +318,14 @@ class NoteListViewModel(
         if (notebookPath != null)
             viewModelScope.launch {
                 try {
-                    val unlocked =
-                        unlockNotebookUseCase(notebookPath, context, reason = "Для удаления")
+                    if (isNotebookProtectedUseCase(notebookPath)) {
+                        val unlocked =
+                            unlockNotebookUseCase(notebookPath, context, reason = "Для удаления")
 
-                    if (!unlocked) {
-                        _message.postValue("Не удалось подтвердить личность")
-                        return@launch
+                        if (!unlocked) {
+                            _message.postValue("Не удалось подтвердить личность")
+                            return@launch
+                        }
                     }
 
                     deleteNotebookUseCase(notebookPath)

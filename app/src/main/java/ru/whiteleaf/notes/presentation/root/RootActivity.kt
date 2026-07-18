@@ -103,7 +103,7 @@ class RootActivity : AppCompatActivity() {
         })
 
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.noteListFragment),
+            setOf(R.id.startFragment),
             drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

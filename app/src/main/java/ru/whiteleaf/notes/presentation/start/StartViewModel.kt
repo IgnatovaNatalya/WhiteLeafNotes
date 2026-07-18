@@ -240,23 +240,20 @@ class StartViewModel(
         viewModelScope.launch {
             try {
 
-                if (isNotebookProtectedUseCase(notebook.path)) {
-                    val unlocked =
-                        unlockNotebookUseCase(notebook.path, context, reason = "Для удаления")
+                val unlocked = if (isNotebookProtectedUseCase(notebook.path)) {
+                    unlockNotebookUseCase(notebook.path, context, reason = "Для удаления")
+                } else
+                    true
 
-                    if (unlocked) {
-                        deleteNotebookUseCase(notebook.path)
-                        loadData()
-                        _message.postValue("Записная книжка удалена")
-                    } else {
-                        _message.postValue("Не удалось подтвердить личность")
-                        return@launch
-                    }
-                }
-                else {
+                if (unlocked) {
                     deleteNotebookUseCase(notebook.path)
                     loadData()
+                    _message.postValue("Записная книжка удалена")
+                } else {
+                    _message.postValue("Не удалось подтвердить личность")
+                    return@launch
                 }
+
             } catch (e: AuthenticationRequiredException) {
                 _message.postValue("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
