@@ -152,6 +152,9 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         newNoteId: String,
         notebookPath: String?
     ) : Boolean {
+
+        println("DEBUG: PreferencesRepositoryImpl updateRecentNoteTitle $oldNoteId to $newNoteId in $notebookPath")
+
         val currentList = getRecentNotes().toMutableList()
         val normalizedPath = notebookPath ?: ""
 
