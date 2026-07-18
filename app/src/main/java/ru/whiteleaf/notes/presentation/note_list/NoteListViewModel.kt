@@ -15,7 +15,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
 import kotlinx.coroutines.launch
-import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
+import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
@@ -45,7 +45,7 @@ class NoteListViewModel(
     private val deleteKeyForNotebookUseCase: DeleteKeyForNotebookUseCase,
     private val encryptNotebookUseCase: EncryptNotebookUseCase,
     private val decryptNotebookUseCase: DecryptNotebookUseCase,
-    private val preferencesInteractor: PreferencesInteractor,
+    private val preferencesInteractor: SettingsInteractor,
     private val notebookPath: String?
 ) : ViewModel() {
 
@@ -114,7 +114,7 @@ class NoteListViewModel(
                     NoteListState.Success(isProtected, notesList.filter { it.isNotEmpty() })
                 )
 
-            } catch (e: AuthenticationRequiredException) {
+            } catch (_: AuthenticationRequiredException) {
                 _noteListState.postValue(NoteListState.Blocked)
             } catch (e: IOException) {
                 _noteListState.postValue(NoteListState.Error("Ошибка загрузки заметок: ${e.message}"))

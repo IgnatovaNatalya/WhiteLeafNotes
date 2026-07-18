@@ -15,17 +15,14 @@ import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
-import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
@@ -39,7 +36,7 @@ class NoteEditViewModel(
     private val noteId: String?,
     private val notebookPath: String?,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
-    private val preferencesRepository: PreferencesRepository,
+    private val settingsInteractor: SettingsInteractor,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
     private val saveRecentNoteUseCase: SaveRecentNoteUseCase,
     private val removeRecentNoteUseCase: RemoveRecentNoteUseCase
@@ -104,7 +101,6 @@ class NoteEditViewModel(
             }
         }
     }
-
 
     fun updateNoteTitle(newTitle: String) {
         println("DEBUG: NoteEditVM: Updating note title, title = $newTitle")
@@ -171,17 +167,6 @@ class NoteEditViewModel(
             } finally {
                 _isDateUpdating.value = false
             }
-        }
-    }
-
-    // Форматирует дату для отображения
-    fun formatDate(timestamp: Long): String {
-        return try {
-            val date = Date(timestamp)
-            val formatter = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("ru"))
-            formatter.format(date)
-        } catch (e: Exception) {
-            "Дата не указана"
         }
     }
 
@@ -263,14 +248,13 @@ class NoteEditViewModel(
 
     fun saveNoteScrollPosition(scrollPosition: Int) {
         if (noteId != null && notebookPath != null)
-            preferencesRepository.saveNoteScrollPosition(noteId, notebookPath, scrollPosition)
+            settingsInteractor.saveNoteScrollPosition(noteId, notebookPath, scrollPosition)
     }
 
     fun getNoteScrollPosition(): Int {
-        if (noteId != null && notebookPath != null) {
-            val pos = preferencesRepository.getNoteScrollPosition(noteId, notebookPath)
-            return pos ?: 0
-        } else return 0
+        return if (noteId != null && notebookPath != null) {
+            settingsInteractor.getNoteScrollPosition(noteId, notebookPath) ?: 0
+        } else 0
     }
 
 
@@ -299,6 +283,5 @@ class NoteEditViewModel(
     private fun showMessage(msg: String) = _message.postValue(msg)
 
     fun clearMessage() = _message.postValue(null)
-
 }
 

@@ -17,7 +17,6 @@ import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.CreateNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
-import ru.whiteleaf.notes.domain.use_case.notebooks.DeleteNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ExportAllNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
@@ -43,7 +42,7 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import ru.whiteleaf.notes.common.AppConstants.WHITE_LEAF_PREFS
 import ru.whiteleaf.notes.data.repository.PreferencesRepositoryImpl
-import ru.whiteleaf.notes.domain.interactor.PreferencesInteractor
+import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import ru.whiteleaf.notes.domain.use_case.encryption.CountEncryptedNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
@@ -109,7 +108,6 @@ val koinModule = module {
 
     factory { GetNotebooksUseCase(get()) }
     factory { CreateNotebookUseCase(get()) }
-    factory { DeleteNotebookUseCase(get(), get()) }
     factory { RenameNotebookUseCase(get(), get(), get()) }
     factory { DeleteNotebookByPathUseCase(get(), get()) }//, get(), get()) }
 
@@ -139,7 +137,7 @@ val koinModule = module {
     factory { RemoveRecentNoteUseCase(get()) }
 
     //interactor
-    factory { PreferencesInteractor(get()) }
+    factory { SettingsInteractor(get()) }
 
     // ViewModels
 
@@ -210,7 +208,7 @@ val koinModule = module {
             noteId = noteId,
             notebookPath = notebookPath,
             unlockNotebookUseCase = get(),
-            preferencesRepository = get(),
+            settingsInteractor = get(),
             isNotebookProtectedUseCase = get(),
             saveRecentNoteUseCase = get(),
             removeRecentNoteUseCase = get(),
