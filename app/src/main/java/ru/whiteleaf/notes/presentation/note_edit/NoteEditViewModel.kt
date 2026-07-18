@@ -77,8 +77,6 @@ class NoteEditViewModel(
             try {
                 val note = getNoteUseCase(noteId, notebookPath) ?: return@launch
 
-
-
                 _note.postValue(note)
 
                 if (note.notebookPath != null) viewModelScope.launch {
@@ -94,7 +92,7 @@ class NoteEditViewModel(
                     )
                 )
 
-                removeRecentNoteUseCase(note)
+                if (note.isNotEmpty()) removeRecentNoteUseCase(note)
 
             } catch (e: AuthenticationRequiredException) {
                 _noteEditState.value = NoteEditState.Blocked

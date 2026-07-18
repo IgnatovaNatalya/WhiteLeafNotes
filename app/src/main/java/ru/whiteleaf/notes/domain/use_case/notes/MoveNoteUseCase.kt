@@ -14,7 +14,7 @@ class MoveNoteUseCase(
                 note.notebookPath,
                 targetNotebookPath
             )
-        ) preferencesRepository.saveNoteToRecent(note.copy(notebookPath = targetNotebookPath))
+        ) preferencesRepository.saveRecentNote(note.copy(notebookPath = targetNotebookPath))
 
         repository.moveNote(note, targetNotebookPath)
     }

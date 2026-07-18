@@ -7,7 +7,7 @@ class SaveRecentNoteUseCase(
     private val preferencesRepository: PreferencesRepository
 ) {
     operator fun invoke(note: Note) {
-        preferencesRepository.saveNoteToRecent(note)
+        preferencesRepository.saveRecentNote(note)
     }
 
 }

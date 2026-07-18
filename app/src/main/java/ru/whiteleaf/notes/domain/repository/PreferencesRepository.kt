@@ -18,14 +18,14 @@ interface PreferencesRepository {
     ): Int?   // null – нет сохранённой позиции
 
     fun getRecentNotes(): List<RecentNote>
-    fun saveNoteToRecent(note: Note)
+    fun saveRecentNote(note: Note)
     fun updateRecentNoteNotebookPath(
         noteId: String,
         oldNotebookPath: String?,
         newNotebookPath: String?
     ): Boolean
 
-    fun updateRecentNoteTitle(oldNoteId: String, newNoteId: String, notebookPath: String?): Boolean
+    fun updateRecentNoteTitle(oldNote: Note, newTitle: String, notebookPath: String?): Boolean
 
     fun removeRecentNotesByNotebookPath(notebookPath: String)
     fun removeRecentNote(noteId: String, notebookPath: String?)

@@ -41,8 +41,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var isMoved = false
     private var wasInterrupted = false
 
-    private var isNotebookProtected = false
-
     private var lastCursorPosition = -1 //-1 если не была открыта клавиатура и не вводился текст
 
     private lateinit var titleEditText: EditText

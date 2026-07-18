@@ -9,10 +9,10 @@ class RenameNoteUseCase(
     private val repository: NotesRepository,
     private val preferencesRepository: PreferencesRepository
 ) {
-    suspend operator fun invoke(note: Note, newName: String): String {
-        val clearTitle = sanitizeFileName(newName)
-        if (!preferencesRepository.updateRecentNoteTitle(note.title, clearTitle, note.notebookPath))
-            preferencesRepository.saveNoteToRecent(note.copy(id = newName))
-        return repository.renameNote(note, clearTitle)
+    suspend operator fun invoke(oldNote: Note, newNote: String): String {
+        val clearTitle = sanitizeFileName(newNote)
+        if (!preferencesRepository.updateRecentNoteTitle(oldNote, clearTitle, oldNote.notebookPath))
+            preferencesRepository.saveRecentNote(oldNote.copy(id = clearTitle, title = clearTitle))
+        return repository.renameNote(oldNote, clearTitle)
     }
 }
