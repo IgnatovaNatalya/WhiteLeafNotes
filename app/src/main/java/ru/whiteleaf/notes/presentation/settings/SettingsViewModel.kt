@@ -8,11 +8,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
-import ru.whiteleaf.notes.domain.use_case.ExportAllNotesUseCase
-import ru.whiteleaf.notes.domain.use_case.ImportZipNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.share.ExportAllNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.share.ImportZipNotesUseCase
 import kotlinx.coroutines.launch
-import ru.whiteleaf.notes.domain.use_case.CountEncryptedNotebooksUseCase
-import ru.whiteleaf.notes.domain.use_case.ExportProgressCallback
+import ru.whiteleaf.notes.domain.use_case.encryption.CountEncryptedNotebooksUseCase
+import ru.whiteleaf.notes.domain.use_case.share.ExportProgressCallback
 import ru.whiteleaf.notes.presentation.state.ExportState
 import ru.whiteleaf.notes.presentation.state.ImportState
 

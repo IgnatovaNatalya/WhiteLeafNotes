@@ -6,10 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
-import ru.whiteleaf.notes.domain.use_case.CreateNoteUseCase
-import ru.whiteleaf.notes.domain.use_case.CreateNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.GetNotebooksUseCase
-import ru.whiteleaf.notes.domain.use_case.GetNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.CreateNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import kotlinx.coroutines.launch
 
 class DrawerMenuViewModel(

@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ru.whiteleaf.notes.domain.model.SharedContent
 import ru.whiteleaf.notes.domain.model.SharedContentResult
-import ru.whiteleaf.notes.domain.use_case.GetSharedContentUseCase
-import ru.whiteleaf.notes.domain.use_case.InsertNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.share.GetSharedContentUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.InsertNoteUseCase
 import kotlinx.coroutines.launch
 
 class ShareReceiverViewModel(
