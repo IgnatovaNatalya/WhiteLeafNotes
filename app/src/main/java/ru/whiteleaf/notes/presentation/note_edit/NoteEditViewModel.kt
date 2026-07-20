@@ -15,6 +15,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.common.utils.FileUtils.sanitizeFileName
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
@@ -103,21 +104,21 @@ class NoteEditViewModel(
     }
 
     fun updateNoteTitle(newTitle: String) {
-        println("DEBUG: NoteEditVM: Updating note title, title = $newTitle")
-
         val currentNote = _note.value ?: return
-        println("DEBUG: NoteEditVM: Updating note title, currentNote = ${_note.value}")
-
         viewModelScope.launch {
             try {
-                if (newTitle.isNotEmpty() && newTitle != currentNote.title) {
-                    val newNoteId = renameNoteUseCase(currentNote, newTitle)
-                    _note.postValue(currentNote.copy(id = newNoteId, title = newTitle))
+                println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote = ${_note.value}")
+                val clearTitle = sanitizeFileName(newTitle)
+
+                if (clearTitle.isNotEmpty() && clearTitle != currentNote.title) {
+                    _note.postValue(currentNote.copy(id = clearTitle, title = clearTitle))
+                    renameNoteUseCase(currentNote, newTitle)
                 }
             } catch (e: Exception) {
                 showMessage("Ошибка при переименовании заметки: ${e.message}")
             }
         }
+
     }
 
     fun updateNoteContent(content: String) {

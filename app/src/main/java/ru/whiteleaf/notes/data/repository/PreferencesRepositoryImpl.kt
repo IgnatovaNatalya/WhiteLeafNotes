@@ -132,12 +132,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         return if (index != -1) {
             val oldEntry = currentList[index]
             val updatedEntry = oldEntry.copy(notebookPath = normalizedNewPath)
-//                RecentNote(
-//                id = oldEntry.id,
-//                recentTitle = oldEntry.recentTitle,
-//                notebookPath = normalizedNewPath,
-//                recentDate = oldEntry.recentDate
-//            )
+
             currentList[index] = updatedEntry
 
             val json = gson.toJson(currentList)
