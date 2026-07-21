@@ -3,6 +3,7 @@ package ru.whiteleaf.notes.presentation.root
 
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -60,23 +61,51 @@ class RootActivity : AppCompatActivity() {
 
     private fun setupNavigationListener() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
+            val startHeader = findViewById<TextView>(R.id.tv_toolbar_title)
+            val lockIndicatorButton = findViewById<ImageButton>(R.id.btn_lock_indicator)
+            val optionsButton = findViewById<ImageButton>(R.id.btn_options_menu)
+            val searchButton = findViewById<ImageButton>(R.id.btn_search)
+
             when (destination.id) {
-                R.id.startFragment -> supportActionBar?.hide()
+                R.id.startFragment -> {
+                    startHeader.visibility = View.VISIBLE
+                    
+                    lockIndicatorButton.visibility = View.GONE
+                    optionsButton.visibility = View.GONE
+                    searchButton.visibility = View.VISIBLE
+                    
+                    supportActionBar?.title = ""
+                    supportActionBar?.subtitle = null
+
+                }
 
                 R.id.noteListFragment -> {
-                    supportActionBar?.show()
+                    startHeader.visibility = View.GONE
+
+                    lockIndicatorButton.visibility = View.VISIBLE
+                    optionsButton.visibility = View.VISIBLE
+                    searchButton.visibility = View.GONE
+
                     supportActionBar?.subtitle = "Записная книжка"
                 }
 
                 R.id.settingsFragment -> {
-                    supportActionBar?.show()
+                    startHeader.visibility = View.GONE
+                    
+                    lockIndicatorButton.visibility = View.GONE
+                    optionsButton.visibility = View.VISIBLE
+                    searchButton.visibility = View.GONE
+
                     supportActionBar?.subtitle = null
                 }
 
                 R.id.noteEditFragment -> {
-                    supportActionBar?.show()
-                    //supportActionBar?.subtitle = "Записная книжка"
-                    //supportActionBar?.title = ""
+                    startHeader.visibility = View.GONE
+
+                    lockIndicatorButton.visibility = View.VISIBLE
+                    optionsButton.visibility = View.VISIBLE
+                    searchButton.visibility = View.GONE
+
                     supportActionBar?.subtitle = null
                 }
             }
@@ -136,11 +165,12 @@ class RootActivity : AppCompatActivity() {
                 layoutManager = LinearLayoutManager(this@RootActivity)
             }
 
-        binding.navView.getHeaderView(0).findViewById<TextView>(R.id.app_title).setOnClickListener {
-            val action = NoteListFragmentDirections.actionGlobalStartFragment()
-            navController.navigate(action)
-            drawerLayout.closeDrawer(GravityCompat.START)
-        }
+        binding.navView.getHeaderView(0).findViewById<TextView>(R.id.drawer_title)
+            .setOnClickListener {
+                val action = NoteListFragmentDirections.actionGlobalStartFragment()
+                navController.navigate(action)
+                drawerLayout.closeDrawer(GravityCompat.START)
+            }
 
         menuViewModel.loadMenuData()
     }

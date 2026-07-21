@@ -20,13 +20,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="0dp"
+            android:clickable="true"
             android:fitsSystemWindows="false"
             app:navigationIcon="@drawable/ic_menu"
-            app:subtitle="Записная книжка"
-            android:clickable="true"
+            app:subtitle=""
             app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
-            app:title="Белый лист"
+            app:title=""
             app:titleTextAppearance="@style/toolbarTitleStyle">
+
+            <TextView
+                android:id="@+id/tv_toolbar_title"
+                style="@style/StartScreenTitleStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="@string/start_title"
+                android:textColor="@color/medium_blue" />
 
             <ImageButton
                 android:id="@+id/btn_options_menu"
@@ -34,8 +44,17 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:importantForAccessibility="no"
                 android:src="@drawable/ic_options"
+                android:visibility="gone"
+                app:tint="?attr/android:textColorPrimary" />
+
+            <ImageButton
+                android:id="@+id/btn_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_search"
                 app:tint="?attr/android:textColorPrimary" />
 
             <ImageButton
@@ -46,7 +65,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_ind_unlocked"
-                android:visibility="visible"
+                android:visibility="gone"
                 app:tint="?attr/android:textColorPrimary" />
 
         </com.google.android.material.appbar.MaterialToolbar>
@@ -63,7 +82,7 @@
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
-        android:layout_width="260dp"
+        android:layout_width="220dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:layout_marginTop="0dp"

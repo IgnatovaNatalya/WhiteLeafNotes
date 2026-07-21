@@ -14,6 +14,7 @@
     <color name="accent_blue">#81D4FA</color>
     <color name="success_green">#A5D6A7</color>
     <color name="dark_blue">#1976D2</color>
+    <color name="medium_blue">#0CA0E9</color>
 
     <!-- Для темной темы (также задаем здесь, но переопределим в values-night) -->
     <color name="background_dark">#121212</color>

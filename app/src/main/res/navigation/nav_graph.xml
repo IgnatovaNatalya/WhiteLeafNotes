@@ -9,7 +9,6 @@
     <fragment
         android:id="@+id/startFragment"
         android:name="ru.whiteleaf.notes.presentation.start.StartFragment"
-        android:label="@string/fragment_start_label"
         tools:layout="@layout/fragment_start" >
         <action
             android:id="@+id/action_startFragment_to_noteListFragment"

@@ -36,10 +36,10 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         setupRecyclerView()
         setupObservers()
 
-        binding.buttonSettings.setOnClickListener {
-            val action = StartFragmentDirections.actionStartFragmentToSettingsFragment()
-            findNavController().navigate(action)
-        }
+//        binding.buttonSettings.setOnClickListener {
+//            val action = StartFragmentDirections.actionStartFragmentToSettingsFragment()
+//            findNavController().navigate(action)
+//        }
     }
 
     private fun setupRecyclerView() {

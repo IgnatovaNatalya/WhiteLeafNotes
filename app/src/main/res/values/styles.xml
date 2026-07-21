@@ -2,6 +2,15 @@
 <resources>
 
     <!-- TOOLBAR-->
+
+    <style name="StartScreenTitleStyle">
+        <item name="android:textSize">18sp</item>
+        <item name="fontFamily">@font/comfortaa_bold</item>
+        <item name="textAllCaps">false</item>
+        <item name="lineHeight">30sp</item>
+        <item name="android:textColor">@color/medium_blue</item>
+    </style>
+
     <style name="toolbarTitleStyle" parent="@style/Base.TextAppearance.AppCompat.Title">
         <item name="android:textSize">24sp</item>
         <item name="fontFamily">@font/nunito_semibold</item>
@@ -15,12 +24,6 @@
     </style>
 
     <!-- START SCREEN -->
-
-    <style name="StartScreenHeaderTitle">
-        <item name="android:textSize">24sp</item>
-        <item name="fontFamily">@font/comfortaa_bold</item>
-        <item name="textAllCaps">false</item>
-    </style>
 
     <style name="StartScreenItemTitle">
         <item name="android:textSize">16sp</item>
