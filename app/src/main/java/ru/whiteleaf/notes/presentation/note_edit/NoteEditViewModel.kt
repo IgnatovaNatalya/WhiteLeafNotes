@@ -86,7 +86,8 @@ class NoteEditViewModel(
                 _noteEditState.postValue(
                     NoteEditState.Success(
                         note,
-                        scrollPosition = scrollPosition
+                        scrollPosition = scrollPosition,
+                        isNotebookProtected.value == true
                     )
                 )
 
@@ -101,6 +102,10 @@ class NoteEditViewModel(
                 _noteEditState.value = NoteEditState.Error(e.message ?: "Ошибка загрузки")
             }
         }
+    }
+
+    fun lockNote() {
+        _noteEditState.value = NoteEditState.Blocked
     }
 
     fun updateNoteTitle(newTitle: String) {
@@ -156,7 +161,13 @@ class NoteEditViewModel(
                 val scrollPosition = getNoteScrollPosition()
 
                 _note.value = updatedNote
-                _noteEditState.postValue(NoteEditState.Success(updatedNote, scrollPosition))
+                _noteEditState.postValue(
+                    NoteEditState.Success(
+                        updatedNote,
+                        scrollPosition,
+                        _isNotebookProtected.value == true
+                    )
+                )
 
                 _message.postValue("Дата заметки обновлена")
             } catch (e: AuthenticationRequiredException) {

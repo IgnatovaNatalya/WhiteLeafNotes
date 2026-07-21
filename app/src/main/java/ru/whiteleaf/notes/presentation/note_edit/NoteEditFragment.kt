@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.note_edit
 
+import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,6 +12,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -48,6 +51,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private lateinit var buttonScroll: ImageButton
     private lateinit var noteScrollView: NestedScrollView
     private lateinit var noteProtected: LinearLayout
+    private lateinit var btnLockIndicator: ImageButton
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -64,6 +68,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         buttonScroll = binding.noteScrollDown
         noteScrollView = binding.noteEditScrollView
         noteProtected = binding.noteInProtectedNotebook
+        btnLockIndicator =
+            (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
+
+        val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
+        actionBar?.title = args.notebookPath
 
         setupWindowFocusChangeListener(view)
         setupOptionsMenu()
@@ -71,6 +80,23 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         setupEditTexts()
         setupScrollDown()
         setupClickListeners()
+    }
+
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+
+        val toolbar = (requireActivity() as AppCompatActivity).findViewById<Toolbar>(R.id.toolbar)
+        val path = args.notebookPath
+
+        if (!path.isNullOrBlank()) {
+            toolbar.setOnClickListener {
+                println("DEBUG: NoteEditFragment: notebook title ${path} clicked")
+                val action =
+                    NoteEditFragmentDirections.actionNoteEditFragmentToNoteListFragment(path)
+                findNavController().navigate(action)
+            }
+        }
     }
 
     private fun setupWindowFocusChangeListener(view: View) {
@@ -156,6 +182,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             viewModel.unlockNotebook(requireContext())
         }
     }
+
 
     private fun showMaterialDatePickerDialog() {
         val currentNote = viewModel.note.value ?: return
@@ -270,6 +297,16 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 noteScrollView.visibility = View.VISIBLE
                 binding.progressBar.visibility = View.GONE
                 noteProtected.visibility = View.GONE
+
+
+
+                if (state.isEncrypted) {
+                    btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
+                    btnLockIndicator.visibility = View.VISIBLE
+                    btnLockIndicator.setOnClickListener { viewModel.lockNote() }
+                } else btnLockIndicator.visibility = View.GONE
+
+
                 val note = state.note
                 titleEditText.setText(note.title)
 
@@ -299,12 +336,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 noteScrollView.visibility = View.GONE
                 binding.progressBar.visibility = View.VISIBLE
                 noteProtected.visibility = View.GONE
+                btnLockIndicator.visibility = View.GONE
             }
 
             is NoteEditState.Error -> {
                 noteScrollView.visibility = View.GONE
                 binding.progressBar.visibility = View.GONE
                 noteProtected.visibility = View.GONE
+                btnLockIndicator.visibility = View.GONE
                 renderMessage(state.message)
             }
 
@@ -312,6 +351,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 binding.progressBar.visibility = View.GONE
                 noteProtected.visibility = View.VISIBLE
                 noteScrollView.visibility = View.GONE
+                btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
+                btnLockIndicator.visibility = View.VISIBLE
             }
         }
     }
@@ -325,15 +366,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         //println("DEBUG: NoteEditFragment: Scroll saved to prefs: $lastScrollPosition")
     }
 
-    fun toggleSecurePreview(isSecure:Boolean) {
+    fun toggleSecurePreview(isSecure: Boolean) {
         println("DEBUG: toggleSecurePreview isSecure: $isSecure")
         if (isSecure) {
             requireActivity().window.setFlags(
                 WindowManager.LayoutParams.FLAG_SECURE,
                 WindowManager.LayoutParams.FLAG_SECURE
             )
-        }
-        else {
+        } else {
             requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }

@@ -75,7 +75,8 @@ class RootActivity : AppCompatActivity() {
 
                 R.id.noteEditFragment -> {
                     supportActionBar?.show()
-                    supportActionBar?.title = ""
+                    //supportActionBar?.subtitle = "Записная книжка"
+                    //supportActionBar?.title = ""
                     supportActionBar?.subtitle = null
                 }
             }

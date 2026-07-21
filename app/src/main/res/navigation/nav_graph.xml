@@ -75,6 +75,10 @@
             android:id="@+id/deepLink"
             app:uri="whiteleafnotes://notes/{noteId}" />
 
+        <action
+            android:id="@+id/action_noteEditFragment_to_noteListFragment"
+            app:destination="@id/noteListFragment" />
+
     </fragment>
 
     <!-- Глобальные действия -->
