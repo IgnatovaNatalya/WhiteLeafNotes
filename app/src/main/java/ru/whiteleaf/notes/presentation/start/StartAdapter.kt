@@ -43,7 +43,6 @@ class StartAdapter(
             is StartListItem.AddNoteButton -> TYPE_ADD_NOTE
             is StartListItem.Divider -> TYPE_DIVIDER
             is StartListItem.EmptyNotebooks, is StartListItem.EmptyNotes, is StartListItem.Spacing -> TYPE_EMPTY
-
         }
     }
 
@@ -88,7 +87,9 @@ class StartAdapter(
 
             TYPE_DIVIDER -> DividerViewHolder(
                 LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_divider, parent, false)
+                    .inflate(R.layout.item_divider, parent, false),
+
+                onMoreClicked = {}
             )
 
             TYPE_EMPTY -> EmptyListViewHolder(
@@ -111,7 +112,7 @@ class StartAdapter(
             is StartListItem.EmptyNotebooks -> (holder as EmptyListViewHolder).bind("Записных книжек пока нет")
             is StartListItem.EmptyNotes -> (holder as EmptyListViewHolder).bind("Заметок пока нет")
             is StartListItem.Spacing -> (holder as EmptyListViewHolder).bind("") //Пустое место после кнопки в конце списка
-            is StartListItem.Divider -> {} // Ничего не делаем для разделителя
+            is StartListItem.Divider -> (holder as DividerViewHolder).bind(item.isLast) // разделитель с кнопкой или без
         }
     }
 

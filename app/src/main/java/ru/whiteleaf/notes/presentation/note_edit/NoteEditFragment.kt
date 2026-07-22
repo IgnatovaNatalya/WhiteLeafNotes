@@ -71,8 +71,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-        val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
-        actionBar?.title = args.notebookPath
+        //val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
+        //actionBar?.title = args.notebookPath
 
         setupWindowFocusChangeListener(view)
         setupOptionsMenu()
@@ -83,21 +83,21 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
+//    override fun onAttach(context: Context) {
+//        super.onAttach(context)
 
-        val toolbar = (requireActivity() as AppCompatActivity).findViewById<Toolbar>(R.id.toolbar)
-        val path = args.notebookPath
+//        val toolbar = (requireActivity() as AppCompatActivity).findViewById<Toolbar>(R.id.toolbar)
+//        val path = args.notebookPath
 
-        if (!path.isNullOrBlank()) {
-            toolbar.setOnClickListener {
-                println("DEBUG: NoteEditFragment: notebook title ${path} clicked")
-                val action =
-                    NoteEditFragmentDirections.actionNoteEditFragmentToNoteListFragment(path)
-                findNavController().navigate(action)
-            }
-        }
-    }
+//        if (!path.isNullOrBlank()) {
+//            toolbar.setOnClickListener {
+//                println("DEBUG: NoteEditFragment: notebook title ${path} clicked")
+//                val action =
+//                    NoteEditFragmentDirections.actionNoteEditFragmentToNoteListFragment(path)
+//                findNavController().navigate(action)
+//            }
+//        }
+ //   }
 
     private fun setupWindowFocusChangeListener(view: View) {
         view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->

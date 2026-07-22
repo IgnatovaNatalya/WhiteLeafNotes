@@ -5,12 +5,15 @@
     android:id="@+id/start_header_title"
     style="@style/StartScreenItemHeader"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
+    android:layout_height="32dp"
+    android:drawableEnd="@drawable/ic_arrow_right"
+    android:drawableTint="?attr/android:textColorSecondary"
+    android:drawablePadding="16dp"
     android:gravity="center_vertical"
-    android:textAllCaps="true"
-    tools:text="Заметки"
     android:paddingHorizontal="16dp"
-    android:textColor="?attr/android:textColorPrimary" />
+    android:textAllCaps="true"
+    android:textColor="?attr/android:textColorSecondary"
+    tools:text="Заметки" />
 
 
 

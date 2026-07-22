@@ -100,27 +100,31 @@ class StartViewModel(
         // Секция Недавние
         if (recent.isNotEmpty()) {
             items.add(StartListItem.Header("НЕДАВНИЕ"))
-            recent.forEach { note ->
+            items.add(StartListItem.Divider())
+
+            recent.forEachIndexed  {  index, note ->
                 items.add(StartListItem.RecentNoteItem(note))
+                items.add(StartListItem.Divider(index == recent.lastIndex))
             }
         }
 
         // Секция записных книжек
         items.add(StartListItem.Header("ЗАПИСНЫЕ КНИЖКИ"))
+        items.add(StartListItem.Divider())
 
         if (notebooks.isEmpty()) {
             items.add(StartListItem.EmptyNotebooks)
         } else {
-            notebooks.forEach { notebook ->
+            notebooks.forEachIndexed  {  index, notebook ->
                 items.add(StartListItem.NotebookItem(notebook))
             }
         }
 
-        items.add(StartListItem.AddNotebookButton)
-        items.add(StartListItem.Divider)
+        items.add(StartListItem.Divider(true))
 
         // Секция заметок
         items.add(StartListItem.Header("ЗАМЕТКИ"))
+        items.add(StartListItem.Divider())
 
         if (rootNotes.isEmpty()) {
             items.add(StartListItem.EmptyNotes)
@@ -129,9 +133,7 @@ class StartViewModel(
                 items.add(StartListItem.NoteItem(note))
             }
         }
-
-        items.add(StartListItem.AddNoteButton)
-        items.add(StartListItem.Spacing)
+        items.add(StartListItem.Divider())
 
         return items
     }

@@ -3,16 +3,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="46dp"
+    android:layout_height="30dp"
     android:clickable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingHorizontal="16dp"
-    android:paddingVertical="4dp">
+    android:paddingVertical="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="30dp"
+        android:gravity="center_vertical"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -20,10 +21,10 @@
             android:id="@+id/note_title"
             style="@style/StartScreenItemTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_marginTop="-4dp"
+            android:layout_height="22dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="fdsfdsfdsf"
             android:textColor="?android:attr/textColorPrimary"
             tools:text="Заметка с длинным названием которое не помещается на экран целиком" />
 
@@ -31,7 +32,8 @@
             android:id="@+id/notebook_title"
             style="@style/StartScreenItemNotebookCount"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="12dp"
+            android:layout_marginTop="-4dp"
             android:textColor="?android:attr/textColorSecondary"
             tools:text="/Работа" />
     </LinearLayout>

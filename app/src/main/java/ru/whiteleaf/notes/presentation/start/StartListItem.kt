@@ -1,16 +1,17 @@
 package ru.whiteleaf.notes.presentation.start
 
+import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 
 sealed class StartListItem {
     data class Header(val title: String) : StartListItem()
-    data class RecentNoteItem(val recentNote: ru.whiteleaf.notes.data.model.RecentNote): StartListItem()
+    data class RecentNoteItem(val recentNote: RecentNote) : StartListItem()
     data class NotebookItem(val notebook: Notebook) : StartListItem()
     data class NoteItem(val note: Note) : StartListItem()
     object AddNotebookButton : StartListItem()
     object AddNoteButton : StartListItem()
-    object Divider : StartListItem()
+    data class Divider(val isLast: Boolean = false) : StartListItem()
     object EmptyNotebooks : StartListItem()
     object EmptyNotes : StartListItem()
     object Spacing : StartListItem()
@@ -27,11 +28,10 @@ sealed class StartListItem {
             is NoteItem -> this == other
             AddNotebookButton -> other is AddNotebookButton
             AddNoteButton -> other is AddNoteButton
-            Divider -> other is Divider
+            is Divider -> other is Divider
             EmptyNotebooks -> other is EmptyNotebooks
             EmptyNotes -> other is EmptyNotes
             Spacing -> other is Spacing
-
         }
     }
 
