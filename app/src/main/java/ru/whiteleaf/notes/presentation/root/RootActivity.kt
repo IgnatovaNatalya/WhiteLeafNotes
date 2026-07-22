@@ -1,7 +1,13 @@
 package ru.whiteleaf.notes.presentation.root
 
 
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.StyleSpan
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
@@ -121,6 +127,12 @@ class RootActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
         val navView = binding.navView
+
+        val menu = navView.menu
+
+        customizeMenuItem(menu.findItem(R.id.menu_create_note))
+        customizeMenuItem(menu.findItem(R.id.menu_create_notebook))
+
         NavigationUI.setupWithNavController(navView, navController)
 
         drawerLayout = binding.drawerLayout
@@ -191,7 +203,6 @@ class RootActivity : AppCompatActivity() {
         navController.navigate(action)
     }
 
-
     fun navigateToCreatedNote(note: Note) {
         val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
             noteId = note.id,
@@ -205,6 +216,26 @@ class RootActivity : AppCompatActivity() {
             .setPopExitAnim(R.anim.slide_out_right)
             .build()
         navController.navigate(action, navOptions)
+    }
+
+    fun customizeMenuItem(menuItem: MenuItem, textSizeSp: Int = 16) {
+        val title = menuItem.title.toString()
+        val spannable = SpannableString(title)
+
+        spannable.setSpan(
+            AbsoluteSizeSpan(textSizeSp, true), // true = размер в sp
+            0,
+            title.length,
+            Spannable.SPAN_INCLUSIVE_INCLUSIVE
+        )
+
+        spannable.setSpan(
+            StyleSpan(Typeface.BOLD),
+            0,
+            title.length,
+            Spannable.SPAN_INCLUSIVE_INCLUSIVE
+        )
+        menuItem.title = spannable
     }
 
     override fun onSupportNavigateUp(): Boolean {

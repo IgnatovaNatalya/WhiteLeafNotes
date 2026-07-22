@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+
+    <group android:checkableBehavior="none">
+        <item
+            android:id="@+id/menu_create_note"
+            android:title="+ Заметка" />
+
+        <item
+            android:id="@+id/menu_create_notebook"
+            android:title="+ Записная книжка" />
+    </group>
+
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/startFragment"
@@ -15,14 +26,5 @@
             android:title="Настройки" />
     </group>
 
-    <group android:checkableBehavior="none">
-        <item
-            android:id="@+id/menu_create_note"
-            android:title="+ Заметка" />
-
-        <item
-            android:id="@+id/menu_create_notebook"
-            android:title="+ Записная книжка" />
-    </group>
 
 </menu>

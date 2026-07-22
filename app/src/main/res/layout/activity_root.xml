@@ -85,17 +85,18 @@
         android:layout_width="220dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:itemTextColor="?attr/android:textColorPrimary"
-        app:itemBackground="@drawable/bg_stroke_bottom"
-        app:itemHorizontalPadding="16dp"
-        app:itemVerticalPadding="8dp"
         android:layout_marginTop="0dp"
-        android:padding="0dp"
-        app:itemTextAppearance="@style/DrawerNotebookTitle"
-        app:itemMaxLines="2"
         android:background="?attr/android:windowBackground"
         android:fitsSystemWindows="false"
-        app:menu="@menu/drawer_menu"
-        app:headerLayout="@layout/nav_header" />
+        android:padding="0dp"
+        app:headerLayout="@layout/nav_header"
+        app:itemBackground="@drawable/bg_stroke_bottom"
+        app:itemHorizontalPadding="16dp"
+        app:itemMaxLines="2"
+        app:itemTextAppearance="@style/DrawerItemStyle"
+        app:itemTextColor="?attr/android:textColorPrimary"
+        app:itemTextAppearanceActiveBoldEnabled="false"
+        app:itemVerticalPadding="8dp"
+        app:menu="@menu/drawer_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>
