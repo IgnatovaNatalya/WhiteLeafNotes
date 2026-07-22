@@ -16,23 +16,22 @@ import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
-import ru.whiteleaf.notes.common.utils.DialogHelper
 import ru.whiteleaf.notes.databinding.ActivityRootBinding
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
 
 class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
     private lateinit var navController: NavController
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var drawerMenuAdapter: DrawerMenuAdapter
+
     private lateinit var appBarConfiguration: AppBarConfiguration
 
     private val menuViewModel: DrawerMenuViewModel by viewModel()
@@ -54,7 +53,7 @@ class RootActivity : AppCompatActivity() {
         }
         setupToolbar()
         setupNavigation()
-        setupDrawerMenu()
+        //setupDrawerMenu()
         setupObservers()
         setupNavigationListener()
     }
@@ -69,43 +68,42 @@ class RootActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.startFragment -> {
                     startHeader.visibility = View.VISIBLE
-                    
                     lockIndicatorButton.visibility = View.GONE
                     optionsButton.visibility = View.GONE
                     searchButton.visibility = View.VISIBLE
-                    
                     supportActionBar?.title = ""
                     supportActionBar?.subtitle = null
-
                 }
 
                 R.id.noteListFragment -> {
                     startHeader.visibility = View.GONE
-
                     lockIndicatorButton.visibility = View.VISIBLE
                     optionsButton.visibility = View.VISIBLE
                     searchButton.visibility = View.GONE
-
                     supportActionBar?.subtitle = "Записная книжка"
+                }
+
+                R.id.notebooksFragment -> {
+                    startHeader.visibility = View.GONE
+                    lockIndicatorButton.visibility = View.GONE
+                    optionsButton.visibility = View.VISIBLE
+                    searchButton.visibility = View.VISIBLE
+                    supportActionBar?.subtitle = null
                 }
 
                 R.id.settingsFragment -> {
                     startHeader.visibility = View.GONE
-                    
                     lockIndicatorButton.visibility = View.GONE
-                    optionsButton.visibility = View.VISIBLE
+                    optionsButton.visibility = View.GONE
                     searchButton.visibility = View.GONE
-
                     supportActionBar?.subtitle = null
                 }
 
                 R.id.noteEditFragment -> {
                     startHeader.visibility = View.GONE
-
                     lockIndicatorButton.visibility = View.VISIBLE
                     optionsButton.visibility = View.VISIBLE
                     searchButton.visibility = View.GONE
-
                     supportActionBar?.subtitle = null
                 }
             }
@@ -121,67 +119,47 @@ class RootActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
 
         navController = navHostFragment.navController
+
+        val navView = binding.navView
+        NavigationUI.setupWithNavController(navView, navController)
+
         drawerLayout = binding.drawerLayout
 
-        drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
-            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
-            override fun onDrawerOpened(drawerView: View) =
-                menuViewModel.loadMenuData()
-
-            override fun onDrawerClosed(drawerView: View) {}
-            override fun onDrawerStateChanged(newState: Int) {}
-        })
-
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.startFragment),
+            setOf(
+                R.id.startFragment,
+                R.id.settingsFragment,
+                R.id.notebooksFragment
+            ),
             drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+        navView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_create_note -> {
+                    menuViewModel.createNewNote()
+                    drawerLayout.closeDrawers()
+                    true
+                }
+
+                R.id.menu_create_notebook -> {
+                    createCreateNotebookDialog(this) { name ->
+                        menuViewModel.createNewNotebook(name)
+                    }.show()
+                    drawerLayout.closeDrawers()
+                    true
+                }
+
+                else -> {
+                    drawerLayout.closeDrawers()
+                    NavigationUI.onNavDestinationSelected(menuItem, navController)
+                }
+            }
+        }
     }
-
-    private fun setupDrawerMenu() {
-        drawerMenuAdapter = DrawerMenuAdapter(
-            onNotebookClicked = { notebook ->
-                navigateToNotebook(notebook)
-                drawerLayout.closeDrawer(GravityCompat.START)
-            },
-            onNoteClicked = { note ->
-                navigateToNote(note)
-                drawerLayout.closeDrawer(GravityCompat.START)
-            },
-            onCreateNotebook = {
-                DialogHelper.createCreateNotebookDialog(this) { name ->
-                    menuViewModel.createNewNotebook(name)
-                }.show()
-            },
-            onCreateNote = {
-                menuViewModel.createNewNote()
-                drawerLayout.closeDrawer(GravityCompat.START)
-            }
-        )
-        binding.navView.getHeaderView(0).findViewById<RecyclerView>(R.id.drawer_menu_recyclerView)
-            .apply {
-                adapter = drawerMenuAdapter
-                layoutManager = LinearLayoutManager(this@RootActivity)
-            }
-
-        binding.navView.getHeaderView(0).findViewById<TextView>(R.id.drawer_title)
-            .setOnClickListener {
-                val action = NoteListFragmentDirections.actionGlobalStartFragment()
-                navController.navigate(action)
-                drawerLayout.closeDrawer(GravityCompat.START)
-            }
-
-        menuViewModel.loadMenuData()
-    }
-
 
     private fun setupObservers() {
-
-        menuViewModel.menuItems.observe(this) { items ->
-            drawerMenuAdapter.submitList(items)
-        }
-
         menuViewModel.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, error, Toast.LENGTH_LONG).show()
@@ -200,6 +178,12 @@ class RootActivity : AppCompatActivity() {
                 menuViewModel.onNoteNavigated()
             }
         }
+        menuViewModel.navigateToCreatedNotebook.observe(this) { notebook ->
+            notebook?.let {
+                navigateToNotebook(notebook)
+                menuViewModel.onNotebookNavigated()
+            }
+        }
     }
 
     private fun navigateToNotebook(notebook: Notebook) {
@@ -207,22 +191,6 @@ class RootActivity : AppCompatActivity() {
         navController.navigate(action)
     }
 
-    private fun navigateToNote(note: Note) {
-
-        val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
-            noteId = note.id,
-            notebookPath = null
-        )
-        val navOptions = NavOptions.Builder()
-            .setPopUpTo(R.id.startFragment, false)
-            .setEnterAnim(R.anim.slide_in_right)
-            .setExitAnim(R.anim.slide_out_left)
-            .setPopEnterAnim(R.anim.slide_in_left)
-            .setPopExitAnim(R.anim.slide_out_right)
-            .build()
-
-        navController.navigate(action, navOptions)
-    }
 
     fun navigateToCreatedNote(note: Note) {
         val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
@@ -239,7 +207,6 @@ class RootActivity : AppCompatActivity() {
         navController.navigate(action, navOptions)
     }
 
-
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
@@ -252,5 +219,4 @@ class RootActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
-
 }

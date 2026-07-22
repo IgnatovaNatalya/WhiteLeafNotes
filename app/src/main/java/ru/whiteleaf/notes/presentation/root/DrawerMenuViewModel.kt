@@ -8,22 +8,19 @@ import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.CreateNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
-import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import kotlinx.coroutines.launch
 
 class DrawerMenuViewModel(
-    private val getNotebooksUseCase: GetNotebooksUseCase,
-    private val getNotesUseCase: GetNotesUseCase,
     private val createNotebookUseCase: CreateNotebookUseCase,
     private val createNoteUseCase: CreateNoteUseCase
 ) : ViewModel() {
 
-    private val _menuItems = MutableLiveData<List<DrawerMenuItem>>()
-    val menuItems: LiveData<List<DrawerMenuItem>> = _menuItems
 
     private val _navigateToCreatedNote = MutableLiveData<Note?>()
     val navigateToCreatedNote: LiveData<Note?> = _navigateToCreatedNote
+
+    private val _navigateToCreatedNotebook = MutableLiveData<Notebook?>()
+    val navigateToCreatedNotebook: LiveData<Notebook?> = _navigateToCreatedNotebook
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -31,58 +28,11 @@ class DrawerMenuViewModel(
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    init {
-        loadMenuData()
-    }
-
-    fun loadMenuData() {
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                val notebooks = getNotebooksUseCase()
-                val rootNotes = getNotesUseCase(null)
-
-                val items = buildMenuItems(notebooks, rootNotes)
-                _menuItems.value = items
-
-            } catch (e: Exception) {
-                _error.value = "Ошибка загрузки данных меню: ${e.message}"
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    private fun buildMenuItems(
-        notebooks: List<Notebook>,
-        rootNotes: List<Note>
-    ): List<DrawerMenuItem> {
-        val items = mutableListOf<DrawerMenuItem>()
-
-        if (notebooks.isNotEmpty()) {
-            notebooks.forEach { notebook ->
-                items.add(DrawerMenuItem.NotebookItem(notebook))
-            }
-        }
-
-        items.add(DrawerMenuItem.CreateNotebook)
-        items.add(DrawerMenuItem.Divider)
-
-        if (rootNotes.isNotEmpty()) {
-            rootNotes.forEach { note ->
-                items.add(DrawerMenuItem.NoteItem(note))
-                items.add(DrawerMenuItem.Divider)
-            }
-        }
-        items.add(DrawerMenuItem.CreateNote)
-        return items
-    }
-
     fun createNewNotebook(name: String) {
         viewModelScope.launch {
             try {
-                createNotebookUseCase(name)
-                loadMenuData() // Перезагружаем данные после создания
+                val newNotebook = createNotebookUseCase(name)
+                _navigateToCreatedNotebook.value = newNotebook
             } catch (e: Exception) {
                 _error.value = "Ошибка создания записной книжки: ${e.message}"
             }
@@ -102,6 +52,10 @@ class DrawerMenuViewModel(
 
     fun onNoteNavigated() {
         _navigateToCreatedNote.value = null
+    }
+
+    fun onNotebookNavigated() {
+        _navigateToCreatedNotebook.value = null
     }
 
     fun clearError() {

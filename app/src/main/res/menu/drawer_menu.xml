@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/startFragment"
+            android:title="Главный экран" />
+
+        <item
+            android:id="@+id/notebooksFragment"
+            android:title="Все записные книжки" />
+
+        <item
+            android:id="@+id/settingsFragment"
+            android:title="Настройки" />
+    </group>
+
+    <group android:checkableBehavior="none">
+        <item
+            android:id="@+id/menu_create_note"
+            android:title="+ Заметка" />
+
+        <item
+            android:id="@+id/menu_create_notebook"
+            android:title="+ Записная книжка" />
+    </group>
+
+</menu>

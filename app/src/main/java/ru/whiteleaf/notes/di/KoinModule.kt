@@ -161,8 +161,6 @@ val koinModule = module {
 
     viewModel {
         DrawerMenuViewModel(
-            getNotebooksUseCase = get(),
-            getNotesUseCase = get(),
             createNotebookUseCase = get(),
             createNoteUseCase = get()
         )

@@ -9,6 +9,7 @@
     <fragment
         android:id="@+id/startFragment"
         android:name="ru.whiteleaf.notes.presentation.start.StartFragment"
+        android:label="Заметки и записные книжки"
         tools:layout="@layout/fragment_start" >
         <action
             android:id="@+id/action_startFragment_to_noteListFragment"
@@ -111,6 +112,12 @@
         android:name="ru.whiteleaf.notes.presentation.settings.SettingsFragment"
         android:label="Настройки"
         tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/notebooksFragment"
+        android:name="ru.whiteleaf.notes.presentation.notebooks.NotebooksFragment"
+        android:label="Записные книжки"
+        tools:layout="@layout/fragment_notebooks"/>
 
 
 </navigation>
