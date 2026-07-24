@@ -22,6 +22,37 @@ class NoteRepositoryImpl(
     private val encryptionRepository: EncryptionRepository,
 ) : NotesRepository {
 
+    override suspend fun getNote(noteId: String, notebookPath: String?): Note {
+        val file = noteDataSource.getNoteFile(notebookPath, noteId)
+        //val isProtected =
+        //    if (notebookPath != null) encryptionRepository.hasKey(notebookPath) else false
+        return try {
+            val lastModified = file.lastModified()
+            val name = file.nameWithoutExtension
+            val rawContent = noteDataSource.readNoteContent(file)
+            val content = if (notebookPath != null && encryptionRepository.hasKey(notebookPath)) {
+                encryptionRepository.decryptNote(notebookPath, rawContent)
+            } else {
+                rawContent
+            }
+
+            Note(
+                id = name,
+                title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
+                content = content,
+                modifiedAt = lastModified,
+                notebookPath = notebookPath
+            )
+        } catch (e: AuthenticationRequiredException) {
+            // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+            throw e
+        } catch (e: Exception) {
+            // Любая ошибка при чтении/расшифровке файла прерывает загрузку списка
+            println("DEBUG: NoteRepositoryImpl get note: ${e.message}")
+            throw IOException("Failed to read note ${file.name}", e)
+        }
+    }
+
     override suspend fun getNotes(notebookPath: String?): List<Note> {
         return withContext(Dispatchers.IO) {
             val dir =

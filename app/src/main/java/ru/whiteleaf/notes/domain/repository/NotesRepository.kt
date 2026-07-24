@@ -6,6 +6,7 @@ import ru.whiteleaf.notes.domain.model.Notebook
 
 interface NotesRepository {
     suspend fun getNotes(notebookPath: String?): List<Note>
+    suspend fun getNote(noteId:String, notebookPath:String?): Note
     suspend fun saveNote(note: Note)
     suspend fun deleteNote(note: Note)
     suspend fun moveNote(note: Note, targetNotebookPath: String?)
