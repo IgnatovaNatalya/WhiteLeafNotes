@@ -101,7 +101,7 @@ class NoteListViewModel(
                     }
                 }
 
-                println("DEBUG: NoteListViewmodel: Загрузка заметок, isProtected= $isProtected")
+                println("DEBUG: NoteListVM: Загрузка заметок, isProtected= $isProtected")
                 val notesList = getNotesUseCase(notebookPath)
 
                 notesList.forEach { note ->
@@ -110,6 +110,9 @@ class NoteListViewModel(
                         _message.postValue("Пустая заметка удалена")
                     }
                 }
+
+                notesList.forEach { note ->  println("DEBUG: NoteListVM: note:${note.printDebugIdTitlePath()}")}
+
                 _noteListState.postValue(
                     NoteListState.Success(isProtected, notesList.filter { it.isNotEmpty() })
                 )
@@ -252,7 +255,6 @@ class NoteListViewModel(
                     renameNoteUseCase(note, newTitle)
                     loadNotes()
                     showMessage("Название заметки изменено")
-                    //reloadNotes()
                 }
             } catch (e: Exception) {
                 showMessage("Ошибка переименования: ${e.message}")

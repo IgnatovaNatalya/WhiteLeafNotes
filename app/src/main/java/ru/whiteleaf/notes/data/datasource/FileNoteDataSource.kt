@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import java.io.File
-import java.io.FileInputStream
 
 class FileNoteDataSource(
     private val context: Context

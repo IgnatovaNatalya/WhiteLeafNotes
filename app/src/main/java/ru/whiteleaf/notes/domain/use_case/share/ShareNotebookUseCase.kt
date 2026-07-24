@@ -13,7 +13,7 @@ class ShareNotebookUseCase(
     suspend operator fun invoke(notebookPath: String, password: String? = null): Result<Uri> {
         return try {
             val notebook = notebookRepository.getNotebookByPath(notebookPath)
-            val notes = noteRepository.getNotes(notebook?.path)
+            val notes = noteRepository.getNotesList(notebook?.path)
             val result = exportRepository.createExportZip(notes, listOf(notebook!!), password)
             Result.success(result)
         } catch (e: Exception) {

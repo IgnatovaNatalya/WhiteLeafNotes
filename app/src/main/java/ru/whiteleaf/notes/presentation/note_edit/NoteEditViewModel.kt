@@ -15,7 +15,6 @@ import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
-import ru.whiteleaf.notes.common.utils.FileUtils.sanitizeFileName
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
@@ -112,7 +111,7 @@ class NoteEditViewModel(
         val currentNote = _note.value ?: return
         viewModelScope.launch {
             try {
-                println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote = ${_note.value?.printDebug()}")
+                println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote: ${_note.value?.printDebug()}")
                 //val clearTitle = sanitizeFileName(newTitle)
 
                 if (newTitle != currentNote.title) {
@@ -128,7 +127,7 @@ class NoteEditViewModel(
     fun updateNoteContent(content: String) {
         //println("DEBUG: NoteEditVM: Updating note content, content =$content")
         val currentNote = _note.value ?: return
-        println("DEBUG: NoteEditVM: Updating note content, current note= ${_note.value?.printDebug()}")
+        println("DEBUG: NoteEditVM: Updating note content, current note: ${_note.value?.printDebug()}")
         viewModelScope.launch {
             try {
                 val updatedNote = currentNote.copy(content = content)
@@ -182,19 +181,19 @@ class NoteEditViewModel(
     }
 
     fun updateFullNote(newTitle: String, content: String) { ///
+        val currentNote = _note.value ?: return
         showMessage("Сохранение заметки")
         println("DEBUG: NoteEditVM: Updating full note title=$newTitle, content=${content.take(10)}")
 
         viewModelScope.launch {
             try {
-                val currentNote = _note.value ?: return@launch
                 val newNote = updateFullNoteUseCase(currentNote, newTitle, content)
                 _note.postValue(newNote)
             } catch (e: AuthenticationRequiredException) {
-                _noteEditState.value = NoteEditState.Blocked
+                _noteEditState.postValue (NoteEditState.Blocked)
                 println("DEBUG: NoteEditVM: Authentication required while updating full note: ${e.message}")
             } catch (e: Exception) {
-                println("DEBUG: NoteEditVM: Error updating full note")
+                println("DEBUG: NoteEditVM: Error updating full note: ${e.message}")
                 showMessage("Ошибка сохранения заметки: ${e.message}")
             }
         }

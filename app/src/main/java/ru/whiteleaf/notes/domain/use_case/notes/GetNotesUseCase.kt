@@ -5,6 +5,6 @@ import ru.whiteleaf.notes.domain.repository.NotesRepository
 
 class GetNotesUseCase(private val repository: NotesRepository) {
     suspend operator fun invoke(notebookPath: String?): List<Note> {
-        return repository.getNotes(notebookPath)
+        return repository.getNotesList(notebookPath)
     }
 }

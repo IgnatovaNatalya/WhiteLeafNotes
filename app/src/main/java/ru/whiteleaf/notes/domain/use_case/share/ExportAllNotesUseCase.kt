@@ -38,7 +38,7 @@ class ExportAllNotesUseCase(
                             "Для экспорта"
                         )
                         if (unlocked) {
-                            notesToExport.addAll(noteRepository.getNotes(notebook.path))
+                            notesToExport.addAll(noteRepository.getNotesList(notebook.path))
                             noteBooksToExport.add(notebook)
                             println("DEBUG: ExportAllNotesUseCase: Unlock success protected notebook ${notebook.name} added to export")
                         } else {
@@ -48,7 +48,7 @@ class ExportAllNotesUseCase(
 
                 } else {
                     //если не зашифрованная
-                    notesToExport.addAll(noteRepository.getNotes(notebook.path))
+                    notesToExport.addAll(noteRepository.getNotesList(notebook.path))
                     noteBooksToExport.add(notebook)
                     println("DEBUG: ExportAllNotesUseCase: Open notebook ${notebook.name} added to export")
                 }

@@ -176,9 +176,6 @@ class NoteRepositoryImpl(
         return withContext(Dispatchers.IO) {
             try {
                 val newId = if (newName == "") generateNoteId() else sanitizeFileName(newName)
-//                if (newName == "") {
-//                    throw IOException("Недопустимое имя файла")
-//                }
 
                 // Используем noteDataSource для проверки существования файла
                 if (noteDataSource.existsNote(note.notebookPath ?: "", newId)) {

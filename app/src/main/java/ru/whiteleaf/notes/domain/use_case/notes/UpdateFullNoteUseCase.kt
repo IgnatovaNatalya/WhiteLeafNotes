@@ -8,14 +8,14 @@ class UpdateFullNoteUseCase(
 ) {
     suspend operator fun invoke(note: Note, newTitle: String, newContent: String): Note {
 
-        val newId = if (newTitle.isNotEmpty() && newTitle != note.title) {
-            renameNoteUseCase(note, newTitle)
-        } else {
-            note.id
-        }
+        val updContentNote = note.copy(content = newContent)
+        saveNoteContentUseCase(updContentNote)
 
-        val updatedNote = note.copy(id = newId, title = newTitle, content = newContent)
-        saveNoteContentUseCase(updatedNote)
+        val updatedNote = if (newTitle != note.title) renameNoteUseCase(
+            updContentNote,
+            newTitle
+        ) else updContentNote
+
         return updatedNote
     }
 }

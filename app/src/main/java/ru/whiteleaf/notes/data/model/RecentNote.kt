@@ -8,6 +8,10 @@ data class RecentNote(
     val notebookPath: String?,
     val recentDate: Long = 0
 ) {
+    fun printDebug(): String {
+        return "id=$id, recentTitle=$recentTitle, path=$notebookPath"
+    }
+
     companion object {
         fun fromNote(note: Note): RecentNote {
             return RecentNote(
