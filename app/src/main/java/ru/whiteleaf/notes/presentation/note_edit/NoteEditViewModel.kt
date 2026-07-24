@@ -73,7 +73,7 @@ class NoteEditViewModel(
         if (noteId != null) viewModelScope.launch {
             _noteEditState.postValue(NoteEditState.Loading)
             try {
-                val note = getNoteUseCase(noteId, notebookPath) ?: return@launch
+                val note = getNoteUseCase(noteId, notebookPath)
 
                 _note.postValue(note)
 
@@ -94,12 +94,12 @@ class NoteEditViewModel(
                 if (note.isNotEmpty()) removeRecentNoteUseCase(note)
 
             } catch (e: AuthenticationRequiredException) {
-                _noteEditState.value = NoteEditState.Blocked
+                _noteEditState.postValue (NoteEditState.Blocked)
                 println("DEBUG: NoteEditVM: Key not unlocked while loading note: ${e.message}")
 
             } catch (e: Exception) {
                 println("DEBUG: NoteEditVM: Error loading: ${e.message}")
-                _noteEditState.value = NoteEditState.Error(e.message ?: "Ошибка загрузки")
+                _noteEditState.postValue (NoteEditState.Error(e.message ?: "Ошибка загрузки"))
             }
         }
     }

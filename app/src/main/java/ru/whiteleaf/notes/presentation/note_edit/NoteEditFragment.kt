@@ -1,6 +1,6 @@
 package ru.whiteleaf.notes.presentation.note_edit
 
-import android.content.Context
+
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,7 +13,6 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -183,7 +182,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
     }
 
-
     private fun showMaterialDatePickerDialog() {
         val currentNote = viewModel.note.value ?: return
 
@@ -280,7 +278,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun noteIsNotEmpty() =
         titleEditText.text.toString().trim() != "" || contentEditText.text.toString().trim() != ""
 
-
     private fun onOptionsDeleteNote() {
         DialogHelper.createDeleteNoteConfirmationDialog(
             requireContext(),
@@ -295,10 +292,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             is NoteEditState.Success -> {
                 println("DEBUG: NoteEditFragment: Rendering note")
                 noteScrollView.visibility = View.VISIBLE
-                binding.progressBar.visibility = View.GONE
+                binding.noteEditProgressBar.visibility = View.GONE
                 noteProtected.visibility = View.GONE
-
-
 
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
@@ -333,22 +328,25 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             }
 
             NoteEditState.Loading -> {
+                println("DEBUG: NoteEditFragment: Rendering loading")
                 noteScrollView.visibility = View.GONE
-                binding.progressBar.visibility = View.VISIBLE
+                binding.noteEditProgressBar.visibility = View.VISIBLE
                 noteProtected.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
             }
 
             is NoteEditState.Error -> {
+                println("DEBUG: NoteEditFragment: Rendering error")
                 noteScrollView.visibility = View.GONE
-                binding.progressBar.visibility = View.GONE
+                binding.noteEditProgressBar.visibility = View.GONE
                 noteProtected.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
                 renderMessage(state.message)
             }
 
             NoteEditState.Blocked -> {
-                binding.progressBar.visibility = View.GONE
+                println("DEBUG: NoteEditFragment: Rendering blocked")
+                binding.noteEditProgressBar.visibility = View.GONE
                 noteProtected.visibility = View.VISIBLE
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)

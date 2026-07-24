@@ -24,8 +24,6 @@ class NoteRepositoryImpl(
 
     override suspend fun getNote(noteId: String, notebookPath: String?): Note {
         val file = noteDataSource.getNoteFile(notebookPath, noteId)
-        //val isProtected =
-        //    if (notebookPath != null) encryptionRepository.hasKey(notebookPath) else false
         return try {
             val lastModified = file.lastModified()
             val name = file.nameWithoutExtension

@@ -65,7 +65,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_ind_unlocked"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:tint="?attr/android:textColorPrimary" />
 
         </com.google.android.material.appbar.MaterialToolbar>
