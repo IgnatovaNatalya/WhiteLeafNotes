@@ -112,12 +112,11 @@ class NoteEditViewModel(
         val currentNote = _note.value ?: return
         viewModelScope.launch {
             try {
-                println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote = ${_note.value}")
-                val clearTitle = sanitizeFileName(newTitle)
+                println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote = ${_note.value?.printDebug()}")
+                //val clearTitle = sanitizeFileName(newTitle)
 
-                if (clearTitle.isNotEmpty() && clearTitle != currentNote.title) {
-                    _note.postValue(currentNote.copy(id = clearTitle, title = clearTitle))
-                    renameNoteUseCase(currentNote, newTitle)
+                if (newTitle != currentNote.title) {
+                    _note.postValue(renameNoteUseCase(currentNote, newTitle))
                 }
             } catch (e: Exception) {
                 showMessage("Ошибка при переименовании заметки: ${e.message}")
@@ -129,7 +128,7 @@ class NoteEditViewModel(
     fun updateNoteContent(content: String) {
         //println("DEBUG: NoteEditVM: Updating note content, content =$content")
         val currentNote = _note.value ?: return
-        println("DEBUG: NoteEditVM: Updating note content, current note= ${_note.value}")
+        println("DEBUG: NoteEditVM: Updating note content, current note= ${_note.value?.printDebug()}")
         viewModelScope.launch {
             try {
                 val updatedNote = currentNote.copy(content = content)
@@ -184,7 +183,7 @@ class NoteEditViewModel(
 
     fun updateFullNote(newTitle: String, content: String) { ///
         showMessage("Сохранение заметки")
-        println("DEBUG: NoteEditVM: Updating full note title=$newTitle, content=$content")
+        println("DEBUG: NoteEditVM: Updating full note title=$newTitle, content=${content.take(10)}")
 
         viewModelScope.launch {
             try {
@@ -200,7 +199,6 @@ class NoteEditViewModel(
             }
         }
     }
-
 
     fun saveToRecent() {
         viewModelScope.launch {

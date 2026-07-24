@@ -16,4 +16,12 @@ data class Note(
 
     fun isNotEmpty() :Boolean =
         (this.title.trim().isNotEmpty() || this.content.trim().isNotEmpty())
+
+    fun printDebug():String {
+        return "title=$title, content=${content.take(10)}"
+    }
+
+    fun printDebugRecent():String {
+        return "id=$id, title=$title, path=$notebookPath"
+    }
 }

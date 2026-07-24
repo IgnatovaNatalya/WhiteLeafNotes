@@ -11,6 +11,8 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.whiteleaf.notes.common.utils.FileUtils.generateNoteId
+import ru.whiteleaf.notes.common.utils.FileUtils.sanitizeFileName
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import java.io.File
@@ -51,7 +53,8 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun getNotes(notebookPath: String?): List<Note> {
+    override suspend fun getNotesList(notebookPath: String?): List<Note> {
+        //получаем заметки для списка только с названиями, а контент берем только если названия нет
         return withContext(Dispatchers.IO) {
             val dir =
                 notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
@@ -68,17 +71,22 @@ class NoteRepositoryImpl(
                     try {
                         val lastModified = file.lastModified()
                         val name = file.nameWithoutExtension
-                        val rawContent = noteDataSource.readNoteContent(file)
-                        val content = if (isProtected) {
-                            encryptionRepository.decryptNote(notebookPath, rawContent)
-                        } else {
-                            rawContent
-                        }
+                        val contentPreview = name
+                            .takeIf { it.startsWith(FILE_NAME_PREFIX) }
+                            ?.let { noteDataSource.readNoteContent(file) }
+                            ?.let {
+                                if (isProtected) encryptionRepository.decryptNote(
+                                    notebookPath,
+                                    it
+                                ) else it
+                            }
+                            ?.take(40) //часть контента для отображения вместо названия если его нет
+                            ?: ""
 
                         Note(
                             id = name,
                             title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
-                            content = content,
+                            content = contentPreview,
                             modifiedAt = lastModified,
                             notebookPath = notebookPath
                         )
@@ -87,7 +95,7 @@ class NoteRepositoryImpl(
                         throw e
                     } catch (e: Exception) {
                         // Любая ошибка при чтении/расшифровке файла прерывает загрузку списка
-                        println("DEBUG: NoteRepositoryImpl get notes: ${e.message}")
+                        println("DEBUG: NoteRepositoryImpl get notes error: ${e.message}")
                         throw IOException("Failed to read note ${file.name}", e)
                     }
                 }?.sortedByDescending { it.modifiedAt } ?: emptyList()
@@ -164,27 +172,30 @@ class NoteRepositoryImpl(
         }
     }
 
-    override suspend fun renameNote(note: Note, newName: String): String {
+    override suspend fun renameNote(note: Note, newName: String): Note {
         return withContext(Dispatchers.IO) {
             try {
-                if (newName == "") {
-                    throw IOException("Недопустимое имя файла")
-                }
+                val newId = if (newName == "") generateNoteId() else sanitizeFileName(newName)
+//                if (newName == "") {
+//                    throw IOException("Недопустимое имя файла")
+//                }
 
                 // Используем noteDataSource для проверки существования файла
-                if (noteDataSource.existsNote(note.notebookPath ?: "", newName)) {
+                if (noteDataSource.existsNote(note.notebookPath ?: "", newId)) {
                     throw IOException("Файл с таким именем уже существует")
                 }
 
                 // Получаем файлы через noteDataSource
                 val oldFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
-                val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newName)
+                val newFile = noteDataSource.getNoteFile(note.notebookPath ?: "", newId)
 
                 // Используем noteDataSource для операции переименования/перемещения
                 if (oldFile.exists()) {
                     noteDataSource.moveFile(oldFile, newFile)
                 }
-                newName
+                //note.copy(title = newName)///
+                getNote(newId, note.notebookPath)
+
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка переименования заметки: ${e.message}")
                 throw IOException("Ошибка переименования заметки: ${e.message}")
@@ -221,9 +232,9 @@ class NoteRepositoryImpl(
 
         val allNotes = mutableListOf<Note>()
 
-        allNotes.addAll(getNotes(null))
+        allNotes.addAll(getNotesList(null))
         notebooks.forEach { notebook ->
-            allNotes.addAll(getNotes(notebook.path))
+            allNotes.addAll(getNotesList(notebook.path))
         }
         return allNotes
     }
