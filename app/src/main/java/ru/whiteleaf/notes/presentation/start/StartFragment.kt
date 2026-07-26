@@ -39,17 +39,19 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     private fun setupRecyclerView() {
         val adapter = StartAdapter(
-            onRecentNoteClicked = { recentNote -> navigateToRecentNote(recentNote)},
+            onRecentNoteClicked = { recentNote -> navigateToRecentNote(recentNote) },
+            onShowMoreRecent = { viewModel.showMoreRecent() },
+
+            onAllNotebooksClicked = { findNavController().navigate(StartFragmentDirections.actionGlobalNotebooksFragment()) },
             onNotebookClicked = { notebook -> navigateToNotebook(notebook) },
+            onShowMoreNotebooks = { viewModel.showMoreNotebooks() },
+
+            onRootNotesClicked = { navigateToRootNotes() },
             onNoteClicked = { note -> navigateToNote(note) },
-            onAddNotebookClicked = {
-                DialogHelper.createCreateNotebookDialog(requireContext()) { name ->
-                    viewModel.createNewNotebook(name)
-                }.show()
-            },
-            onAddNoteClicked = { createNewNote() },
+            onShowMoreNotes = { viewModel.showMoreNotes() },
+
             contextNoteActionHandler = this,
-            contextNotebookActionHandler = this
+            contextNotebookActionHandler = this,
         )
 
         binding.startRecyclerView.adapter = adapter
@@ -57,45 +59,60 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     private fun setupObservers() {
-        viewModel.startItems.observe(viewLifecycleOwner) { items ->
-            (binding.startRecyclerView.adapter as StartAdapter).submitList(items)
+        viewModel.startScreenState.observe(viewLifecycleOwner) { state ->
+            renderState(state)
         }
 
-        viewModel.uriToShare.observe(viewLifecycleOwner) { uri ->
-            uri?.let {
-                ShareHelper.shareFile(requireContext(), uri, "Поделиться архивом ZIP")
-                viewModel.onNotebookShared()
-            }
-        }
-
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.startProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        }
-
-        viewModel.navigateToCreatedNote.observe(viewLifecycleOwner) { note ->
-            note?.let {
-                val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
-                    noteId = note.id,
-                    notebookPath = null
-                )
-                findNavController().navigate(action)
-                viewModel.onNoteNavigated()
-            }
-        }
-
-        viewModel.navigateToCreatedNotebook.observe(viewLifecycleOwner) { notebook ->
-            notebook?.let {
-                val action =
-                    StartFragmentDirections.actionStartFragmentToNoteListFragment(notebook.path)
-                findNavController().navigate(action)
-                viewModel.onNotebookNavigated()
-            }
+        viewModel.navigationEvent.observe(viewLifecycleOwner) { event ->
+            renderEvent(event)
         }
 
         viewModel.message.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
                 viewModel.clearMessage()
+            }
+        }
+    }
+
+    private fun renderEvent(event: StartNavigationEvent) {
+        when (event) {
+            StartNavigationEvent.Idle -> {}
+
+            is StartNavigationEvent.NavigateToCreatedNotebook -> {}
+
+            is StartNavigationEvent.NavigateToCreatedNote -> {
+                event.note.let {
+                    val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
+                        noteId = it.id,
+                        notebookPath = null
+                    )
+                    findNavController().navigate(action)
+                    viewModel.onNavigated()
+                }
+
+            }
+
+            is StartNavigationEvent.ShareUri -> {
+                event.uri.let {
+                    ShareHelper.shareFile(requireContext(), it, "Поделиться архивом ZIP")
+                    viewModel.onNavigated()
+                }
+            }
+        }
+    }
+
+    private fun renderState(state: StartScreenState) {
+        when (state) {
+            StartScreenState.Loading -> {
+                binding.startProgressBar.visibility = View.VISIBLE
+                binding.startRecyclerView.visibility = View.GONE
+            }
+
+            is StartScreenState.Success -> {
+                binding.startProgressBar.visibility = View.GONE
+                binding.startRecyclerView.visibility = View.VISIBLE
+                (binding.startRecyclerView.adapter as StartAdapter).submitList(state.startScreenItems)
             }
         }
     }
@@ -113,6 +130,11 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         findNavController().navigate(action)
     }
 
+    private fun navigateToRootNotes() {
+        val action = StartFragmentDirections.actionStartFragmentToNoteListFragment("")
+        findNavController().navigate(action)
+    }
+
     private fun navigateToNote(note: Note) {
         val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
             noteId = note.id,
@@ -121,7 +143,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         findNavController().navigate(action)
     }
 
-    private fun createNewNote() {
+    private fun createNewNote() { //todo может сделать FAB
         viewModel.createNewNote()
     }
 
@@ -172,6 +194,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onResume() {
         super.onResume()
-        viewModel.reloadNotes()
+
+        viewModel.loadData()
     }
 }

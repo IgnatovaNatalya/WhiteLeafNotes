@@ -83,6 +83,14 @@
 
     <!-- Глобальные действия -->
     <action
+        android:id="@+id/action_global_notebooksFragment"
+        app:destination="@id/notebooksFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"/>
+
+    <action
         android:id="@+id/action_global_startFragment"
         app:destination="@id/startFragment"
         app:enterAnim="@anim/slide_in_right"

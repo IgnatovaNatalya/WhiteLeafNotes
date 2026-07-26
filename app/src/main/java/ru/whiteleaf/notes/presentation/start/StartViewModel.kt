@@ -1,7 +1,6 @@
 package ru.whiteleaf.notes.presentation.start
 
 import android.content.Context
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -26,6 +25,9 @@ import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import kotlin.collections.forEach
 
+const val MAX_ITEMS = 3
+const val STEP_ITEMS = 3
+
 class StartViewModel(
     private val getNotebooksUseCase: GetNotebooksUseCase,
     private val getNotesUseCase: GetNotesUseCase,
@@ -42,35 +44,38 @@ class StartViewModel(
     private val getRecentNotesUseCase: GetRecentNotesUseCase,
 ) : ViewModel() {
 
-    private val _startItems = MutableLiveData<List<StartListItem>>()
-    val startItems: LiveData<List<StartListItem>> = _startItems
+    private val _navigationEvent = MutableLiveData<StartNavigationEvent>()
+    val navigationEvent: LiveData<StartNavigationEvent> = _navigationEvent
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _startScreenState = MutableLiveData<StartScreenState>()
+    val startScreenState: LiveData<StartScreenState> = _startScreenState
 
-    private val _navigateToCreatedNote = MutableLiveData<Note?>()
-    val navigateToCreatedNote: LiveData<Note?> = _navigateToCreatedNote
-
-    private val _navigateToCreatedNotebook = MutableLiveData<Notebook?>()
-    val navigateToCreatedNotebook: LiveData<Notebook?> = _navigateToCreatedNotebook
+    private var recentList: List<RecentNote> = emptyList()
+    private var notebookList: List<Notebook> = emptyList()
+    private var rootNoteList: List<Note> = emptyList()
 
     private val _message = MutableLiveData<String?>()
     val message: LiveData<String?> = _message
 
-    private val _uriToShare = MutableLiveData<Uri?>()
-    val uriToShare: LiveData<Uri?> = _uriToShare
+    private var visibleRecentCount = MAX_ITEMS
+    private var visibleNotebooksCount = MAX_ITEMS
+    private var visibleNotesCount = MAX_ITEMS
 
     init {
         loadData()
     }
 
     fun loadData() {
-        _isLoading.value = true
+
+        println("DEBUG: StartVM: loading data")
+
+        _startScreenState.postValue(StartScreenState.Loading)
 
         viewModelScope.launch {
             try {
-                val recent = getRecentNotesUseCase()
-                val notebooks = getNotebooksUseCase()
+                recentList = getRecentNotesUseCase()
+                notebookList = getNotebooksUseCase()
+
                 val rootNotes = getNotesUseCase(null) // Заметки в корневой папке
 
                 rootNotes.forEach { note ->
@@ -80,87 +85,122 @@ class StartViewModel(
                     }
                 }
 
-                val items = buildStartItems(recent, notebooks, rootNotes.filter { it.isNotEmpty() })
-                _startItems.value = items
+                rootNoteList = rootNotes.filter { it.isNotEmpty() }
+
+                buildStartItems()
+
             } catch (e: Exception) {
                 _message.value = "Ошибка загрузки данных: ${e.message}"
-            } finally {
-                _isLoading.value = false
             }
         }
     }
 
-    private fun buildStartItems(
-        recent: List<RecentNote>,
-        notebooks: List<Notebook>,
-        rootNotes: List<Note>
-    ): List<StartListItem> {
+    fun buildStartItems() {
         val items = mutableListOf<StartListItem>()
 
         // Секция Недавние
-        if (recent.isNotEmpty()) {
-            items.add(StartListItem.Header("НЕДАВНИЕ"))
-            items.add(StartListItem.Divider())
+        val recentToShow = recentList.take(visibleRecentCount)
+        println("DEBUG: StartVM: build start items, recent items count: ${recentList.size}, showing ${recentToShow.size}")
 
-            recent.forEachIndexed  {  index, note ->
+        if (recentToShow.isNotEmpty()) {
+            items.add(StartListItem.HeaderRecent)
+            items.add(StartListItem.Divider)
+
+            recentToShow.forEachIndexed { index, note ->
                 items.add(StartListItem.RecentNoteItem(note))
-                items.add(StartListItem.Divider(index == recent.lastIndex))
+
+                if (index < recentToShow.lastIndex)
+                    items.add(StartListItem.Divider)
+                else
+                    if (recentToShow.size < recentList.size) items.add(StartListItem.ShowMoreRecent) else items.add(
+                        StartListItem.Divider
+                    )
             }
         }
 
         // Секция записных книжек
-        items.add(StartListItem.Header("ЗАПИСНЫЕ КНИЖКИ"))
-        items.add(StartListItem.Divider())
+        val notebooksToShow = notebookList.take(visibleNotebooksCount)
+        println("DEBUG: StartVM: build start items, notebooks items count: ${notebookList.size} , showing ${notebooksToShow.size}")
 
-        if (notebooks.isEmpty()) {
+        items.add(StartListItem.HeaderNotebooks)
+        items.add(StartListItem.Divider)
+
+        if (notebooksToShow.isEmpty()) {
             items.add(StartListItem.EmptyNotebooks)
         } else {
-            notebooks.forEachIndexed  {  index, notebook ->
+            notebooksToShow.forEachIndexed { index, notebook ->
                 items.add(StartListItem.NotebookItem(notebook))
+
+                if (index < notebooksToShow.lastIndex)
+                    items.add(StartListItem.Divider)
+                else
+                    if (notebooksToShow.size < notebookList.size ) items.add(StartListItem.ShowMoreNotebooks)
+                    else items.add(StartListItem.Divider)
             }
         }
-
-        items.add(StartListItem.Divider(true))
 
         // Секция заметок
-        items.add(StartListItem.Header("ЗАМЕТКИ"))
-        items.add(StartListItem.Divider())
+        val rootNotesToShow = rootNoteList.take(visibleNotesCount)
+        println("DEBUG: StartVM: build start items, rootNotes items count: ${rootNoteList.size}, showing ${rootNotesToShow.size}")
 
-        if (rootNotes.isEmpty()) {
+        items.add(StartListItem.HeaderRootNotes)
+        items.add(StartListItem.Divider)
+
+        if (rootNotesToShow.isEmpty()) {
             items.add(StartListItem.EmptyNotes)
         } else {
-            rootNotes.forEach { note ->
+            rootNotesToShow.forEachIndexed { index, note ->
                 items.add(StartListItem.NoteItem(note))
+                if (index < rootNotesToShow.lastIndex)
+                    items.add(StartListItem.Divider)
+                else
+                    if (rootNotesToShow.size < rootNoteList.size) items.add(StartListItem.ShowMoreNotes)
+                    else items.add(StartListItem.Divider)
             }
         }
-        items.add(StartListItem.Divider())
 
-        return items
+        _startScreenState.postValue(StartScreenState.Success(items))
+    }
+
+
+    fun showMoreRecent() {
+        visibleRecentCount += STEP_ITEMS
+        buildStartItems()
+    }
+
+    fun showMoreNotebooks() {
+        visibleNotebooksCount += STEP_ITEMS
+        buildStartItems()
+    }
+
+    fun showMoreNotes() {
+        visibleNotesCount += STEP_ITEMS
+        buildStartItems()
     }
 
     fun createNewNote() {
         viewModelScope.launch {
             try {
                 val newNote = createNoteUseCase(null)
-                _navigateToCreatedNote.value = newNote
-                _message.value = "Заметка создана"
+                _navigationEvent.postValue(StartNavigationEvent.NavigateToCreatedNote(newNote))
+                _message.postValue("Заметка создана")
             } catch (e: Exception) {
-                _message.value = "Ошибка создания заметки: ${e.message}"
+                _message.postValue("Ошибка создания заметки: ${e.message}")
             }
         }
     }
 
-    fun createNewNotebook(name: String) {
-        viewModelScope.launch {
-            try {
-                val newNotebook = createNotebookUseCase(name)
-                _navigateToCreatedNotebook.value = newNotebook
-                _message.value = "Записная книжка создана: ${newNotebook.name}"
-            } catch (e: Exception) {
-                _message.value = "Ошибка создания записной книжки: ${e.message}"
-            }
-        }
-    }
+//    fun createNewNotebook(name: String) {
+//        viewModelScope.launch {
+//            try {
+//                val newNotebook = createNotebookUseCase(name)
+//                _navigateToCreatedNotebook.value = newNotebook
+//                _message.value = "Записная книжка создана: ${newNotebook.name}"
+//            } catch (e: Exception) {
+//                _message.value = "Ошибка создания записной книжки: ${e.message}"
+//            }
+//        }
+//    }
 
     fun updateNoteTitle(note: Note, newTitle: String) {
         viewModelScope.launch {
@@ -228,8 +268,11 @@ class StartViewModel(
             try {
                 val result = shareNotebookUseCase(notebookPath)
                 if (result.isSuccess) {
-                    _uriToShare.postValue(result.getOrNull())
-                    _message.postValue("Архив создан успешно")
+                    val uri = result.getOrNull()
+                    if (uri != null) {
+                        _navigationEvent.postValue(StartNavigationEvent.ShareUri(uri))
+                        _message.postValue("Архив создан успешно")
+                    }
                 } else
                     _message.postValue(result.exceptionOrNull()?.message ?: "Ошибка экспорта")
             } catch (e: Exception) {
@@ -241,7 +284,6 @@ class StartViewModel(
     fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {
             try {
-
                 val unlocked = if (isNotebookProtectedUseCase(notebook.path)) {
                     unlockNotebookUseCase(notebook.path, context, reason = "Для удаления")
                 } else
@@ -264,14 +306,8 @@ class StartViewModel(
         }
     }
 
-    fun onNotebookShared() = _uriToShare.postValue(null)
-
-    fun onNoteNavigated() = _navigateToCreatedNote.postValue(null)
-
-    fun onNotebookNavigated() = _navigateToCreatedNotebook.postValue(null)
+    fun onNavigated() = _navigationEvent.postValue(StartNavigationEvent.Idle)
 
     fun clearMessage() = _message.postValue(null)
-
-    fun reloadNotes() = loadData()
 
 }

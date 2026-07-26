@@ -5,13 +5,19 @@ import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 
 sealed class StartListItem {
-    data class Header(val title: String) : StartListItem()
+    object HeaderRecent : StartListItem()
     data class RecentNoteItem(val recentNote: RecentNote) : StartListItem()
+    object ShowMoreRecent : StartListItem()
+
+    object HeaderNotebooks : StartListItem()
     data class NotebookItem(val notebook: Notebook) : StartListItem()
+    object ShowMoreNotebooks : StartListItem()
+
+    object HeaderRootNotes : StartListItem()
     data class NoteItem(val note: Note) : StartListItem()
-    object AddNotebookButton : StartListItem()
-    object AddNoteButton : StartListItem()
-    data class Divider(val isLast: Boolean = false) : StartListItem()
+    object ShowMoreNotes : StartListItem()
+
+    object Divider : StartListItem()
     object EmptyNotebooks : StartListItem()
     object EmptyNotes : StartListItem()
     object Spacing : StartListItem()
@@ -22,13 +28,20 @@ sealed class StartListItem {
         if (javaClass != other?.javaClass) return false
 
         return when (this) {
-            is Header -> this == other
+            HeaderRecent -> other is HeaderRecent
             is RecentNoteItem -> this == other
+            ShowMoreRecent -> other is ShowMoreRecent
+
+            HeaderNotebooks -> other is HeaderNotebooks
             is NotebookItem -> this == other
+            ShowMoreNotebooks -> other is ShowMoreNotebooks
+
+            HeaderRootNotes -> other is HeaderRootNotes
             is NoteItem -> this == other
-            AddNotebookButton -> other is AddNotebookButton
-            AddNoteButton -> other is AddNoteButton
-            is Divider -> other is Divider
+            ShowMoreNotes -> other is ShowMoreNotes
+
+            Divider -> other is Divider
+
             EmptyNotebooks -> other is EmptyNotebooks
             EmptyNotes -> other is EmptyNotes
             Spacing -> other is Spacing
