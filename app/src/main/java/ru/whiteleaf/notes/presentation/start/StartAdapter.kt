@@ -109,7 +109,7 @@ class StartAdapter(
                 onRootNotesClicked
             )
 
-            TYPE_NOTE -> NoteViewHolder(
+            TYPE_NOTE -> StartNoteViewHolder(
                 LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_start_note, parent, false),
                 onNoteClicked, contextNoteActionHandler
@@ -156,7 +156,7 @@ class StartAdapter(
                 "ЗАМЕТКИ", true
             )
 
-            is StartListItem.NoteItem -> (holder as NoteViewHolder).bind(item.note)
+            is StartListItem.NoteItem -> (holder as StartNoteViewHolder).bind(item.note)
             is StartListItem.ShowMoreNotes -> (holder as ShowMoreButtonViewHolder).bind()
 
             is StartListItem.Divider -> (holder as DividerViewHolder).bind() // разделитель без кнопки

@@ -7,25 +7,26 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
-import ru.whiteleaf.notes.databinding.ItemNoteBinding
+import ru.whiteleaf.notes.common.utils.formatDateNoteList
+import ru.whiteleaf.notes.databinding.ItemNoteInListBinding
 import ru.whiteleaf.notes.domain.model.Note
 
-class NoteViewHolder(
-    private val binding: ItemNoteBinding,
+class NoteInListViewHolder(
+    private val binding: ItemNoteInListBinding,
     private val onNoteClicked: (Note) -> Unit,
     private val noteActionHandler: ContextNoteActionHandler
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(note: Note) {
         val text = if (note.title != "") note.title else note.content.take(40)
-        binding.noteTitle.text = text.trimStart('-')
+        binding.noteInListTitle.text = text.trimStart('-')
 
         val isFeatured = note.title.startsWith('-')
 
         if (isFeatured) {
             // Особенная заметка - акцентный фон и белый текст
             itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.accent_blue))
-            binding.noteTitle.setTextColor(
+            binding.noteInListTitle.setTextColor(
                 ContextCompat.getColor(
                     itemView.context,
                     android.R.color.white
@@ -42,7 +43,9 @@ class NoteViewHolder(
                 typedValue,
                 true
             )
-            binding.noteTitle.setTextColor(typedValue.data)
+            binding.noteInListTitle.setTextColor(typedValue.data)
+
+            binding.noteInListDate.text = formatDateNoteList(note.modifiedAt)
         }
 
         binding.root.setOnClickListener { onNoteClicked(note) }

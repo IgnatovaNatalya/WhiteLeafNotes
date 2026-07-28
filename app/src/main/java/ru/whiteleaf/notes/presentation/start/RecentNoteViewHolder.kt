@@ -11,8 +11,8 @@ class RecentNoteViewHolder(
     view: View,
     private val onRecentNoteClicked: (RecentNote) -> Unit
 ) : RecyclerView.ViewHolder(view) {
-    private val title: TextView = view.findViewById(R.id.note_title)
-    private val notebookTitle: TextView = view.findViewById(R.id.notebook_title)
+    private val title: TextView = view.findViewById(R.id.recent_note_title)
+    private val notebookTitle: TextView = view.findViewById(R.id.recent_notebook_title)
     private val noteDate: TextView = view.findViewById(R.id.recent_date)
 
     fun bind(note: RecentNote) {

@@ -6,24 +6,25 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
+import ru.whiteleaf.notes.common.utils.formatDateNoteList
 import ru.whiteleaf.notes.domain.model.Note
 
-class NoteViewHolder(
+class StartNoteViewHolder(
     view: View,
     private val onNoteClicked: (Note) -> Unit,
     private val contextActionHandler: ContextNoteActionHandler
 ) : RecyclerView.ViewHolder(view) {
-    private val title: TextView = view.findViewById(R.id.note_title)
+    private val title: TextView = view.findViewById(R.id.start_note_title)
+    private val date : TextView = view.findViewById(R.id.start_note_date)
 
     fun bind(note: Note) {
 
         val text = if (note.title!="") note.title else note.content.take(40)
+        title.text = text
 
-        title.text = text//note.title
+        date.text = formatDateNoteList(note.modifiedAt)
 
-        itemView.setOnClickListener {
-            onNoteClicked(note)
-        }
+        itemView.setOnClickListener {  onNoteClicked(note)  }
 
         itemView.setOnLongClickListener {
             showContextMenu(itemView, note)

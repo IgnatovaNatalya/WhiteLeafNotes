@@ -8,7 +8,7 @@
     android:paddingHorizontal="16dp">
 
     <TextView
-        android:id="@+id/note_title"
+        android:id="@+id/start_note_title"
         style="@style/StartScreenItemTitle"
         android:layout_width="0dp"
         android:layout_height="30dp"
@@ -20,12 +20,12 @@
         tools:text="Заметка с длинным названием которое не помещается на экран целиком" />
 
     <TextView
-        android:id="@+id/note_date"
+        android:id="@+id/start_note_date"
         style="@style/StartScreenItemDate"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_marginStart="16dp"
         android:gravity="center_vertical"
-        android:text="24.01.2026"
+        tools:text="24.01.2026"
         android:textColor="?android:attr/textColorSecondary" />
 </LinearLayout>

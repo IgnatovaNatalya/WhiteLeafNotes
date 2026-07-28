@@ -17,7 +17,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/note_title"
+            android:id="@+id/recent_note_title"
             style="@style/StartScreenItemTitle"
             android:layout_width="match_parent"
             android:layout_marginTop="-4dp"
@@ -28,7 +28,7 @@
             tools:text="Заметка с длинным названием которое не помещается на экран целиком" />
 
         <TextView
-            android:id="@+id/notebook_title"
+            android:id="@+id/recent_notebook_title"
             style="@style/StartScreenItemNotebookCount"
             android:layout_width="wrap_content"
             android:layout_height="12dp"
@@ -42,7 +42,7 @@
         style="@style/StartScreenItemDate"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:text="Вчера"
+        tools:text="Вчера"
         android:gravity="center_vertical"
         android:layout_marginStart="16dp"
         android:textColor="?android:attr/textColorSecondary" />

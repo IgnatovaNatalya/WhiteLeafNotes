@@ -55,8 +55,8 @@ class ShareReceiverActivity : AppCompatActivity() {
 
     private fun saveNote() {
         viewModel.insertNote(
-            binding.noteEditContainer.noteTitle.text.toString(),
-            binding.noteEditContainer.noteText.text.toString()
+            binding.noteEditContainer.noteEditTitle.text.toString(),
+            binding.noteEditContainer.noteEditText.text.toString()
         )
     }
 
@@ -138,9 +138,9 @@ class ShareReceiverActivity : AppCompatActivity() {
     }
 
     private fun showContent(sharedTitle: String?, sharedText: String) {
-        if (!sharedTitle.isNullOrEmpty()) binding.noteEditContainer.noteTitle.setText(sharedTitle)
-        binding.noteEditContainer.noteDate.text = formatDate(System.currentTimeMillis())
-        binding.noteEditContainer.noteText.setText(sharedText)
+        if (!sharedTitle.isNullOrEmpty()) binding.noteEditContainer.noteEditTitle.setText(sharedTitle)
+        binding.noteEditContainer.noteEditDate.text = formatDate(System.currentTimeMillis())
+        binding.noteEditContainer.noteEditText.setText(sharedText)
     }
 
     private fun showContent(sharedText: String) = showContent(null, sharedText)

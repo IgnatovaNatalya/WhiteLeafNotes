@@ -62,8 +62,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        titleEditText = binding.noteTitle
-        contentEditText = binding.noteText
+        titleEditText = binding.noteEditTitle
+        contentEditText = binding.noteEditText
         buttonScroll = binding.noteScrollDown
         noteScrollView = binding.noteEditScrollView
         noteProtected = binding.noteInProtectedNotebook
@@ -82,21 +82,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
 
-//    override fun onAttach(context: Context) {
-//        super.onAttach(context)
-
-//        val toolbar = (requireActivity() as AppCompatActivity).findViewById<Toolbar>(R.id.toolbar)
-//        val path = args.notebookPath
-
-//        if (!path.isNullOrBlank()) {
-//            toolbar.setOnClickListener {
-//                println("DEBUG: NoteEditFragment: notebook title ${path} clicked")
-//                val action =
-//                    NoteEditFragmentDirections.actionNoteEditFragmentToNoteListFragment(path)
-//                findNavController().navigate(action)
-//            }
-//        }
- //   }
 
     private fun setupWindowFocusChangeListener(view: View) {
         view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
@@ -172,7 +157,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun setupClickListeners() {
-        binding.noteDate.setOnClickListener {
+        binding.noteEditDate.setOnClickListener {
             saveScrollPosition()
             showMaterialDatePickerDialog()
         }
@@ -305,7 +290,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 val note = state.note
                 titleEditText.setText(note.title)
 
-                binding.noteDate.text = formatDate(note.modifiedAt)
+                binding.noteEditDate.text = formatDate(note.modifiedAt)
 
                 if (contentEditText.text.toString() != note.content) {
                     isEditing = false

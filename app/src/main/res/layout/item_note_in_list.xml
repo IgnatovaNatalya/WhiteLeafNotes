@@ -3,18 +3,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="42dp"
+    android:layout_height="54dp"
     android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingHorizontal="16dp">
 
     <TextView
-        android:id="@+id/note_title"
+        android:id="@+id/note_in_list_title"
         style="@style/StartScreenItemTitle"
         android:layout_width="0dp"
-        android:layout_height="42dp"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:clickable="true"
         android:ellipsize="end"
         android:gravity="center_vertical"
         android:maxLines="1"
@@ -22,12 +23,12 @@
         tools:text="Заметка с длинным названием которое не помещается на экран целиком" />
 
     <TextView
-        android:id="@+id/note_date"
+        android:id="@+id/note_in_list_date"
         style="@style/StartScreenItemDate"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:gravity="center_vertical"
-        android:text="24.01.2026"
+        tools:text="24.01.2026"
         android:textColor="?android:attr/textColorSecondary" />
 </LinearLayout>
