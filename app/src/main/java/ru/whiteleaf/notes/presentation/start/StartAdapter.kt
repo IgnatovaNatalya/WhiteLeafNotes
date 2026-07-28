@@ -111,7 +111,7 @@ class StartAdapter(
 
             TYPE_NOTE -> NoteViewHolder(
                 LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_note, parent, false),
+                    .inflate(R.layout.item_start_note, parent, false),
                 onNoteClicked, contextNoteActionHandler
             )
 

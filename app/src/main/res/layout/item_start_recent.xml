@@ -7,8 +7,7 @@
     android:clickable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="0dp">
+    android:paddingHorizontal="16dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -39,8 +38,8 @@
     </LinearLayout>
 
     <TextView
-        android:id="@+id/note_date"
-        style="@style/StartScreenItemHeader"
+        android:id="@+id/recent_date"
+        style="@style/StartScreenItemDate"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:text="Вчера"
