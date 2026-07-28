@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:layout_marginTop="0dp"
     android:fitsSystemWindows="false"
-    android:paddingTop="60dp"
+    android:paddingTop="52dp"
     android:paddingBottom="16dp"
     android:orientation="vertical">
 
@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:paddingHorizontal="@dimen/marginHorizontal"
         android:text="@string/start_title"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="32dp"
         style="@style/StartScreenTitleStyle"/>
 
     <ImageView

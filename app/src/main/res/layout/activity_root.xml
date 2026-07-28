@@ -32,8 +32,9 @@
                 android:id="@+id/tv_toolbar_title"
                 style="@style/StartScreenTitleStyle"
                 android:layout_width="wrap_content"
-                android:layout_height="30dp"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:paddingBottom="8dp"
                 android:gravity="center"
                 android:text="@string/start_title"
                 android:textColor="@color/medium_blue" />
