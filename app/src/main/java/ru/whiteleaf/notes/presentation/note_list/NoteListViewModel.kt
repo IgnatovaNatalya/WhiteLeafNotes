@@ -113,9 +113,11 @@ class NoteListViewModel(
 
                 notesList.forEach { note ->  println("DEBUG: NoteListVM: note:${note.printDebugIdTitlePath()}")}
 
-                _noteListState.postValue(
-                    NoteListState.Success(isProtected, notesList.filter { it.isNotEmpty() })
-                )
+//                _noteListState.postValue(
+//                    NoteListState.Success(isProtected, notesList.filter { it.isNotEmpty() })
+//                )
+                _noteListState.value =  NoteListState.Success(isProtected, notesList.filter { it.isNotEmpty() })
+
 
             } catch (_: AuthenticationRequiredException) {
                 _noteListState.postValue(NoteListState.Blocked)
