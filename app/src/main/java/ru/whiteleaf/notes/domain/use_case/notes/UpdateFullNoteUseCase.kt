@@ -10,8 +10,12 @@ class UpdateFullNoteUseCase(
 ) {
     suspend operator fun invoke(note: Note, newTitle: String, newContent: String): Note {
 
-        val renamedNote = repository.renameNote(note, newTitle)
-        val updatedNote = if (newTitle != note.title) renamedNote.copy(content = note.content) else renamedNote
+        val renamedNote =
+            if (newTitle != note.title) repository.renameNote(note, newTitle) else note
+
+        val updatedNote =
+            if (newContent != note.content) renamedNote.copy(content = newContent) else renamedNote
+
         repository.saveNote(updatedNote)
 
         preferencesRepository.updateRecentEntry(note, updatedNote)

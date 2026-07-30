@@ -93,12 +93,12 @@ class NoteEditViewModel(
                 if (note.isNotEmpty()) removeRecentNoteUseCase(note)
 
             } catch (e: AuthenticationRequiredException) {
-                _noteEditState.postValue (NoteEditState.Blocked)
+                _noteEditState.postValue(NoteEditState.Blocked)
                 println("DEBUG: NoteEditVM: Key not unlocked while loading note: ${e.message}")
 
             } catch (e: Exception) {
                 println("DEBUG: NoteEditVM: Error loading: ${e.message}")
-                _noteEditState.postValue (NoteEditState.Error(e.message ?: "Ошибка загрузки"))
+                _noteEditState.postValue(NoteEditState.Error(e.message ?: "Ошибка загрузки"))
             }
         }
     }
@@ -190,8 +190,8 @@ class NoteEditViewModel(
                 val newNote = updateFullNoteUseCase(currentNote, newTitle, content)
                 _note.postValue(newNote)
             } catch (e: AuthenticationRequiredException) {
-                _noteEditState.postValue (NoteEditState.Blocked)
                 println("DEBUG: NoteEditVM: Authentication required while updating full note: ${e.message}")
+                _noteEditState.postValue(NoteEditState.Blocked)
             } catch (e: Exception) {
                 println("DEBUG: NoteEditVM: Error updating full note: ${e.message}")
                 showMessage("Ошибка сохранения заметки: ${e.message}")
@@ -286,6 +286,7 @@ class NoteEditViewModel(
             }
         }
     }
+
 
     fun refreshNote() = loadNote()
 
