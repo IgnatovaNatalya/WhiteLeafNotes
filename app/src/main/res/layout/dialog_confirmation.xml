@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/marginHorizontal"
+    android:paddingVertical="24dp">
+
+    <TextView
+        android:id="@+id/dialog_confirmation_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        tools:text="@string/confirmation_title"
+        android:textAppearance="@style/DialogTitle"
+        android:textColor="?android:attr/textColorPrimary" />
+
+    <TextView
+        android:id="@+id/dialog_confirmation_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        tools:text="Вы хотите сохранить внесенные изменения перед выходом?"
+        android:textAppearance="@style/DialogSubtitle"
+        android:textColor="?android:attr/textColorSecondary" />
+
+
+</LinearLayout>

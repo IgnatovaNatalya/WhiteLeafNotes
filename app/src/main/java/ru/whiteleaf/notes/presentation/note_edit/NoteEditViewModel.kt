@@ -267,12 +267,12 @@ class NoteEditViewModel(
     }
 
 
-    fun unlockNotebook(context: Context) {
+    fun unlockNotebook(context: Context, reason:String? = null) {
         viewModelScope.launch {
             val unlocked = if (notebookPath != null) unlockNotebookUseCase(
                 notebookPath,
                 context,
-                reason = "Для редактирования"
+                reason = reason?:"Для редактирования"
             ) else true
             if (unlocked) {
                 if (pendingSaveContent != null) {

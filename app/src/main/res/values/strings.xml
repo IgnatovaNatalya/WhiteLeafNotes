@@ -85,6 +85,7 @@
     <string name="export_dialog_subtitle">Архив записных книжек будет сохранен в формате ZIP в следующую папку:</string>
     <string name="share_file">Поделиться файлом</string>
     <string name="export_encrypted">Включить зашифрованные записные книжки</string>
+    <string name="confirmation_title">Сохранить изменения?</string>
 
 
 </resources>

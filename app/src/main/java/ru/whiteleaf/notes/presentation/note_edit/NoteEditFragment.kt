@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
@@ -51,6 +52,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private lateinit var noteScrollView: NestedScrollView
     private lateinit var noteProtected: LinearLayout
     private lateinit var btnLockIndicator: ImageButton
+    private var isSaving = false
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -70,8 +72,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-        //val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
-        //actionBar?.title = args.notebookPath
+
+        val backCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (isSaving) return // уже сохраняем – игнорируем повторные нажатия
+                handleBackPress()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
 
         setupWindowFocusChangeListener(view)
         setupOptionsMenu()
@@ -81,7 +89,50 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         setupClickListeners()
     }
 
+    private fun handleBackPress() {
+        // Проверяем, есть ли несохранённые изменения (сравниваем текущие данные с последними сохранёнными)
+        if (hasUnsavedChanges()) {
+            performSaveAndExit()
+//            DialogHelper.showSaveConfirmationDialog(
+//                context = requireContext(),
+//                title = "Сохранить изменения?",
+//                message = "Вы хотите сохранить внесённые изменения перед выходом?",
+//                onSaveConfirmed = performSaveAndExit(),
+//                onSaveCancelled = findNavController().popBackStack()
+//            )
 
+        } else {
+            // Нет изменений – просто выходим
+            findNavController().popBackStack()
+        }
+    }
+
+    private fun hasUnsavedChanges() {
+        val title = titleEditText.text.toString()
+        val content = contentEditText.text.toString()
+        return viewModel.hasChanges(title,content)
+    }
+    
+    private fun performSaveAndExit() {
+
+        val title = titleEditText.text.toString()
+        val content = contentEditText.text.toString()
+
+        if (!isMoved) {
+            isSaving = true
+
+            viewModel.updateFullNote(
+                titleEditText.text.toString(),
+                contentEditText.text.toString()
+            )
+            findNavController().popBackStack()
+
+            saveScrollPosition()
+            viewModel.saveToRecent()
+        }
+        println("Debug: NoteEditFragment: Paused")
+
+    }
 
     private fun setupWindowFocusChangeListener(view: View) {
         view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
