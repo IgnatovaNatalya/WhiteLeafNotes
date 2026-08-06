@@ -18,7 +18,7 @@ data class Note(
         (this.title.trim().isNotEmpty() || this.content.trim().isNotEmpty())
 
     fun printDebug(): String {
-        return "title=$title, content=${content.take(10)}"
+        return "id=$id, title=$title, content=${content.take(10)}"
     }
 
     fun printDebugIdTitlePath(): String {
