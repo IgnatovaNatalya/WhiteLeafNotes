@@ -25,8 +25,11 @@ interface PreferencesRepository {
         newNotebookPath: String?
     ): Boolean
 
+    fun updateRecentEntry(oldNote:Note, newNote:Note) : Boolean
+
     fun removeRecentNotesByNotebookPath(notebookPath: String)
     fun removeRecentNote(noteId: String, notebookPath: String?)
-
-    fun updateRecentEntry(oldNote:Note, newNote:Note) : Boolean
+    fun updateNotebookPathInRecent(oldNotebookPath: String?, newNotebookPath: String?)
+    fun updateNotebookPreferences(oldPath: String, newPath: String)
+    fun deleteNotebookPreferences(notebookPath: String)
 }

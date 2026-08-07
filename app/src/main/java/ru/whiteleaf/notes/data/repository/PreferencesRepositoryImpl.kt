@@ -18,6 +18,8 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         private const val MAX_SIZE = 5
     }
 
+    //LAST OPENED
+
     override fun saveLastOpenedNotebook(notebookPath: String) {
         prefs.edit {
             putString(KEY_LAST_OPENED_NOTEBOOK, notebookPath)
@@ -25,6 +27,8 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
     }
 
     override fun getLastOpenedNotebook(): String? = prefs.getString(KEY_LAST_OPENED_NOTEBOOK, null)
+
+    //VIEW MODE
 
     override fun saveViewMode(notebookPath: String, isPlannerMode: Boolean) {
         val key = "$KEY_VIEW_MODE_PREFIX$notebookPath"
@@ -36,7 +40,11 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         return prefs.getBoolean(key, defaultIsPlanner)
     }
 
+    //SCROLL POS
+
     override fun saveNoteScrollPosition(noteId: String, notebookPath: String, scrollY: Int) {
+        println("DEBUG: PreferencesRepositoryImpl: saveNoteScrollPosition Scroll noteId=$noteId, notebookPath=$notebookPath, pos=$scrollY")
+
         val key = makeScrollKey(noteId, notebookPath)
         prefs.edit { putInt(key, scrollY) }
     }
@@ -50,24 +58,64 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         return "$KEY_NOTE_SCROLL_POSITION_PREFIX${notebookPath}_${noteId}"
     }
 
-    private val noteType = object : TypeToken<List<RecentNote>>() {}.type
 
-     fun saveRecentNoteNew(note: Note) { //просто сохраняем сверху
-        val entry = RecentNote.fromNote(note)
+    //NOTEBOOK Changed
+    override fun updateNotebookPreferences(oldPath: String, newPath: String) {
+        if (oldPath == newPath) return
 
-        val currentList = getRecentNotes().toMutableList()
-        currentList.add(0, entry)
+        val allEntries = prefs.all // Map<String, *>
+        val editor = prefs.edit()
 
-        if (currentList.size > MAX_SIZE) {
-            currentList.removeAt(currentList.size - 1)
+        allEntries.forEach { (key, value) ->
+            when {
+                // Ключ режима просмотра для этого блокнота
+                key == "$KEY_VIEW_MODE_PREFIX$oldPath" -> {
+                    val newKey = "$KEY_VIEW_MODE_PREFIX$newPath"
+                    editor.putBoolean(newKey, value as Boolean)
+                    editor.remove(key)
+                }
+                // Ключ позиции скролла для заметок в этом блокноте
+
+                key.startsWith("$KEY_NOTE_SCROLL_POSITION_PREFIX$oldPath" + "_") -> {
+                    // Заменяем старый путь на новый в ключе
+                    println("DEBUG: PreferencesRepositoryImpl: updateNotebookPreferences Scroll oldPath=$oldPath, newPath=$newPath, pos=$value")
+                    val suffix = key.removePrefix("$KEY_NOTE_SCROLL_POSITION_PREFIX$oldPath" + "_")
+                    val newKey = "$KEY_NOTE_SCROLL_POSITION_PREFIX$newPath" + "_$suffix"
+                    editor.putInt(newKey, value as Int)
+                    editor.remove(key)
+                }
+            }
         }
-        val json = gson.toJson(currentList)
-        prefs.edit { putString(KEY_RECENT_NOTES, json) }
+
+        val lastPath = prefs.getString(KEY_LAST_OPENED_NOTEBOOK, null)
+        if (lastPath == oldPath) {
+            editor.putString(KEY_LAST_OPENED_NOTEBOOK, newPath)
+        }
+
+        editor.apply()
     }
 
 
-    override fun saveRecentNote(note: Note) {
+    override fun deleteNotebookPreferences(notebookPath: String) {
+        val allEntries = prefs.all
+        val editor = prefs.edit()
 
+        allEntries.forEach { (key, _) ->
+            when {
+                // Удаляем ключ режима просмотра
+                key == "$KEY_VIEW_MODE_PREFIX$notebookPath" -> editor.remove(key)
+                // Удаляем все ключи позиций скролла для этого блокнота
+                key.startsWith("$KEY_NOTE_SCROLL_POSITION_PREFIX$notebookPath" + "_") -> editor.remove(key)
+            }
+        }
+        editor.apply()
+    }
+
+    //RECENT
+    private val noteType = object : TypeToken<List<RecentNote>>() {}.type
+
+    //Recent - notes
+    override fun saveRecentNote(note: Note) {
         val entry = RecentNote.fromNote(note)
         println("DEBUG: PreferencesRepositoryImpl saveNoteToRecent: entry: ${entry.printDebug()}")
 
@@ -115,7 +163,6 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         }
     }
 
-
     override fun updateRecentEntry(
         oldNote: Note,
         newNote: Note,
@@ -140,7 +187,20 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         } else false
     }
 
+    override fun removeRecentNote(noteId: String, notebookPath: String?) {
+        println("DEBUG: PreferencesRepositoryImpl removeRecentNote $noteId")
+        val currentList = getRecentNotes().toMutableList()
+        val normalizedPath = notebookPath ?: ""
 
+        val removed = currentList.removeAll { it.notebookPath == normalizedPath && it.id == noteId }
+
+        if (removed) {
+            val json = gson.toJson(currentList)
+            prefs.edit { putString(KEY_RECENT_NOTES, json) }
+        }
+    }
+
+    //Recent - notebooks
     override fun updateRecentNoteNotebookPath(
         noteId: String,
         oldNotebookPath: String?,
@@ -179,15 +239,24 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         }
     }
 
-    override fun removeRecentNote(noteId: String, notebookPath: String?) {
-        println("DEBUG: PreferencesRepositoryImpl removeRecentNote $noteId")
-        val currentList = getRecentNotes().toMutableList()
-        val normalizedPath = notebookPath ?: ""
+    override fun updateNotebookPathInRecent(oldNotebookPath: String?, newNotebookPath: String?) {
+        println("DEBUG: PreferencesRepositoryImpl updateNotebookPathInRecent $oldNotebookPath to $newNotebookPath")
+        val currentList = getRecentNotes()
+        if (currentList.isEmpty()) return
 
-        val removed = currentList.removeAll { it.notebookPath == normalizedPath && it.id == noteId }
+        val updatedList = currentList.map { recent ->
+            if (recent.notebookPath == oldNotebookPath) {
+                recent.copy(notebookPath = newNotebookPath)
+            } else {
+                recent
+            }
+        }
 
-        if (removed) {
-            val json = gson.toJson(currentList)
+        // Проверяем, были ли изменения (можно также сравнить списки, но проще через флаг)
+        val hasChanges = currentList.zip(updatedList).any { (old, new) -> old != new }
+
+        if (hasChanges) {
+            val json = gson.toJson(updatedList)
             prefs.edit { putString(KEY_RECENT_NOTES, json) }
         }
     }
