@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -56,6 +57,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private lateinit var noteProtected: LinearLayout
     private lateinit var btnLockIndicator: ImageButton
 
+    private var windowFocusListener: ViewTreeObserver.OnWindowFocusChangeListener? = null
+
     override fun createBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -98,7 +101,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         notSaveOnPause = true
         isSaving = true
 
-        println("DEBUG: NoteEditFragment: saved scroll and recent on exit")
         viewLifecycleOwner.lifecycleScope.launch {
             saveScrollPosition()
             viewModel.saveToRecent()
@@ -114,16 +116,22 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
 
     private fun setupWindowFocusChangeListener(view: View) {
-        view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
+//        view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
+//            onFocusChanged(hasFocus)
+//        }
+        windowFocusListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
             onFocusChanged(hasFocus)
         }
+        view.viewTreeObserver.addOnWindowFocusChangeListener(windowFocusListener)
     }
 
     fun onFocusChanged(hasFocus: Boolean) {
         if (!hasFocus) {
             //при переходе фокуса, клавиатура скрывается системой
             //println("DEBUG: NoteEditFragment: Window focus gone,saving scroll")
-            saveScrollPosition()
+
+            //saveScrollPosition()
+            viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
 
             if (checkKeyboard(contentEditText))
@@ -133,7 +141,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         } else if (wasInterrupted) {
             wasInterrupted = false
             //println("DEBUG: NoteEditFragment: Window focus recieved")
-            viewModel.refreshNote()
+            viewModel.reloadNotePosition()
         }
     }
 
@@ -314,6 +322,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
+                    btnLockIndicator.setOnClickListener(null)
                     btnLockIndicator.setOnClickListener { viewModel.lockNote() }
                 } else btnLockIndicator.visibility = View.GONE
 
@@ -382,7 +391,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun saveScrollPosition() {
         val lastScrollPosition = noteScrollView.scrollY
         viewModel.saveNoteScrollPosition(lastScrollPosition)
-        //println("DEBUG: NoteEditFragment: Scroll saved to prefs: $lastScrollPosition")
+        println("DEBUG: NoteEditFragment: Scroll saved to prefs: $lastScrollPosition")
     }
 
     fun toggleSecurePreview(isSecure: Boolean) {
@@ -402,12 +411,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
 
         if (!notSaveOnPause) {
-            viewModel.updateNoteContent(
-                contentEditText.text.toString()
-            )
-            saveScrollPosition()
+            //viewModel.updateNoteContent(contentEditText.text.toString())
+            //saveScrollPosition()
+            viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             viewModel.saveToRecent()
-            println("Debug: NoteEditFragment: Saved content on pause")
+            //println("Debug: NoteEditFragment: Saved content on pause")
         } else println("Debug: NoteEditFragment: Paused and not saved")
     }
 
@@ -423,4 +431,23 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         imm.showSoftInput(contentEditText, InputMethodManager.SHOW_IMPLICIT)
     }
 
+    override fun onDestroyView() {
+        clearListeners()
+        super.onDestroyView()
+    }
+
+    private fun clearListeners() {
+        // 1. Удаляем слушатель с optionsButton (из Activity)
+        val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
+        optionsButton?.setOnClickListener(null)
+
+        // 2. Удаляем слушатель с btnLockIndicator (из Activity)
+        btnLockIndicator.setOnClickListener(null)
+
+        // 3. Удаляем OnWindowFocusChangeListener
+        windowFocusListener?.let {
+            binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
+        }
+        windowFocusListener = null
+    }
 }
