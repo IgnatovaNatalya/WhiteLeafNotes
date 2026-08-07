@@ -124,7 +124,6 @@ class NoteEditViewModel(
     }
 
     fun updateNoteContent(content: String) {
-        //println("DEBUG: NoteEditVM: Updating note content, content =$content")
         val currentNote = _note.value ?: return
         println("DEBUG: NoteEditVM: Updating note content, current note: ${_note.value?.printDebug()}")
         viewModelScope.launch {
@@ -319,7 +318,6 @@ class NoteEditViewModel(
                 }
             }
         } catch (e: AuthenticationRequiredException) {
-            //_noteEditState.postValue(NoteEditState.Error("Не удалось разблокировать записную книжку"))
             _noteEditState.value = NoteEditState.Blocked
             println("DEBUG: NoteEditVM: key not unlocked while unlockAndSavePending: ${e.message}")
         } catch (e: Exception) {

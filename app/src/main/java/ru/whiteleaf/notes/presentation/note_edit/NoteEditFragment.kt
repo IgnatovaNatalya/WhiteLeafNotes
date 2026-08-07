@@ -78,7 +78,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         val backCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 println("DEBUG: NoteEditFragment: OnBackPressedCallback called")
-                    //if (isSaving) return // уже сохраняем – игнорируем повторные нажатия
+                if (isSaving) return // уже сохраняем – игнорируем повторные нажатия
                 performSaveAndExit()
             }
         }
@@ -98,11 +98,17 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         notSaveOnPause = true
         isSaving = true
 
+        println("DEBUG: NoteEditFragment: saved scroll and recent on exit")
         viewLifecycleOwner.lifecycleScope.launch {
+            saveScrollPosition()
+            viewModel.saveToRecent()
+
             viewModel.updateFullNoteOnExit(
                 titleEditText.text.toString(),
                 contentEditText.text.toString()
             )
+            notSaveOnPause = false
+            isSaving = false
         }
     }
 
@@ -366,8 +372,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             NoteEditState.ShowBiometricForSaveOnExit -> {
                 println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSaveOnExit")
                 viewModel.unlockAndSavePending(requireContext())
-                notSaveOnPause = false
-                isSaving = false
             }
         }
     }
@@ -398,15 +402,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
 
         if (!notSaveOnPause) {
-            viewModel.updateFullNoteOnExit(
-                titleEditText.text.toString(),
+            viewModel.updateNoteContent(
                 contentEditText.text.toString()
             )
             saveScrollPosition()
             viewModel.saveToRecent()
-            println("Debug: NoteEditFragment: Saved on pause")
-        }
-        else println("Debug: NoteEditFragment: Paused and not saved")
+            println("Debug: NoteEditFragment: Saved content on pause")
+        } else println("Debug: NoteEditFragment: Paused and not saved")
     }
 
     fun checkKeyboard(editText: EditText): Boolean {
