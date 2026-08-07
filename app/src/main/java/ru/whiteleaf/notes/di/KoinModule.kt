@@ -108,7 +108,7 @@ val koinModule = module {
 
     factory { GetNotebooksUseCase(get()) }
     factory { CreateNotebookUseCase(get()) }
-    factory { RenameNotebookUseCase(get(), get(), get()) }
+    factory { RenameNotebookUseCase(get(), get(), get(), get()) }
     factory { DeleteNotebookByPathUseCase(get(), get()) }//, get(), get()) }
 
     factory { ShareNotebookUseCase(get(), get(), get()) }

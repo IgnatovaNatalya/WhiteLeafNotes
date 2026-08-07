@@ -76,7 +76,7 @@ class NoteListViewModel(
         if (notebookPath == null) return
         _isPlannerView.value = isPlanner
         preferencesInteractor.saveViewMode(notebookPath, isPlanner)
-        _navigationEvent.postValue(NavigationEvent.NavigateToNotebook(notebookPath))
+        _navigationEvent.postValue(NavigationEvent.ReopenNotebook(notebookPath))///
     }
 
     fun getViewMode(): Boolean {
@@ -266,8 +266,9 @@ class NoteListViewModel(
         if (notebookPath != null)
             viewModelScope.launch {
                 try {
-                    val unlocked =
+                    val unlocked = if (isNotebookProtectedUseCase(notebookPath)) {
                         unlockNotebookUseCase(notebookPath, context, reason = "Для переименования")
+                    } else true
 
                     if (!unlocked) {
                         _message.postValue("Не удалось подтвердить личность")
@@ -277,7 +278,7 @@ class NoteListViewModel(
                     if (newName != notebookPath) {
                         renameNotebookUseCase(notebookPath, newName)
                         showMessage("Название записной книжки изменено")
-                        _navigationEvent.postValue(NavigationEvent.NavigateToNotebook(newName))
+                        _navigationEvent.postValue(NavigationEvent.ReopenNotebook(newName))
                     } else showMessage("Ошибка переименования")
                 } catch (e: AuthenticationRequiredException) {
                     _message.postValue("Записная книжка заблокирована: ${e.message}")
@@ -297,7 +298,8 @@ class NoteListViewModel(
                         true
 
                     if (unlocked) {
-                        val result = shareNotebookUseCase(notebookPath, "123") //todo пароль спрашивать
+                        val result =
+                            shareNotebookUseCase(notebookPath, "123") //todo пароль спрашивать
 
                         if (result.isSuccess)
                             _navigationEvent.postValue(NavigationEvent.ExportLink(result.getOrNull()))

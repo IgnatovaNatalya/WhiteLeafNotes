@@ -115,14 +115,6 @@ class NotebookRepositoryImpl(
                     throw IOException("Не удалось переименовать записную книжку")
                 }
 
-                // Возвращаем обновленную записную книжку
-                //val newDir = notebookDataSource.getNotebookDir(newName)
-//                Notebook(
-//                    path = newName,
-//                    createdAt = notebook.createdAt,
-//                    noteCount = notebookDataSource.getNoteCount(newDir),
-//                    //modifiedAt = System.currentTimeMillis()
-//                )
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка переименования записной книжки: ${e.message}")
                 throw IOException("Не удалось переименовать записную книжку: ${e.message}")

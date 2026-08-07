@@ -134,7 +134,7 @@ class StartViewModel(
                 if (index < notebooksToShow.lastIndex)
                     items.add(StartListItem.Divider)
                 else
-                    if (notebooksToShow.size < notebookList.size ) items.add(StartListItem.ShowMoreNotebooks)
+                    if (notebooksToShow.size < notebookList.size) items.add(StartListItem.ShowMoreNotebooks)
                     else items.add(StartListItem.Divider)
             }
         }
@@ -219,8 +219,9 @@ class StartViewModel(
     fun renameNotebook(notebook: Notebook, newName: String, context: Context) {
         viewModelScope.launch {
             try {
-                val unlocked =
+                val unlocked = if (isNotebookProtectedUseCase(notebook.path)) {
                     unlockNotebookUseCase(notebook.path, context, reason = "Для переименования")
+                } else true
 
                 if (!unlocked) {
                     _message.postValue("Не удалось подтвердить личность")

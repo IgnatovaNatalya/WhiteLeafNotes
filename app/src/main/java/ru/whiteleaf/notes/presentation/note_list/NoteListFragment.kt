@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -90,23 +91,19 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun navigateEvent(event: NavigationEvent) {
-
         when (event) {
             NavigationEvent.Idle -> {}
 
             is NavigationEvent.ExportLink -> shareExportFile(event.uri)
-
 
             is NavigationEvent.NavigateToNote -> {
                 navigateToNote = true
                 navigateToNoteEdit(event.noteId)
             }
 
-            is NavigationEvent.NavigateToNotebook -> {
-                navigateToNotebook(event.path)
-            }
+            is NavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
 
-            NavigationEvent.NavigateUp ->  findNavController().navigateUp()
+            NavigationEvent.NavigateUp -> findNavController().navigateUp()
 
             NavigationEvent.ShowBiometric -> viewModel.unlockNotebook(requireActivity())
         }
@@ -257,9 +254,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         findNavController().navigate(action)
     }
 
-    private fun navigateToNotebook(path: String) {
-        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
-        findNavController().navigate(action)
+    private fun reopenNotebook(newName: String) {
+//        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
+//        findNavController().navigate(action)
+        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(newName)
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.noteListFragment, inclusive = true) // удаляем текущий NoteListFragment
+            .build()
+        findNavController().navigate(action, navOptions)
     }
 
     private fun renderState(state: NoteListState) {
