@@ -65,8 +65,24 @@ class NoteEditViewModel(
     private var pendingSaveTitle: String? = null
     private var pendingSaveContent: String? = null
 
+    private var currentScrollPosition: Int? = null
+
     init {
         loadNote()
+    }
+
+    fun reloadNotePosition() {
+        val currentNote = _note.value
+
+        if (currentNote != null ) {
+            _noteEditState.postValue(
+                NoteEditState.Success(
+                    currentNote,
+                    scrollPosition = currentScrollPosition?:0,
+                    isNotebookProtected.value == true
+                )
+            )
+        } else loadNote()
     }
 
     private fun loadNote() {
@@ -81,12 +97,12 @@ class NoteEditViewModel(
                     _isNotebookProtected.postValue(isNotebookProtectedUseCase(note.notebookPath))
                 }
 
-                val scrollPosition = getNoteScrollPosition()
+                if (currentScrollPosition == null) currentScrollPosition = getNoteScrollPosition()
 
                 _noteEditState.postValue(
                     NoteEditState.Success(
                         note,
-                        scrollPosition = scrollPosition,
+                        scrollPosition = currentScrollPosition ?: 0,
                         isNotebookProtected.value == true
                     )
                 )
@@ -256,8 +272,16 @@ class NoteEditViewModel(
     }
 
     fun saveNoteScrollPosition(scrollPosition: Int) {
-        if (noteId != null && notebookPath != null)
+        if (noteId != null && notebookPath != null) {
+            println("DEBUG: NoteEditVM: saveNoteScrollPosition: noteId=$noteId, notebookPath=$notebookPath, pos=$scrollPosition")
             settingsInteractor.saveNoteScrollPosition(noteId, notebookPath, scrollPosition)
+        }
+    }
+
+    fun rememberNoteScrollPosition(scrollPosition: Int) {
+        println("DEBUG: NoteEditVM: rememberNoteScrollPosition: noteId=$noteId, notebookPath=$notebookPath, pos=$scrollPosition")
+        //settingsInteractor.saveNoteScrollPosition(noteId, notebookPath, scrollPosition)
+        currentScrollPosition = scrollPosition
     }
 
     fun getNoteScrollPosition(): Int {
@@ -366,9 +390,6 @@ class NoteEditViewModel(
         }
         return saved
     }
-
-
-    fun refreshNote() = loadNote()
 
     private fun showMessage(msg: String) = _message.postValue(msg)
 
