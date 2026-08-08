@@ -13,8 +13,6 @@ import ru.whiteleaf.notes.domain.use_case.share.ImportZipNotesUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.use_case.encryption.CountEncryptedNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ExportProgressCallback
-import ru.whiteleaf.notes.presentation.state.ExportState
-import ru.whiteleaf.notes.presentation.state.ImportState
 
 class SettingsViewModel(
     private val exportNotesUseCase: ExportAllNotesUseCase,

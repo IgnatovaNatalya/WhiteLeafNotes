@@ -1,4 +1,4 @@
-package ru.whiteleaf.notes.presentation.state
+package ru.whiteleaf.notes.presentation.settings
 
 sealed class ImportState {
     object Success : ImportState()

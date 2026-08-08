@@ -17,30 +17,6 @@ import com.google.android.material.textfield.TextInputLayout
 import ru.whiteleaf.notes.R
 
 object DialogHelper {
-    //save confirmation
-    fun showSaveConfirmationDialog(
-        context: Context,
-        title: String,
-        message: String,
-        onSaveConfirmed: () -> Unit,
-        onSaveCancelled: () -> Unit
-    ): AlertDialog {
-        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
-        val view = LayoutInflater.from(context).inflate(R.layout.dialog_confirmation, null)
-        builder.setView(view)
-
-        val tvTitle = view.findViewById<EditText>(R.id.dialog_confirmation_title)
-        tvTitle.setText(title)
-
-        val tvMessage = view.findViewById<EditText>(R.id.dialog_confirmation_message)
-        tvMessage.setText(message)
-
-        return builder
-            .setPositiveButton("Сохранить") { _, _ -> onSaveConfirmed() }
-            .setNegativeButton("Не сохранять") { _, _ -> onSaveCancelled() }
-            .setNeutralButton("Отмена") { _, _ -> }
-            .create()
-    }
 
     //export all notes
     fun createExportAllDialog(
