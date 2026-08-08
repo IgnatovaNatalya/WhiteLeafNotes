@@ -65,6 +65,8 @@ class StartViewModel(
         loadData()
     }
 
+    fun getAllNotebooks(): List<Notebook> = notebookList
+
     fun loadData() {
 
         println("DEBUG: StartVM: loading data")
@@ -190,18 +192,6 @@ class StartViewModel(
         }
     }
 
-//    fun createNewNotebook(name: String) {
-//        viewModelScope.launch {
-//            try {
-//                val newNotebook = createNotebookUseCase(name)
-//                _navigateToCreatedNotebook.value = newNotebook
-//                _message.value = "Записная книжка создана: ${newNotebook.name}"
-//            } catch (e: Exception) {
-//                _message.value = "Ошибка создания записной книжки: ${e.message}"
-//            }
-//        }
-//    }
-
     fun updateNoteTitle(note: Note, newTitle: String) {
         viewModelScope.launch {
             try {
@@ -228,7 +218,7 @@ class StartViewModel(
                     return@launch
                 }
 
-                if (newName != notebook.name) {
+                if (newName != notebook.path) {
                     renameNotebookUseCase(notebook.path, newName)
                     loadData()
                     _message.postValue("Название записной книжки изменено")

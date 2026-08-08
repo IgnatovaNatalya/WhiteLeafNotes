@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/creating_notebook"
+        android:text="@string/dialog_create_notebook_title"
         android:gravity="center"
         android:textColor="?android:attr/textColorPrimary"
         android:textAppearance="@style/DialogTitle"
@@ -19,7 +19,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/creating_notebook_description"
+        android:text="@string/dialog_create_notebook_subtitle"
         android:gravity="center"
         android:textAppearance="@style/DialogSubtitle"
         android:textColor="?android:attr/textColorSecondary"/>
@@ -34,7 +34,7 @@
         android:drawableStart="@drawable/ic_edit"
         android:drawablePadding="8dp"
 
-        android:hint="@string/enter_notebook_title"
+        android:hint="@string/dialog_create_notebook_hint"
         android:inputType="textMultiLine|textCapSentences|textAutoComplete|textAutoCorrect"
         android:textAppearance="@style/NoteEditText" />
 

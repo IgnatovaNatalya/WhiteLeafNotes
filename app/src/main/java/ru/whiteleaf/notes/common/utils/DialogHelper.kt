@@ -6,6 +6,8 @@ import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,6 +17,8 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import ru.whiteleaf.notes.R
+import ru.whiteleaf.notes.domain.model.Notebook
+import kotlin.text.ifEmpty
 
 object DialogHelper {
 
@@ -120,6 +124,54 @@ object DialogHelper {
 
     //notes
     fun createMoveNoteDialog(
+        context: Context,
+        listNotebooks: List<Notebook>,
+        onMoveClicked: (String) -> Unit
+    ): AlertDialog {
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
+
+        val moveDialogView: View =
+            LayoutInflater.from(context).inflate(R.layout.dialog_note_move, null)
+        builder.setView(moveDialogView)
+
+        val autoComplete = moveDialogView.findViewById<AutoCompleteTextView>(R.id.new_note_notebook)
+
+        val listNotebooksNames = listNotebooks.map { it.path.ifEmpty { "(Корневая папка)" } }
+
+        println("DEBUG: createMoveNoteDialog: List notebooks=${listNotebooksNames}")
+
+        val adapter =
+            ArrayAdapter(context, R.layout.item_dropdown, listNotebooksNames)
+        autoComplete.setAdapter(adapter)
+
+        val dialog = builder
+            .setPositiveButton("Переместить", null)
+            .setNegativeButton("Отмена", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.isEnabled = false
+
+
+            autoComplete.setOnItemClickListener { parent, _, position, _ ->
+                val selected = parent.getItemAtPosition(position) as String
+                val label =
+                    "Переместить в " + if (selected.length > 10) selected.take(10) + "..." else selected
+                positiveButton.text = label
+                positiveButton.isEnabled = true
+            }
+
+            positiveButton.setOnClickListener {
+                onMoveClicked(autoComplete.text.toString())
+                dialog.dismiss()
+            }
+        }
+
+        return dialog
+    }
+
+    fun createMoveNoteDialogOld(
         context: Context,
         onMoveClicked: (String) -> Unit
     ): AndroidAlertDialog {

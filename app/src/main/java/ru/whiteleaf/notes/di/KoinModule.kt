@@ -188,7 +188,7 @@ val koinModule = module {
             deleteKeyForNotebookUseCase = get(),
             encryptNotebookUseCase = get(),
             decryptNotebookUseCase = get(),
-
+            getNotebooksUseCase = get(),
             notebookPath = notebookPath,
         )
     }
@@ -210,6 +210,7 @@ val koinModule = module {
             isNotebookProtectedUseCase = get(),
             saveRecentNoteUseCase = get(),
             removeRecentNoteUseCase = get(),
+            getNotebooksUseCase = get(),
         )
     }
 

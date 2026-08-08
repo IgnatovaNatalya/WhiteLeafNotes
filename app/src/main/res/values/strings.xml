@@ -21,22 +21,27 @@
     <string name="no_notes">Вы пока не создали\nни одной заметки</string>
 
     <string name="create_notebook">Создать записную книжку</string>
-    <string name="creating_notebook">Новая записная\nкнижка</string>
-    <string name="creating_notebook_description">Дайте название папке, в которой будут группироваться ваши заметки</string>
-
-    <string name="move_note">Перемещение заметки</string>
-    <string name="enter_notebook_title">Введите название, например: Работа</string>
-
-    <string name="title">Название</string>
+    <string name="create_note">Создать заметку</string>
 
     <string name="empty_notebooks">Записных книжек пока нет</string>
 
-    <string name="create_note">Создать заметку</string>
+    <string name="dialog_create_notebook_title">Новая записная\nкнижка</string>
+    <string name="dialog_create_notebook_subtitle">Дайте название папке, в которой будут группироваться ваши заметки</string>
+    <string name="dialog_create_notebook_hint">Введите название, например: Работа</string>
+
+    <string name="dialog_move_note_title">Перемещение\nзаметки</string>
+    <string name="dialog_move_note_subtitle">Выберите записную книжку или создайте новую</string>
+    <string name="dialog_move_note_hint">Введите название записной книжки</string>
+
+    <string name="title">Название</string>
+
+
 
     <string name="rename_notebook">Переименовать записную книжку</string>
 
     <string name="fragment_note_list_label">Записная книжка</string>
     <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
+
     <string name="enter_new_title">Введите новое название</string>
     <string name="load_archive">Загрузка архива</string>
     <string name="header">Заголовок</string>
@@ -47,6 +52,7 @@
 
     <string name="protect">Зашифровать</string>
     <string name="unprotect">Снять защиту</string>
+
     <string name="is_protected">Записная книжка защищена</string>
     <string name="note_is_protected">Редактирование заметки\nв защищенной записной книжке</string>
     <string name="unlock">Разблокировать</string>
@@ -73,7 +79,6 @@
     <string name="chip_private">Личное</string>
     <string name="chip_projects">Проекты</string>
 
-
     <string name="export_notes">Экспортировать все заметки</string>
     <string name="import_notes">Загрузить из архива ZIP</string>
 
@@ -85,8 +90,6 @@
     <string name="export_dialog_subtitle">Архив записных книжек будет сохранен в формате ZIP в следующую папку:</string>
     <string name="share_file">Поделиться файлом</string>
     <string name="export_encrypted">Включить зашифрованные записные книжки</string>
-    <string name="confirmation_title">Сохранить изменения?</string>
-
 
 </resources>
 

@@ -19,7 +19,7 @@ class NotebookViewHolder(
     private val icon: ImageView = view.findViewById(R.id.notebook_icon)
 
     fun bind(notebook: Notebook) {
-        name.text = notebook.name
+        name.text = notebook.path
         noteCount.text = itemView.resources.getQuantityString(
             R.plurals.notes_count,
             notebook.noteCount,

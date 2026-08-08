@@ -270,7 +270,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun onOptionsMoveNote() {
-        DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+        DialogHelper.createMoveNoteDialog(
+            requireContext(),
+            viewModel.getAllNotebooks()
+        ) { newNotebookName ->
             viewModel.moveNote(newNotebookName)
         }.show()
     }

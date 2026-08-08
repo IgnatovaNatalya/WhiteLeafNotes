@@ -16,11 +16,13 @@ import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
+import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 
@@ -39,7 +41,8 @@ class NoteEditViewModel(
     private val settingsInteractor: SettingsInteractor,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
     private val saveRecentNoteUseCase: SaveRecentNoteUseCase,
-    private val removeRecentNoteUseCase: RemoveRecentNoteUseCase
+    private val removeRecentNoteUseCase: RemoveRecentNoteUseCase,
+    private val getNotebooksUseCase: GetNotebooksUseCase,
 ) : ViewModel() {
 
     private val _noteEditState = MutableLiveData<NoteEditState>()
@@ -67,18 +70,33 @@ class NoteEditViewModel(
 
     private var currentScrollPosition: Int? = null
 
+    private var notebookList: List<Notebook> = emptyList()
+
     init {
         loadNote()
+        loadNotebooks()
     }
+
+    private fun loadNotebooks() {
+        viewModelScope.launch {
+            try {
+                notebookList = getNotebooksUseCase()
+            } catch (e: Exception) {
+                println("DEBUG: NoteEditVm: loadNotebooks: Error loading notebooks: ${e.message}")
+            }
+        }
+    }
+
+    fun getAllNotebooks(): List<Notebook> = notebookList
 
     fun reloadNotePosition() {
         val currentNote = _note.value
 
-        if (currentNote != null ) {
+        if (currentNote != null) {
             _noteEditState.postValue(
                 NoteEditState.Success(
                     currentNote,
-                    scrollPosition = currentScrollPosition?:0,
+                    scrollPosition = currentScrollPosition ?: 0,
                     isNotebookProtected.value == true
                 )
             )

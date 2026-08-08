@@ -16,6 +16,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
+import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
@@ -25,6 +26,7 @@ import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookUnlockedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.LockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
 import java.io.IOException
 import java.security.InvalidKeyException
 
@@ -46,6 +48,7 @@ class NoteListViewModel(
     private val encryptNotebookUseCase: EncryptNotebookUseCase,
     private val decryptNotebookUseCase: DecryptNotebookUseCase,
     private val preferencesInteractor: SettingsInteractor,
+    private val getNotebooksUseCase: GetNotebooksUseCase,
     private val notebookPath: String?
 ) : ViewModel() {
 
@@ -60,11 +63,26 @@ class NoteListViewModel(
 
     private val _isPlannerView = MutableLiveData(false)
 
+    private var notebookList: List<Notebook> = emptyList()
+
     init {
         loadViewMode()
         loadNotes()
         saveLastOpenedNotebook()
+        loadNotebooks()
     }
+
+    private fun loadNotebooks() {
+        viewModelScope.launch {
+            try {
+                notebookList = getNotebooksUseCase()
+            } catch (e: Exception) {
+                println("DEBUG: NoteListVm: loadNotebooks: Error loading notebooks: ${e.message}")
+            }
+        }
+    }
+
+    fun getAllNotebooks(): List<Notebook> = notebookList
 
     private fun loadViewMode() {
         if (notebookPath == null) return

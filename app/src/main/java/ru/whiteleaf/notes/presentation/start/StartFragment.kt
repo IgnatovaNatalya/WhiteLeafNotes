@@ -157,20 +157,23 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     override fun onDeleteNotebook(notebook: Notebook) {
         val dialog = DialogHelper.createDeleteNotebookDialog(
             context = requireContext(),
-            notebookTitle = notebook.name,
+            notebookTitle = notebook.path,
             onDeleteConfirmed = { viewModel.deleteNotebook(notebook, requireContext()) }
         )
         dialog.show()
     }
 
     override fun onRenameNotebook(notebook: Notebook) {
-        DialogHelper.createRenameNotebookDialog(requireContext(), notebook.name) { newName ->
+        DialogHelper.createRenameNotebookDialog(requireContext(), notebook.path) { newName ->
             viewModel.renameNotebook(notebook, newName, requireContext())
         }.show()
     }
 
     override fun onMoveNote(note: Note) {
-        val dialog = DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+        val dialog = DialogHelper.createMoveNoteDialog(
+            requireContext(),
+            viewModel.getAllNotebooks(),
+        ) { newNotebookName ->
             viewModel.moveNote(note, newNotebookName)
         }
         dialog.show()

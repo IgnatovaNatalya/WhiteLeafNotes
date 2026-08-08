@@ -219,7 +219,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     override fun onMoveNote(note: Note) {
-        DialogHelper.createMoveNoteDialog(requireContext()) { newNotebookName ->
+        DialogHelper.createMoveNoteDialog(requireContext(), viewModel.getAllNotebooks()) { newNotebookName ->
             viewModel.moveNote(note, newNotebookName)
         }.show()
     }
