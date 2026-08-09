@@ -157,10 +157,26 @@ object DialogHelper {
             autoComplete.setOnItemClickListener { parent, _, position, _ ->
                 val selected = parent.getItemAtPosition(position) as String
                 val label =
-                    "Переместить в " + if (selected.length > 10) selected.take(10) + "..." else selected
+                    "Переместить в «" + if (selected.length > 10) selected.take(10) + "...»" else "$selected»"
                 positiveButton.text = label
                 positiveButton.isEnabled = true
             }
+
+            autoComplete.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    if (s.toString().isNotEmpty()) {
+                        positiveButton.text = "Создать и переместить"
+                        positiveButton.isEnabled = true
+                    } else {
+                        positiveButton.text = "Переместить"
+                        positiveButton.isEnabled = false
+                    }
+                }
+            })
 
             positiveButton.setOnClickListener {
                 onMoveClicked(autoComplete.text.toString())
