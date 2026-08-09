@@ -30,16 +30,21 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusBottomEnd="16dp"
+        app:boxCornerRadiusTopStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
         android:layout_marginTop="16dp"
         android:background="@null"
-        app:endIconMode="dropdown_menu">
+        app:endIconMode="dropdown_menu"
+        app:boxStrokeWidth="0.5dp">
 
         <AutoCompleteTextView
             android:id="@+id/new_note_notebook"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:dropDownHeight="wrap_content"
+            android:dropDownHeight="170dp"
             android:inputType="textAutoComplete|textCapSentences"
             android:textAppearance="@style/NoteEditText"
 

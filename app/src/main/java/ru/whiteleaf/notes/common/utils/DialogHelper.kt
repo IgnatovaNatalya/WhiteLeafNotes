@@ -187,25 +187,6 @@ object DialogHelper {
         return dialog
     }
 
-    fun createMoveNoteDialogOld(
-        context: Context,
-        onMoveClicked: (String) -> Unit
-    ): AndroidAlertDialog {
-        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
-        val moveDialogView: View =
-            LayoutInflater.from(context).inflate(R.layout.dialog_note_move, null)
-        alertDialogBuilder.setView(moveDialogView)
-
-        val newNotebook = moveDialogView.findViewById<EditText>(R.id.new_note_notebook)
-
-        return alertDialogBuilder
-            .setPositiveButton("Переместить") { _, _ ->
-                onMoveClicked(newNotebook.text.toString())
-            }
-            .setNegativeButton("Отмена", null)
-            .create()
-    }
-
     fun createDeleteNoteConfirmationDialog(
         context: Context,
         noteTitle: String,
