@@ -6,7 +6,6 @@ import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -18,8 +17,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.domain.model.Notebook
-import kotlin.text.ifEmpty
-
 object DialogHelper {
 
     //export all notes
@@ -136,13 +133,12 @@ object DialogHelper {
 
         val autoComplete = moveDialogView.findViewById<AutoCompleteTextView>(R.id.new_note_notebook)
 
-        val listNotebooksNames = listNotebooks.map { it.path.ifEmpty { "(Корневая папка)" } }
+        val items = listOf(DropdownNotebookItem.RootItem) + listNotebooks.map { DropdownNotebookItem.NotebookItem(it) }
 
-        println("DEBUG: createMoveNoteDialog: List notebooks=${listNotebooksNames}")
-
-        val adapter =
-            ArrayAdapter(context, R.layout.item_dropdown, listNotebooksNames)
+        val adapter = NotebookDropdownAdapter(context, items)
         autoComplete.setAdapter(adapter)
+
+        var selectedItemForMove: DropdownNotebookItem? = null // храним выбранный элемент
 
         val dialog = builder
             .setPositiveButton("Переместить", null)
@@ -153,11 +149,24 @@ object DialogHelper {
             val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
             positiveButton.isEnabled = false
 
-
             autoComplete.setOnItemClickListener { parent, _, position, _ ->
-                val selected = parent.getItemAtPosition(position) as String
-                val label =
-                    "Переместить в «" + if (selected.length > 10) selected.take(10) + "...»" else "$selected»"
+                val item = parent.getItemAtPosition(position) as DropdownNotebookItem
+                selectedItemForMove = item
+
+                val displayText = when (item) {
+                    is DropdownNotebookItem.RootItem -> "Переместить в корень"//todo добавить функцию чтобы не дублировать
+                    is DropdownNotebookItem.NotebookItem -> item.notebook.path
+                }
+                autoComplete.setText(displayText)
+
+                val label = when (selectedItemForMove) {
+                    is DropdownNotebookItem.RootItem -> "Переместить в корень"
+                    is DropdownNotebookItem.NotebookItem -> {
+                        val name = (selectedItemForMove as DropdownNotebookItem.NotebookItem).notebook.path
+                        "Переместить в «${if (name.length > 10) name.take(10) + "..." else name}»"
+                    }
+                    else -> "Переместить"
+                }
                 positiveButton.text = label
                 positiveButton.isEnabled = true
             }
@@ -165,25 +174,35 @@ object DialogHelper {
             autoComplete.addTextChangedListener(object : android.text.TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 }
-
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
                 override fun afterTextChanged(s: android.text.Editable?) {
-                    if (s.toString().isNotEmpty()) {
-                        positiveButton.text = "Создать и переместить"
-                        positiveButton.isEnabled = true
-                    } else {
+                    val text = s.toString().trim()
+                    if (text.isEmpty()) {
                         positiveButton.text = "Переместить"
                         positiveButton.isEnabled = false
+                        selectedItemForMove = null
+                    } else {
+                        if (selectedItemForMove == null) {
+                            positiveButton.text = "Создать и переместить"
+                            positiveButton.isEnabled = true
+                        }
                     }
                 }
             })
 
             positiveButton.setOnClickListener {
-                onMoveClicked(autoComplete.text.toString())
+                val text = autoComplete.text.toString().trim()
+                when (selectedItemForMove) {
+                    is DropdownNotebookItem.RootItem -> onMoveClicked("")  // корень
+                    is DropdownNotebookItem.NotebookItem -> {
+                        onMoveClicked((selectedItemForMove as DropdownNotebookItem.NotebookItem).notebook.path)
+                    }
+                    else -> onMoveClicked(text) // ручной ввод (создание нового)
+                }
                 dialog.dismiss()
             }
         }
-
         return dialog
     }
 

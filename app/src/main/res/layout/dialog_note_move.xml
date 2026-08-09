@@ -44,14 +44,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:dropDownHeight="170dp"
+            android:dropDownHeight="180dp"
             android:inputType="textAutoComplete|textCapSentences"
             android:textAppearance="@style/NoteEditText"
-
             android:hint="@string/dialog_move_note_hint"
             android:maxLines="1"
-            android:popupBackground="@drawable/popup_background"
-            />
+            android:popupBackground="@drawable/popup_background"/>
     </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

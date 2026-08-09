@@ -15,8 +15,8 @@
     <color name="success_green">#A5D6A7</color>
     <color name="dark_blue">#1976D2</color>
     <color name="medium_blue">#0CA0E9</color>
-    <color name="coral_transparent">#1AFF9E80</color>
-    <color name="coral_transparent_ripple">#2AFF9E80</color>
+    <color name="coral_transparent">#12FF9E80</color>
+    <color name="coral_transparent_ripple">#1AFF9E80</color>
 
     <!-- Для темной темы (также задаем здесь, но переопределим в values-night) -->
     <color name="background_dark">#121212</color>

@@ -167,7 +167,7 @@
 
     <style name="CustomChipTextAppearance" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textSize">12sp</item>
-        <item name="android:fontFamily">@font/nunito_medium</item>
+        <item name="android:fontFamily">@font/nunito_semibold</item>
     </style>
 
     <style name="Alert.Button.Positive" parent="Widget.Material3.Button">
