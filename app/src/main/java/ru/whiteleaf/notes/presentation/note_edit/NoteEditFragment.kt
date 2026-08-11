@@ -104,9 +104,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             saveScrollPosition()
             viewModel.saveToRecent()
 
-            viewModel.updateFullNoteOnExit(
+            viewModel.updateFullNote(
                 titleEditText.text.toString(),
-                contentEditText.text.toString()
+                contentEditText.text.toString(),
+                onExit = true
             )
             notSaveOnPause = false
             isSaving = false
@@ -126,7 +127,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             //при переходе фокуса, клавиатура скрывается системой
             //println("DEBUG: NoteEditFragment: Window focus gone,saving scroll")
 
-            //saveScrollPosition()
+            viewModel.updateFullNote(titleEditText.text.toString(), contentEditText.text.toString(), false)
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
 
@@ -192,7 +193,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private fun setupClickListeners() {
         binding.noteEditDate.setOnClickListener {
-            saveScrollPosition()
             showMaterialDatePickerDialog()
         }
 
@@ -202,6 +202,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     fun showMaterialDatePickerDialog() {
+        viewModel.updateFullNote(
+            title = titleEditText.text.toString(),
+            content = contentEditText.text.toString(),
+            onExit = false
+        )
+        viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
         val note = viewModel.note.value ?: return
         createDatePickerDialog(
             note.modifiedAt,
@@ -354,10 +360,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
             }
+            NoteEditState.ShowBiometricForSave -> {
+                println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSave")
+                viewModel.unlockAndSavePending(requireContext(),  false)
+            }
 
             NoteEditState.ShowBiometricForSaveOnExit -> {
                 println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSaveOnExit")
-                viewModel.unlockAndSavePending(requireContext())
+                viewModel.unlockAndSavePending(requireContext(), true)
             }
         }
     }

@@ -211,22 +211,29 @@ class NoteEditViewModel(
         }
     }
 
-    fun updateFullNoteOnExit(title: String, content: String) {
+
+    fun updateFullNote(title: String, content: String, onExit: Boolean) {
         val currentNote = _note.value ?: return
         showMessage("Сохранение заметки")
         println("DEBUG: NoteEditVM: Upd note on exit, title=$title, content=${content.take(10)}")
 
         viewModelScope.launch {
             try {
-                updateFullNoteUseCase(currentNote, title, content)
-                _navigateBack.postValue(true)
+                val updatedNote = updateFullNoteUseCase(currentNote, title, content)
+
+                if (onExit) _navigateBack.postValue(true)
+                else _note.postValue(updatedNote)
+
             } catch (e: AuthenticationRequiredException) {
-                _noteEditState.postValue(NoteEditState.ShowBiometricForSaveOnExit)
-                println("DEBUG: NoteEditVM: Authentication required while updating full note: ${e.message}")
+                if (onExit) _noteEditState.postValue(NoteEditState.ShowBiometricForSaveOnExit)
+                else _noteEditState.postValue( NoteEditState.ShowBiometricForSave)
+
+                println("DEBUG: NoteEditVM: Authentication required while updating full note onExit=$onExit: ${e.message}")
+
                 if (content != currentNote.content) pendingSaveContent = content
                 if (title != currentNote.title) pendingSaveTitle = title
             } catch (e: Exception) {
-                println("DEBUG: NoteEditVM: Error updating full note: ${e.message}")
+                println("DEBUG: NoteEditVM: Error updating full note onExit=$onExit: ${e.message}")
                 showMessage("Ошибка сохранения заметки: ${e.message}")
             }
         }
@@ -297,7 +304,6 @@ class NoteEditViewModel(
 
     fun rememberNoteScrollPosition(scrollPosition: Int) {
         println("DEBUG: NoteEditVM: rememberNoteScrollPosition: noteId=$noteId, notebookPath=$notebookPath, pos=$scrollPosition")
-        //settingsInteractor.saveNoteScrollPosition(noteId, notebookPath, scrollPosition)
         currentScrollPosition = scrollPosition
     }
 
@@ -306,7 +312,6 @@ class NoteEditViewModel(
             settingsInteractor.getNoteScrollPosition(noteId, notebookPath) ?: 0
         } else 0
     }
-
 
     fun unlockNotebook(context: Context, reason: String? = null) {
         viewModelScope.launch {
@@ -328,14 +333,14 @@ class NoteEditViewModel(
         }
     }
 
-    fun unlockAndSavePending(context: Context) {
+    fun unlockAndSavePending(context: Context, thenExit: Boolean) {
 
         try {
             viewModelScope.launch {
                 val unlocked = if (notebookPath != null) unlockNotebookUseCase(
                     notebookPath,
                     context,
-                    reason = "Для сохранения"
+                    reason = if (thenExit) "Для сохранения перед выходом" else "Для продолжения операции"
                 ) else true
 
                 val currentNote = _note.value ?: return@launch
@@ -343,17 +348,23 @@ class NoteEditViewModel(
                 if (unlocked) {
                     if (pendingSaveTitle != null) {
                         if (pendingSaveContent != null) {
-                            updateFullNoteUseCase(
-                                currentNote, pendingSaveTitle!!, pendingSaveContent!!
+                            _note.postValue(
+                                updateFullNoteUseCase(
+                                    currentNote, pendingSaveTitle!!, pendingSaveContent!!
+                                )
                             )
-                        } else renameNoteUseCase(currentNote, pendingSaveTitle!!)
+                        } else _note.postValue(renameNoteUseCase(currentNote, pendingSaveTitle!!))
                     } else if (pendingSaveContent != null) {
                         val updatedNote = currentNote.copy(content = pendingSaveContent!!)
                         saveNoteContentUseCase(updatedNote)
+                        _note.postValue(updatedNote)
                     }
+
+                    if (thenExit) _navigateBack.postValue(true) //вызывает выход из фрагмента
+
                     pendingSaveContent = null
                     pendingSaveTitle = null
-                    _navigateBack.postValue(true) //вызывает выход из фрагмента
+
                 } else {
                     _noteEditState.postValue(NoteEditState.Error("Не удалось разблокировать записную книжку"))
                 }
@@ -364,7 +375,6 @@ class NoteEditViewModel(
         } catch (e: Exception) {
             _message.postValue("Не удалось сохранить ${e.message}")
         }
-
     }
 
     fun unlockAndFullSave(context: Context, title: String, content: String): Boolean {
