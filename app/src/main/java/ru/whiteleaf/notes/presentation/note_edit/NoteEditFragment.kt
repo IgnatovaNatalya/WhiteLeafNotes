@@ -19,7 +19,6 @@ import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.google.android.material.datepicker.MaterialDatePicker
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
@@ -34,7 +33,6 @@ import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
 import ru.whiteleaf.notes.common.utils.formatDate
-import java.util.Calendar
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
@@ -117,9 +115,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
 
     private fun setupWindowFocusChangeListener(view: View) {
-//        view.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
-//            onFocusChanged(hasFocus)
-//        }
         windowFocusListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
             onFocusChanged(hasFocus)
         }
@@ -214,42 +209,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         ).show(childFragmentManager, "date_picker")
     }
 
-    private fun showMaterialDatePickerDialog1() {
-        val currentNote = viewModel.note.value ?: return
-
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = currentNote.modifiedAt
-        }
-
-        val datePicker = MaterialDatePicker.Builder.datePicker()
-            .setTitleText("Выберите дату создания")
-            .setSelection(calendar.timeInMillis)
-            .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
-            .build()
-
-        datePicker.addOnPositiveButtonClickListener { selection ->
-            // selection - это Long с выбранной датой (в миллисекундах)
-            // MaterialDatePicker возвращает дату в UTC, поэтому нужно учесть временную зону
-            val selectedDate = selection // уже в миллисекундах
-
-            // Сохраняем время из текущей заметки, но с новой датой
-            val currentCalendar = Calendar.getInstance().apply {
-                timeInMillis = currentNote.modifiedAt
-            }
-
-            val newCalendar = Calendar.getInstance().apply {
-                timeInMillis = selectedDate
-                set(Calendar.HOUR_OF_DAY, currentCalendar.get(Calendar.HOUR_OF_DAY))
-                set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE))
-                set(Calendar.SECOND, currentCalendar.get(Calendar.SECOND))
-            }
-
-            viewModel.updateNoteDate(newCalendar.timeInMillis)
-        }
-
-        datePicker.show(childFragmentManager, "date_picker")
-    }
-
     private fun setupOptionsMenu() {
         val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
 
@@ -261,6 +220,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 onItemSelected = { itemId ->
                     when (itemId) {
                         R.id.options_rename_note -> onOptionsRenameNote()
+                        R.id.options_change_note_date -> onOptionsChangeNoteDate()
                         R.id.options_move_note -> onOptionsMoveNote()
                         R.id.options_share_note -> onOptionsShareNote()
                         R.id.options_share_note_file -> onOptionsShareNoteFile()
@@ -276,6 +236,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
         (requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
             .showSoftInput(titleEditText, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun onOptionsChangeNoteDate() {
+        showMaterialDatePickerDialog()
     }
 
     private fun onOptionsMoveNote() {

@@ -81,7 +81,7 @@ object ContextMenuHelper {
     fun getOptionsMenuItemsNoteEdit(context: Context): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.options_rename_note),
-            createMenuItem(context, R.id.note_menu_change_date),
+            createMenuItem(context, R.id.options_change_note_date),
             createMenuItem(context, R.id.options_move_note),
             createMenuItem(context, R.id.options_share_note),
             createMenuItem(context, R.id.options_share_note_file),
