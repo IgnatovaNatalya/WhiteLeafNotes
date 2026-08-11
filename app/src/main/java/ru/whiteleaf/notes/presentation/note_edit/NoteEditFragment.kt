@@ -31,6 +31,7 @@ import ru.whiteleaf.notes.databinding.FragmentNoteEditBinding
 import ru.whiteleaf.notes.domain.model.Note
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
 import ru.whiteleaf.notes.common.utils.formatDate
 import java.util.Calendar
@@ -205,7 +206,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
     }
 
-    private fun showMaterialDatePickerDialog() {
+    fun showMaterialDatePickerDialog() {
+        val note = viewModel.note.value ?: return
+        createDatePickerDialog(
+            note.modifiedAt,
+            onDateSelected = { date -> viewModel.updateNoteDate(date) }
+        ).show(childFragmentManager, "date_picker")
+    }
+
+    private fun showMaterialDatePickerDialog1() {
         val currentNote = viewModel.note.value ?: return
 
         val calendar = Calendar.getInstance().apply {
@@ -273,7 +282,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         DialogHelper.createMoveNoteDialog(
             requireContext(),
             viewModel.getAllNotebooks(),
-            viewModel.note.value?.notebookPath?:"",
+            viewModel.note.value?.notebookPath ?: "",
         ) { newNotebookName ->
             viewModel.moveNote(newNotebookName)
         }.show()

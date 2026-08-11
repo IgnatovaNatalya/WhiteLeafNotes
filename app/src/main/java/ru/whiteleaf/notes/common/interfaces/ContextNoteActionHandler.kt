@@ -4,6 +4,7 @@ import ru.whiteleaf.notes.domain.model.Note
 
 interface ContextNoteActionHandler {
     fun onDeleteNote(note: Note)
+    fun onChangeNoteDate(note:Note)
     fun onMoveNote(note: Note)
     fun onShareNote(note: Note)
     fun onRenameNote(note: Note)

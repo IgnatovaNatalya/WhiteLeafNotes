@@ -16,6 +16,7 @@ import ru.whiteleaf.notes.databinding.FragmentStartBinding
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
 import ru.whiteleaf.notes.data.model.RecentNote
 
 class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteActionHandler,
@@ -187,6 +188,16 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             onDeleteConfirmed = { viewModel.deleteNote(note) }
         )
         dialog.show()
+    }
+
+    override fun onChangeNoteDate(note: Note) {
+        createDatePickerDialog(
+            note.modifiedAt,
+            onDateSelected = {
+                //date -> viewModel.updateNoteDate(date)
+                Toast.makeText(requireContext(),"Update note date", Toast.LENGTH_SHORT).show()
+            }
+        ).show(childFragmentManager, "date_picker")
     }
 
     override fun onShareNote(note: Note) {

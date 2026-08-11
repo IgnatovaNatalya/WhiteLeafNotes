@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-<!--контекстное меню-->
+<!--контекстное меню заметки-->
 
     <item
         android:id="@+id/note_menu_rename"
@@ -10,6 +10,10 @@
     <item
         android:id="@+id/note_menu_move"
         android:title="@string/move" />
+
+    <item
+        android:id="@+id/note_menu_change_date"
+        android:title="@string/change_date" />
 
     <item
         android:id="@+id/note_menu_share"

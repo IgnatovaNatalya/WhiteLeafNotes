@@ -77,10 +77,11 @@ object ContextMenuHelper {
         )
     }
 
-    // Пункты меню опций при просмотре записной книжки
+    // Пункты меню опций при редактировании заметки
     fun getOptionsMenuItemsNoteEdit(context: Context): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.options_rename_note),
+            createMenuItem(context, R.id.note_menu_change_date),
             createMenuItem(context, R.id.options_move_note),
             createMenuItem(context, R.id.options_share_note),
             createMenuItem(context, R.id.options_share_note_file),
@@ -101,6 +102,7 @@ object ContextMenuHelper {
     fun getNoteContextMenuItems(context: Context): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.note_menu_rename),
+            createMenuItem(context, R.id.note_menu_change_date),
             createMenuItem(context, R.id.note_menu_move),
             createMenuItem(context, R.id.note_menu_share),
             createMenuItem(context, R.id.note_menu_delete)

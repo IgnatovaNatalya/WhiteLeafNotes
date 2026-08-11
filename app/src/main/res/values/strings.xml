@@ -91,6 +91,7 @@
     <string name="share_file">Поделиться файлом</string>
     <string name="export_encrypted">Включить зашифрованные записные книжки</string>
     <string name="dialog_rename_hint">Введите название</string>
+    <string name="change_date">Изменить дату</string>
 
 </resources>
 

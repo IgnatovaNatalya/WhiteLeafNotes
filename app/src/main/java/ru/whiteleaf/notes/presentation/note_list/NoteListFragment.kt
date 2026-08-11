@@ -25,6 +25,7 @@ import ru.whiteleaf.notes.databinding.FragmentNoteListBinding
 import ru.whiteleaf.notes.domain.model.Note
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
@@ -53,14 +54,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         super.onViewCreated(view, savedInstanceState)
 
         navigateToNote = false
-
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
-
         notebookTitle = args.notebookPath.toString()
-
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
-
         isPlannerView = viewModel.getViewMode()
         println("DEBUG: Fragment onViewCreated viewMode is planner = $isPlannerView")
 
@@ -216,6 +213,16 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             requireContext(),
             note.title
         ) { newTitle -> viewModel.updateNoteTitle(note, newTitle) }.show()
+    }
+
+    override fun onChangeNoteDate(note: Note) {
+        createDatePickerDialog(
+            note.modifiedAt,
+            onDateSelected = {
+                //date -> viewModel.updateNoteDate(date)
+                Toast.makeText(requireContext(),"Update note date", Toast.LENGTH_SHORT).show()
+            }
+        ).show(childFragmentManager, "date_picker")
     }
 
     override fun onMoveNote(note: Note) {

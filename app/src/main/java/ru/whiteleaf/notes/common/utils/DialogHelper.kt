@@ -12,10 +12,12 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
 import com.google.android.material.chip.Chip
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.domain.model.Notebook
+import java.util.Calendar
 
 object DialogHelper {
 
@@ -400,5 +402,42 @@ object DialogHelper {
             }
             .setNegativeButton("Отмена", null)
             .create()
+    }
+
+    fun createDatePickerDialog(
+        currentDate: Long,
+        onDateSelected: (Long) -> Unit
+    ): MaterialDatePicker<Long> {
+
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = currentDate
+        }
+
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText("Выберите дату создания")
+            .setSelection(calendar.timeInMillis)
+            .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { selection ->
+            // selection - это Long с выбранной датой (в миллисекундах)
+            // MaterialDatePicker возвращает дату в UTC, поэтому нужно учесть временную зону
+            val selectedDate = selection // уже в миллисекундах
+
+            // Сохраняем время из текущей заметки, но с новой датой
+            val currentCalendar = Calendar.getInstance().apply {
+                timeInMillis = currentDate
+            }
+
+            val newCalendar = Calendar.getInstance().apply {
+                timeInMillis = selectedDate
+                set(Calendar.HOUR_OF_DAY, currentCalendar.get(Calendar.HOUR_OF_DAY))
+                set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE))
+                set(Calendar.SECOND, currentCalendar.get(Calendar.SECOND))
+            }
+
+            onDateSelected(newCalendar.timeInMillis)
+        }
+        return datePicker
     }
 }
