@@ -243,7 +243,6 @@ object DialogHelper {
 
         val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_title)
         newTitleEditText.setText(currentTitle)
-        //newTitleEditText.selectAll()
         newTitleEditText.setSelection(currentTitle.lastIndex)
 
         val dialog = builder
@@ -280,20 +279,20 @@ object DialogHelper {
         context: Context,
         notebookTitle: String,
         onDeleteConfirmed: () -> Unit
-    ): AndroidAlertDialog {
-        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
+    ): AlertDialog {
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
         val deleteDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
-        alertDialogBuilder.setView(deleteDialogView)
+        builder.setView(deleteDialogView)
 
         val dialogTitle = deleteDialogView.findViewById<TextView>(R.id.delete_title)
-        dialogTitle.text = "Удаление записной книжки"
         val dialogMessage = deleteDialogView.findViewById<TextView>(R.id.delete_message)
-        val text =
-            "Вы уверены, что хотите удалить записную книжку  \"$notebookTitle\" и все заметки в ней?"
-        dialogMessage.text = text
 
-        return alertDialogBuilder
+        dialogTitle.text = "Удаление записной книжки"
+        dialogMessage.text =
+            "Вы уверены, что хотите удалить записную книжку  «$notebookTitle» и все заметки в ней?"
+
+        return builder
             .setPositiveButton("Удалить") { _, _ -> onDeleteConfirmed() }
             .setNegativeButton("Отмена", null)
             .create()
