@@ -1,6 +1,5 @@
 package ru.whiteleaf.notes.common.utils
 
-import android.app.AlertDialog as AndroidAlertDialog
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.LayoutInflater
@@ -219,7 +218,7 @@ object DialogHelper {
 
         val dialogTitle = deleteDialogView.findViewById<TextView>(R.id.delete_title)
         val dialogMessage = deleteDialogView.findViewById<TextView>(R.id.delete_message)
-        dialogTitle.text = "Удаление\nзаметки"
+        dialogTitle.text = "Удаление заметки"
         dialogMessage.text = "Вы уверены, что хотите удалить заметку «$noteTitle»?"
 
         return builder
@@ -383,17 +382,19 @@ object DialogHelper {
         currentName: String,
         onRenameConfirmed: (String) -> Unit
     ): AlertDialog {
-        val alertDialogBuilder = AlertDialog.Builder(context)
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
         val renameDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_rename, null)
-        alertDialogBuilder.setView(renameDialogView)
+        builder.setView(renameDialogView)
+
         val dialogTitle = renameDialogView.findViewById<TextView>(R.id.rename_title)
-        dialogTitle.text = "Переименование записной книжки"
         val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_title)
+
+        dialogTitle.text = "Переименование записной книжки"
         newTitleEditText.setText(currentName)
         newTitleEditText.selectAll()
 
-        return alertDialogBuilder
+        return builder
             .setPositiveButton("Переименовать") { _, _ ->
                 onRenameConfirmed(newTitleEditText.text.toString())
             }
