@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingHorizontal="@dimen/marginHorizontal"
-    android:paddingVertical="24dp">
+    android:paddingTop="16dp">
 
     <TextView
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="16dp"
         android:gravity="center"
         android:text="@string/dialog_move_note_subtitle"
         android:textAppearance="@style/DialogSubtitle"
@@ -30,14 +30,13 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:boxCornerRadiusBottomStart="16dp"
-        app:boxCornerRadiusBottomEnd="16dp"
-        app:boxCornerRadiusTopStart="16dp"
-        app:boxCornerRadiusTopEnd="16dp"
-        android:layout_marginTop="16dp"
         android:background="@null"
-        app:endIconMode="dropdown_menu"
-        app:boxStrokeWidth="0.5dp">
+        app:boxCornerRadiusBottomEnd="16dp"
+        android:padding="0dp"
+        app:boxCornerRadiusBottomStart="16dp"
+        app:boxCornerRadiusTopEnd="16dp"
+        app:boxCornerRadiusTopStart="16dp"
+        app:endIconMode="dropdown_menu">
 
         <AutoCompleteTextView
             android:id="@+id/new_note_notebook"
@@ -45,11 +44,12 @@
             android:layout_height="wrap_content"
             android:background="@null"
             android:dropDownHeight="190dp"
-            android:inputType="textAutoComplete|textCapSentences"
-            android:textAppearance="@style/NoteEditText"
+            android:layout_margin="0dp"
             android:hint="@string/dialog_move_note_hint"
+            android:inputType="textAutoComplete|textCapSentences"
             android:maxLines="1"
-            android:popupBackground="@drawable/popup_background"/>
+            android:popupBackground="@drawable/popup_background"
+            android:textAppearance="@style/NoteEditText" />
     </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

@@ -128,8 +128,6 @@ object DialogHelper {
         onMoveClicked: (String) -> Unit
     ): AlertDialog {
 
-        println("DEBUG: createMoveNoteDialog: currentNotebook=$currentNotebookPath")
-
         val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
 
         val moveDialogView: View =
@@ -213,20 +211,18 @@ object DialogHelper {
         context: Context,
         noteTitle: String,
         onDeleteConfirmed: () -> Unit
-    ): AndroidAlertDialog {
-        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
+    ): AlertDialog {
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
         val deleteDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
-        alertDialogBuilder.setView(deleteDialogView)
+        builder.setView(deleteDialogView)
 
         val dialogTitle = deleteDialogView.findViewById<TextView>(R.id.delete_title)
-        dialogTitle.text = "Удаление заметки"
         val dialogMessage = deleteDialogView.findViewById<TextView>(R.id.delete_message)
-        val text =
-            "Вы уверены, что хотите удалить заметку \"$noteTitle\"?"
-        dialogMessage.text = text
+        dialogTitle.text = "Удаление\nзаметки"
+        dialogMessage.text = "Вы уверены, что хотите удалить заметку «$noteTitle»?"
 
-        return alertDialogBuilder
+        return builder
             .setPositiveButton("Удалить") { _, _ -> onDeleteConfirmed() }
             .setNegativeButton("Отмена", null)
             .create()

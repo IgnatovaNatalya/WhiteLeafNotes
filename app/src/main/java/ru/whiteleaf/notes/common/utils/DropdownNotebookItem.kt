@@ -10,7 +10,6 @@ sealed class DropdownNotebookItem {
         override fun toDisplayString(): String = notebook.path
         override fun toLabelString(): String =
             "Переместить в «${if (notebook.path.length > 10) notebook.path.take(10) + "..." else notebook.path}»"
-
     }
 
     object RootItem : DropdownNotebookItem() {

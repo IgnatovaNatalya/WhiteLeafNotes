@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:paddingHorizontal="@dimen/marginHorizontal"
-    android:paddingVertical="24dp">
+    android:paddingTop="16dp">
 
     <TextView
         android:id="@+id/delete_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:text = "Удаление чего-то"
-        android:textAppearance="@style/DialogTitle" />
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:textAppearance="@style/DialogTitle"
+        android:textColor="?android:attr/textColorPrimary"
+        tools:text="Удаление чего-то" />
 
     <TextView
         android:id="@+id/delete_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        tools:text = "Вы уверены?"
-        android:textAppearance="@style/NoteEditText" />
-
+        android:gravity="center"
+        android:layout_marginBottom="8dp"
+        android:textAppearance="@style/DialogSubtitle"
+        android:textColor="?android:attr/textColorSecondary"
+        tools:text="Вы уверены?" />
 </LinearLayout>
