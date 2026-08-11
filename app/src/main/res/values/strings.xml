@@ -42,7 +42,7 @@
     <string name="fragment_note_list_label">Записная книжка</string>
     <string name="fragment_start_label">Заметки и\nзаписные\nкнижки</string>
 
-    <string name="enter_new_title">Введите новое название</string>
+    <string name="dialog_rename_subtitle">Введите новое название</string>
     <string name="load_archive">Загрузка архива</string>
     <string name="header">Заголовок</string>
     <string name="scroll_down">Прокрутить вниз</string>
@@ -90,6 +90,7 @@
     <string name="export_dialog_subtitle">Архив записных книжек будет сохранен в формате ZIP в следующую папку:</string>
     <string name="share_file">Поделиться файлом</string>
     <string name="export_encrypted">Включить зашифрованные записные книжки</string>
+    <string name="dialog_rename_hint">Введите название</string>
 
 </resources>
 

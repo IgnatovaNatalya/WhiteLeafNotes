@@ -232,23 +232,46 @@ object DialogHelper {
         context: Context,
         currentTitle: String,
         onRenameConfirmed: (String) -> Unit
-    ): AndroidAlertDialog {
-        val alertDialogBuilder = AndroidAlertDialog.Builder(context)
+    ): AlertDialog {
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
         val renameDialogView: View =
             LayoutInflater.from(context).inflate(R.layout.dialog_rename, null)
-        alertDialogBuilder.setView(renameDialogView)
+        builder.setView(renameDialogView)
+
         val dialogTitle = renameDialogView.findViewById<TextView>(R.id.rename_title)
         dialogTitle.text = "Переименование заметки"
+
         val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_title)
         newTitleEditText.setText(currentTitle)
-        newTitleEditText.selectAll()
+        //newTitleEditText.selectAll()
+        newTitleEditText.setSelection(currentTitle.lastIndex)
 
-        return alertDialogBuilder
+        val dialog = builder
             .setPositiveButton("Переименовать") { _, _ ->
                 onRenameConfirmed(newTitleEditText.text.toString())
             }
             .setNegativeButton("Отмена", null)
             .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+
+            newTitleEditText.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    positiveButton.isEnabled = !s.isNullOrBlank()
+                }
+            })
+        }
+        return dialog
     }
 
 //notebooks
@@ -326,7 +349,14 @@ object DialogHelper {
                 ) {
                 }
 
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) {
+                }
+
                 override fun afterTextChanged(s: android.text.Editable?) {
                     positiveButton.isEnabled = !s.isNullOrBlank()
                 }
