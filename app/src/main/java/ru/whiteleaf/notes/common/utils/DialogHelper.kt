@@ -17,6 +17,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.domain.model.Notebook
+
 object DialogHelper {
 
     //export all notes
@@ -123,8 +124,12 @@ object DialogHelper {
     fun createMoveNoteDialog(
         context: Context,
         listNotebooks: List<Notebook>,
+        currentNotebookPath: String,
         onMoveClicked: (String) -> Unit
     ): AlertDialog {
+
+        println("DEBUG: createMoveNoteDialog: currentNotebook=$currentNotebookPath")
+
         val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
 
         val moveDialogView: View =
@@ -133,7 +138,12 @@ object DialogHelper {
 
         val autoComplete = moveDialogView.findViewById<AutoCompleteTextView>(R.id.new_note_notebook)
 
-        val items = listOf(DropdownNotebookItem.RootItem) + listNotebooks.map { DropdownNotebookItem.NotebookItem(it) }
+        val items = buildList {
+            if (currentNotebookPath.isNotEmpty()) add(DropdownNotebookItem.RootItem)
+            listNotebooks
+                .filter { it.path != currentNotebookPath }
+                .forEach { add(DropdownNotebookItem.NotebookItem(it)) }
+        }
 
         val adapter = NotebookDropdownAdapter(context, items)
         autoComplete.setAdapter(adapter)
@@ -158,8 +168,14 @@ object DialogHelper {
             }
 
             autoComplete.addTextChangedListener(object : android.text.TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
                 }
+
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
                 override fun afterTextChanged(s: android.text.Editable?) {
@@ -184,6 +200,7 @@ object DialogHelper {
                     is DropdownNotebookItem.NotebookItem -> {
                         onMoveClicked((selectedItemForMove as DropdownNotebookItem.NotebookItem).notebook.path)
                     }
+
                     else -> onMoveClicked(text) // ручной ввод (создание нового)
                 }
                 dialog.dismiss()

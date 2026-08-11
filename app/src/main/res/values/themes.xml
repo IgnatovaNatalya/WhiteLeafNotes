@@ -28,6 +28,7 @@
         <item name="android:textColorPrimary">@color/text_primary_light</item>
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
         <item name="colorControlNormal">@color/text_primary_light</item>
+        <item name="android:textColorTertiary">@color/text_primary_dark</item>
 
         <item name="colorPrimarySurface">@color/white</item>
 

@@ -173,6 +173,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         val dialog = DialogHelper.createMoveNoteDialog(
             requireContext(),
             viewModel.getAllNotebooks(),
+            note.notebookPath?:""
         ) { newNotebookName ->
             viewModel.moveNote(note, newNotebookName)
         }

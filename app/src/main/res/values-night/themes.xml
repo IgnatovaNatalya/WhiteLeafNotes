@@ -30,6 +30,7 @@
         <item name="android:textColorPrimary">@color/text_primary_dark</item>
         <item name="android:textColorSecondary">@color/text_secondary_dark</item>
         <item name="colorControlNormal">@color/text_primary_dark</item>
+        <item name="android:textColorTertiary">@color/text_primary_light</item>
 
         <item name="colorPrimarySurface">@color/container_dark</item>
 
