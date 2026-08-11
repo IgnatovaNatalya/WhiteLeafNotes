@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:dropDownHeight="180dp"
+            android:dropDownHeight="190dp"
             android:inputType="textAutoComplete|textCapSentences"
             android:textAppearance="@style/NoteEditText"
             android:hint="@string/dialog_move_note_hint"

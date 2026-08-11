@@ -152,22 +152,8 @@ object DialogHelper {
             autoComplete.setOnItemClickListener { parent, _, position, _ ->
                 val item = parent.getItemAtPosition(position) as DropdownNotebookItem
                 selectedItemForMove = item
-
-                val displayText = when (item) {
-                    is DropdownNotebookItem.RootItem -> "Переместить в корень"//todo добавить функцию чтобы не дублировать
-                    is DropdownNotebookItem.NotebookItem -> item.notebook.path
-                }
-                autoComplete.setText(displayText)
-
-                val label = when (selectedItemForMove) {
-                    is DropdownNotebookItem.RootItem -> "Переместить в корень"
-                    is DropdownNotebookItem.NotebookItem -> {
-                        val name = (selectedItemForMove as DropdownNotebookItem.NotebookItem).notebook.path
-                        "Переместить в «${if (name.length > 10) name.take(10) + "..." else name}»"
-                    }
-                    else -> "Переместить"
-                }
-                positiveButton.text = label
+                autoComplete.setText(item.toDisplayString())
+                positiveButton.text = item.toLabelString()
                 positiveButton.isEnabled = true
             }
 

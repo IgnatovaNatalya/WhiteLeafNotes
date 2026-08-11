@@ -1,7 +1,6 @@
 package ru.whiteleaf.notes.common.utils
 
 import android.content.Context
-import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,12 +9,6 @@ import android.widget.Filter
 import android.widget.ImageView
 import android.widget.TextView
 import ru.whiteleaf.notes.R
-import ru.whiteleaf.notes.domain.model.Notebook
-
-sealed class DropdownNotebookItem {
-    data class NotebookItem(val notebook: Notebook) : DropdownNotebookItem()
-    object RootItem : DropdownNotebookItem()
-}
 
 class NotebookDropdownAdapter(
     context: Context,
@@ -35,25 +28,19 @@ class NotebookDropdownAdapter(
         val icon = view.findViewById<ImageView>(R.id.dropdown_icon)
         val text = view.findViewById<TextView>(R.id.dropdown_text)
 
+        text.text = item.toDisplayString()
+
         when (item) {
             is DropdownNotebookItem.RootItem -> {
                 icon.visibility = View.GONE // или иконка домика
-                text.text = "Переместить в корень"
                 //text.setTypeface(text.typeface, Typeface.ITALIC)
-                // text.setTextColor(ContextCompat.getColor(context, R.color.secondary_text))
             }
 
             is DropdownNotebookItem.NotebookItem -> {
-                val notebook = item.notebook
-                // Иконка папки или замка
                 icon.visibility = View.VISIBLE
-                if (notebook.isEncrypted) {
-                    icon.setImageResource(R.drawable.ic_folder_protected)
-                } else {
-                    icon.setImageResource(R.drawable.ic_folder)
-                }
-                text.text = notebook.path
-                text.setTypeface(text.typeface, Typeface.NORMAL)
+                if (item.notebook.isEncrypted) icon.setImageResource(R.drawable.ic_folder_protected)
+                else icon.setImageResource(R.drawable.ic_folder)
+                //text.setTypeface(text.typeface, Typeface.NORMAL)
             }
         }
         return view
