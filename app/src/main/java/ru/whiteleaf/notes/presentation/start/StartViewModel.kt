@@ -23,6 +23,7 @@ import ru.whiteleaf.notes.domain.use_case.notebooks.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import kotlin.collections.forEach
 
 const val MAX_ITEMS = 3
@@ -35,6 +36,7 @@ class StartViewModel(
     private val createNotebookUseCase: CreateNotebookUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
+    private val updateNoteDateUseCase: UpdateNoteDateUseCase,
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
@@ -164,7 +166,6 @@ class StartViewModel(
         _startScreenState.postValue(StartScreenState.Success(items))
     }
 
-
     fun showMoreRecent() {
         visibleRecentCount += STEP_ITEMS
         buildStartItems()
@@ -206,11 +207,27 @@ class StartViewModel(
         }
     }
 
+    fun updateNoteDate(note: Note, newDate: Long) {
+        viewModelScope.launch {
+            try {
+                updateNoteDateUseCase(note, newDate)
+                loadData()
+                _message.postValue("Дата заметки обновлена")
+            } catch (e: Exception) {
+                _message.postValue("Ошибка обновления даты: ${e.message}")
+            }
+        }
+    }
+
     fun renameNotebook(notebook: Notebook, newName: String, context: Context) {
         viewModelScope.launch {
             try {
                 val unlocked = if (isNotebookProtectedUseCase(notebook.path)) {
-                    unlockNotebookUseCase(notebook.path, context, reason = "Для переименования")
+                    unlockNotebookUseCase(
+                        notebook.path,
+                        context,
+                        reason = "Для переименования"
+                    )
                 } else true
 
                 if (!unlocked) {
@@ -265,7 +282,9 @@ class StartViewModel(
                         _message.postValue("Архив создан успешно")
                     }
                 } else
-                    _message.postValue(result.exceptionOrNull()?.message ?: "Ошибка экспорта")
+                    _message.postValue(
+                        result.exceptionOrNull()?.message ?: "Ошибка экспорта"
+                    )
             } catch (e: Exception) {
                 _message.postValue("Ошибка передачи архива записной книжки: ${e.message}")
             }

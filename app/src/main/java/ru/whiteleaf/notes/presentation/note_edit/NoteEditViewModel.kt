@@ -177,7 +177,6 @@ class NoteEditViewModel(
     }
 
     fun updateNoteDate(newDate: Long) {
-
         viewModelScope.launch {
 
             val currentNote = _note.value ?: return@launch

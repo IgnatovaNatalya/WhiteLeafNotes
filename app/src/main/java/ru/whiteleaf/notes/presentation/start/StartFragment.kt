@@ -174,7 +174,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         val dialog = DialogHelper.createMoveNoteDialog(
             requireContext(),
             viewModel.getAllNotebooks(),
-            note.notebookPath?:""
+            note.notebookPath ?: ""
         ) { newNotebookName ->
             viewModel.moveNote(note, newNotebookName)
         }
@@ -191,13 +191,12 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     override fun onChangeNoteDate(note: Note) {
-        createDatePickerDialog(
+        println("DEBUG: StartFragment: option change date clicked")
+        val dialog = createDatePickerDialog(
             note.modifiedAt,
-            onDateSelected = {
-                //date -> viewModel.updateNoteDate(date)
-                Toast.makeText(requireContext(),"Update note date", Toast.LENGTH_SHORT).show()
-            }
-        ).show(childFragmentManager, "date_picker")
+            { date -> viewModel.updateNoteDate(note, date) }
+        )
+        dialog.show(childFragmentManager, "date_picker")
     }
 
     override fun onShareNote(note: Note) {

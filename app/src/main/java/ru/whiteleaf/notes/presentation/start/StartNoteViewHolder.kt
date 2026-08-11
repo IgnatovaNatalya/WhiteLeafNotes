@@ -39,6 +39,7 @@ class StartNoteViewHolder(
             onItemSelected = { itemId ->
                 when (itemId) {
                     R.id.note_menu_delete -> contextActionHandler.onDeleteNote(note)
+                    R.id.note_menu_change_date -> contextActionHandler.onChangeNoteDate(note)
                     R.id.note_menu_move -> contextActionHandler.onMoveNote(note)
                     R.id.note_menu_share -> contextActionHandler.onShareNote(note)
                     R.id.note_menu_rename -> contextActionHandler.onRenameNote(note)

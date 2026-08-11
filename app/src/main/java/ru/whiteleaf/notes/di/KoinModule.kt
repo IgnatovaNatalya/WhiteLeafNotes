@@ -149,13 +149,14 @@ val koinModule = module {
             createNotebookUseCase = get(),
             moveNoteUseCase = get(),
             renameNoteUseCase = get(),
+            updateNoteDateUseCase = get(),
             deleteNoteUseCase = get(),
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
             shareNotebookUseCase = get(),
             unlockNotebookUseCase = get(),
             isNotebookProtectedUseCase = get(),
-            getRecentNotesUseCase = get(),
+            getRecentNotesUseCase = get()
         )
     }
 
