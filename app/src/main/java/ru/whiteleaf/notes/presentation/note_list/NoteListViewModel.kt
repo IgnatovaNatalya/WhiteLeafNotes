@@ -27,6 +27,7 @@ import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookUnlockedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import java.io.IOException
 import java.security.InvalidKeyException
 
@@ -36,6 +37,7 @@ class NoteListViewModel(
     private val createNoteUseCase: CreateNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val renameNoteUseCase: RenameNoteUseCase,
+    private val updateNoteDateUseCase: UpdateNoteDateUseCase,
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val shareNotebookUseCase: ShareNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
@@ -254,7 +256,6 @@ class NoteListViewModel(
         }
     }
 
-
     fun moveNote(note: Note, targetNotebookPath: String?) {
         viewModelScope.launch {
             try {
@@ -276,6 +277,18 @@ class NoteListViewModel(
                 }
             } catch (e: Exception) {
                 showMessage("Ошибка переименования: ${e.message}")
+            }
+        }
+    }
+
+    fun updateNoteDate(note: Note, newDate: Long) {
+        viewModelScope.launch {
+            try {
+                updateNoteDateUseCase(note, newDate)
+                loadNotes()
+                _message.postValue("Дата заметки обновлена")
+            } catch (e: Exception) {
+                _message.postValue("Ошибка обновления даты: ${e.message}")
             }
         }
     }

@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Locale.getDefault
 
 // Модели для адаптера
 sealed class PlannerItem {
@@ -110,7 +111,8 @@ class NotesGridAdapter(
         val calendar = Calendar.getInstance().apply {
             set(year, month, 1)
         }
-        return dateFormat.format(calendar.time).capitalize()
+        return dateFormat.format(calendar.time)
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }
     }
 
     // ViewHolders
@@ -189,6 +191,7 @@ class NotesGridAdapter(
                     when (itemId) {
                         R.id.note_menu_delete -> noteActionHandler.onDeleteNote(note)
                         R.id.note_menu_move -> noteActionHandler.onMoveNote(note)
+                        R.id.note_menu_change_date -> noteActionHandler.onChangeNoteDate(note)
                         R.id.note_menu_share -> noteActionHandler.onShareNote(note)
                         R.id.note_menu_rename -> noteActionHandler.onRenameNote(note)
                     }

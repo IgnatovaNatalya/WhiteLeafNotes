@@ -173,6 +173,7 @@ val koinModule = module {
             deleteNoteUseCase = get(),
             createNoteUseCase = get(),
             moveNoteUseCase = get(),
+            updateNoteDateUseCase = get(),
             renameNoteUseCase = get(),
 
             renameNotebookUseCase = get(),

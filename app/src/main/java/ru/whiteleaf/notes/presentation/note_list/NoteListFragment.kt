@@ -218,10 +218,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     override fun onChangeNoteDate(note: Note) {
         createDatePickerDialog(
             note.modifiedAt,
-            onDateSelected = {
-                //date -> viewModel.updateNoteDate(date)
-                Toast.makeText(requireContext(),"Update note date", Toast.LENGTH_SHORT).show()
-            }
+            { date -> viewModel.updateNoteDate(note, date) }
         ).show(childFragmentManager, "date_picker")
     }
 
@@ -229,7 +226,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         DialogHelper.createMoveNoteDialog(
             requireContext(),
             viewModel.getAllNotebooks(),
-            note.notebookPath?:""
+            note.notebookPath ?: ""
         ) { newNotebookName ->
             viewModel.moveNote(note, newNotebookName)
         }.show()

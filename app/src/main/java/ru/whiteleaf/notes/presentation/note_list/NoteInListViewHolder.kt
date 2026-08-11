@@ -65,6 +65,7 @@ class NoteInListViewHolder(
                 when (itemId) {
                     R.id.note_menu_delete -> noteActionHandler.onDeleteNote(note)
                     R.id.note_menu_move -> noteActionHandler.onMoveNote(note)
+                    R.id.note_menu_change_date -> noteActionHandler.onChangeNoteDate(note)
                     R.id.note_menu_share -> noteActionHandler.onShareNote(note)
                     R.id.note_menu_rename -> noteActionHandler.onRenameNote(note)
                 }
