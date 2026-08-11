@@ -44,9 +44,9 @@ class ContextMenuAdapter(
         notifyDataSetChanged()
     }
 
-    override fun getCount(): Int = displayList.size//items.size
-    override fun getItem(position: Int): ContextMenuItem = displayList[position]//items[position]
-    override fun getItemId(position: Int): Long = getItem(position).id.toLong()//position.toLong()
+    override fun getCount(): Int = displayList.size
+    override fun getItem(position: Int): ContextMenuItem = displayList[position]
+    override fun getItemId(position: Int): Long = getItem(position).id.toLong()
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view = convertView ?: LayoutInflater.from(context)
