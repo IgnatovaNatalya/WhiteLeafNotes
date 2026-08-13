@@ -35,6 +35,7 @@ class ExportRepositoryImpl(
         password: String?
     ): Uri {
         return withContext(Dispatchers.IO) {
+
             val tempDir = File(context.cacheDir, "export_temp").apply {
                 deleteRecursively()
                 mkdirs()
@@ -42,7 +43,8 @@ class ExportRepositoryImpl(
 
             try {
                 createExportStructure(tempDir, notes, notebooks)
-                val zipFile = createPasswordProtectedZip(tempDir, password)
+                val fileSuffix = if(notebooks.size ==1 ) notebooks[0].path else null
+                val zipFile = createPasswordProtectedZip(tempDir, fileSuffix, password)
                 saveToExternalStorage(zipFile)
 
             } finally {
@@ -61,25 +63,49 @@ class ExportRepositoryImpl(
             File(tempDir, notebook.path).apply { mkdirs() }
         }
 
+        notes.forEach { note -> println("DEBUG: ExportRepo: createExportStructure: note ${note.printDebug()} ") }
+
         // Копируем все заметки
         notes.forEach { note ->
             val targetDir =
                 if (note.notebookPath != null) File(tempDir, note.notebookPath) else tempDir
-            val targetFile = File(targetDir, "${note.title}.txt")
+            val targetFile = File(targetDir, "${note.id}.txt")
 
             fileNoteDataSource.writeNoteContent(targetFile, note.content)
             targetFile.setLastModified(note.modifiedAt)
+
+            println(
+                "DEBUG: ExportRepo: createExportStructure: target file=${targetFile.name}, content=${
+                    fileNoteDataSource.readNoteContent(
+                        targetFile
+                    ).take(12)
+                }"
+            )
+
         }
     }
 
-    fun createPasswordProtectedZip(tempDir: File, password: String? = null): File {
+    fun createPasswordProtectedZip(
+        tempDir: File,
+        fileSuffix: String? = null,
+        password: String? = null
+    ): File {
 
         require(tempDir.exists() && tempDir.isDirectory) {
             "$tempDir должен быть существующей директорией"
         }
 
-        val timestamp = SimpleDateFormat("dd_MM_yyyy_HHmmss", Locale.getDefault()).format(Date())
-        val outputZipFile = File(context.cacheDir, "$EXPORT_ZIP_PREFIX$timestamp.zip")
+        val suffix = if (fileSuffix != null) {
+            val timestamp =
+                // SimpleDateFormat("dd_MM_yyyy_HHmmss", Locale.getDefault()).format(Date())
+                SimpleDateFormat("dd_MM_yyyy", Locale.getDefault()).format(Date())
+            fileSuffix + "_" + timestamp
+        } else {
+            val timestamp = SimpleDateFormat("dd_MM_yyyy", Locale.getDefault()).format(Date())
+            timestamp
+        }
+
+        val outputZipFile = File(context.cacheDir, "${EXPORT_ZIP_PREFIX}_$suffix.zip")
 
         val zipFile = if (password != null) {
             ZipFile(outputZipFile, password.toCharArray())

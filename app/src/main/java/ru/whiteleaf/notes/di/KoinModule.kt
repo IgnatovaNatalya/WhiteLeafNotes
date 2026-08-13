@@ -30,7 +30,7 @@ import ru.whiteleaf.notes.domain.use_case.share.ImportZipNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
-import ru.whiteleaf.notes.domain.use_case.share.ShareNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
 import ru.whiteleaf.notes.presentation.note_edit.NoteEditViewModel
 import ru.whiteleaf.notes.presentation.note_list.NoteListViewModel
 import ru.whiteleaf.notes.presentation.root.DrawerMenuViewModel
@@ -111,7 +111,7 @@ val koinModule = module {
     factory { RenameNotebookUseCase(get(), get(), get(), get()) }
     factory { DeleteNotebookByPathUseCase(get(), get()) }//, get(), get()) }
 
-    factory { ShareNotebookUseCase(get(), get(), get()) }
+    factory { ExportNotebookUseCase(get(), get(), get(), get()) }
 
     factory { ExportAllNotesUseCase(get(), get(), get(), get()) }
     factory { ImportZipNotesUseCase(get(), get(), get()) }
@@ -153,7 +153,7 @@ val koinModule = module {
             deleteNoteUseCase = get(),
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
-            shareNotebookUseCase = get(),
+            exportNotebookUseCase = get(),
             unlockNotebookUseCase = get(),
             isNotebookProtectedUseCase = get(),
             getRecentNotesUseCase = get()
@@ -178,7 +178,7 @@ val koinModule = module {
 
             renameNotebookUseCase = get(),
             deleteNotebookUseCase = get(),
-            shareNotebookUseCase = get(),
+            exportNotebookUseCase = get(),
 
             preferencesInteractor = get(),
 

@@ -102,6 +102,50 @@ class NoteRepositoryImpl(
         }
     }
 
+    override suspend fun getNotes(notebookPath: String?): List<Note> {
+        //получаем заметки полностью
+        return withContext(Dispatchers.IO) {
+            val dir =
+                notebookPath?.let { File(noteDataSource.baseDir, it) } ?: noteDataSource.baseDir
+            val isProtected = notebookPath?.let { encryptionRepository.hasKey(it) } ?: false
+
+            // Если блокнот защищён и ключ не разблокирован – сразу бросаем исключение
+            if (isProtected && !encryptionRepository.isUnlocked(notebookPath)) {
+                throw AuthenticationRequiredException("Key is locked for getting notes in notebook $notebookPath")
+            }
+
+            noteDataSource.listFilesInDirectory(dir)
+                ?.filter { it.isFile && it.name.endsWith(".txt") }
+                ?.map { file ->
+                    try {
+                        val lastModified = file.lastModified()
+                        val name = file.nameWithoutExtension
+                        val rawContent = noteDataSource.readNoteContent(file)
+                        val content = if (isProtected) {
+                            encryptionRepository.decryptNote(notebookPath, rawContent)
+                        } else {
+                            rawContent
+                        }
+
+                        Note(
+                            id = name,
+                            title = if (name.startsWith(FILE_NAME_PREFIX)) "" else name,
+                            content = content,
+                            modifiedAt = lastModified,
+                            notebookPath = notebookPath
+                        )
+                    } catch (e: AuthenticationRequiredException) {
+                        // Ключ не разблокирован (истекло время действия биометрии или не было аутентификации)
+                        throw e
+                    } catch (e: Exception) {
+                        // Любая ошибка при чтении/расшифровке файла прерывает загрузку списка
+                        println("DEBUG: NoteRepositoryImpl get notes error: ${e.message}")
+                        throw IOException("Failed to read note ${file.name}", e)
+                    }
+                }?.sortedByDescending { it.modifiedAt } ?: emptyList()
+        }
+    }
+
     override suspend fun saveNote(note: Note) {
         withContext(Dispatchers.IO) {
             try {

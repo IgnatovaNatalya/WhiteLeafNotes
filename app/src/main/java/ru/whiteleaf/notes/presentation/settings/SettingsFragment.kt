@@ -97,10 +97,11 @@ class SettingsFragment : BindingFragment<FragmentSettingsBinding>() {
         binding.tvExport.isEnabled = true
 
         binding.tvExport.setOnClickListener {
-            DialogHelper.createExportAllDialog(
+            DialogHelper.createExportDialog(
                 requireContext(),
                 path,
-                number
+                null,
+                number,
             ) { shareFile, exportEncrypted, password ->
                 viewModel.exportNotes(requireContext(), shareFile, exportEncrypted, password)
             }.show()

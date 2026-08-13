@@ -1,6 +1,7 @@
 package ru.whiteleaf.notes.presentation.note_list
 
 import android.content.Context
+import android.os.Environment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,12 +10,13 @@ import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.DeleteNotebookByPathUseCase
-import ru.whiteleaf.notes.domain.use_case.share.ShareNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
@@ -39,7 +41,7 @@ class NoteListViewModel(
     private val renameNoteUseCase: RenameNoteUseCase,
     private val updateNoteDateUseCase: UpdateNoteDateUseCase,
     private val renameNotebookUseCase: RenameNotebookUseCase,
-    private val shareNotebookUseCase: ShareNotebookUseCase,
+    private val exportNotebookUseCase: ExportNotebookUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
     private val isNotebookUnlockedUseCase: IsNotebookUnlockedUseCase,
@@ -60,12 +62,15 @@ class NoteListViewModel(
     private val _message = MutableLiveData<String?>()
     val message: LiveData<String?> = _message
 
-    private val _navigationEvent = MutableLiveData<NavigationEvent>()
-    val navigationEvent: LiveData<NavigationEvent> = _navigationEvent
+    private val _navigationEvent = MutableLiveData<NoteListNavigationEvent>()
+    val navigationEvent: LiveData<NoteListNavigationEvent> = _navigationEvent
 
     private val _isPlannerView = MutableLiveData(false)
 
     private var notebookList: List<Notebook> = emptyList()
+
+    val exportPath =
+        "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
     init {
         loadViewMode()
@@ -96,7 +101,7 @@ class NoteListViewModel(
         if (notebookPath == null) return
         _isPlannerView.value = isPlanner
         preferencesInteractor.saveViewMode(notebookPath, isPlanner)
-        _navigationEvent.postValue(NavigationEvent.ReopenNotebook(notebookPath))///
+        _navigationEvent.postValue(NoteListNavigationEvent.ReopenNotebook(notebookPath))///
     }
 
     fun getViewMode(): Boolean {
@@ -116,7 +121,7 @@ class NoteListViewModel(
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
-                        _navigationEvent.postValue(NavigationEvent.ShowBiometric)
+                        _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric)
                         return@launch
                     }
                 }
@@ -238,7 +243,7 @@ class NoteListViewModel(
         viewModelScope.launch {
             try {
                 val newNote = createNoteUseCase(notebookPath)
-                _navigationEvent.postValue(NavigationEvent.NavigateToNote(newNote.id))
+                _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(newNote.id))
             } catch (e: Exception) {
                 showMessage("Ошибка создания заметки: ${e.message}")
             }
@@ -309,7 +314,7 @@ class NoteListViewModel(
                     if (newName != notebookPath) {
                         renameNotebookUseCase(notebookPath, newName)
                         showMessage("Название записной книжки изменено")
-                        _navigationEvent.postValue(NavigationEvent.ReopenNotebook(newName))
+                        _navigationEvent.postValue(NoteListNavigationEvent.ReopenNotebook(newName))
                     } else showMessage("Ошибка переименования")
                 } catch (e: AuthenticationRequiredException) {
                     _message.postValue("Записная книжка заблокирована: ${e.message}")
@@ -319,33 +324,18 @@ class NoteListViewModel(
             }
     }
 
-    fun shareNotebook(context: Context) {
+    fun exportNotebook(context: Context, shareFile: Boolean, password: String?) {
         viewModelScope.launch {
-            if (notebookPath != null)
-                try {
-                    val unlocked = if (isNotebookProtectedUseCase(notebookPath))
-                        unlockNotebookUseCase(notebookPath, context, reason = "Для экспорта")
-                    else
-                        true
+            val result = exportNotebookUseCase(context, notebookPath ?: "", password)
 
-                    if (unlocked) {
-                        val result =
-                            shareNotebookUseCase(notebookPath, "123") //todo пароль спрашивать
-
-                        if (result.isSuccess)
-                            _navigationEvent.postValue(NavigationEvent.ExportLink(result.getOrNull()))
-                        else
-                            showMessage(result.exceptionOrNull()?.message ?: "Unknown error")
-                    } else {
-                        _message.postValue("Не удалось подтвердить личность")
-                        return@launch
-                    }
-
-                } catch (e: AuthenticationRequiredException) {
-                    _message.postValue("Записная книжка заблокирована: ${e.message}")
-                } catch (e: Exception) {
-                    showMessage("Ошибка передачи файла записной книжки: ${e.message}")
-                }
+            if (result.isSuccess) {
+                if (shareFile)
+                    _navigationEvent.postValue(NoteListNavigationEvent.ExportLink(result.getOrNull()))
+                else
+                    _message.postValue("Архив успешно сохранен")
+            } else {
+                _message.postValue("Отмена разблокировки")
+            }
         }
     }
 
@@ -365,7 +355,7 @@ class NoteListViewModel(
 
                     deleteNotebookUseCase(notebookPath)
 
-                    _navigationEvent.postValue(NavigationEvent.NavigateUp)
+                    _navigationEvent.postValue(NoteListNavigationEvent.NavigateUp)
                     showMessage("Записная книжка удалена")
 
                 } catch (e: Exception) {
@@ -375,9 +365,9 @@ class NoteListViewModel(
     }
 
     fun onNoteClicked(noteId: String) =
-        _navigationEvent.postValue(NavigationEvent.NavigateToNote(noteId))
+        _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(noteId))
 
-    fun onNavigated() = _navigationEvent.postValue(NavigationEvent.Idle)
+    fun onNavigated() = _navigationEvent.postValue(NoteListNavigationEvent.Idle)
 
     fun clearMessage() = _message.postValue(null)
 

@@ -204,7 +204,22 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onShareNotebook(notebook: Notebook) = viewModel.shareNotebook(notebook.path)
+    override fun onShareNotebook(notebook: Notebook) {
+        DialogHelper.createExportDialog(
+            requireContext(),
+            viewModel.exportPath,
+            notebook.path,
+            0,
+        ) { shareFile, _, password ->
+            viewModel.exportNotebook(
+                requireContext(),
+                notebook.path,
+                shareFile,
+                password
+            )
+        }.show()
+    }
+
 
     override fun onResume() {
         super.onResume()

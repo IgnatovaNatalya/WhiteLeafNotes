@@ -22,9 +22,10 @@ import java.util.Calendar
 object DialogHelper {
 
     //export all notes
-    fun createExportAllDialog(
+    fun createExportDialog(
         context: Context,
         pathToSave: String,
+        notebookPath: String? = null,
         numberEncrypted: Int = 0,
         onExportConfirmed: (Boolean, Boolean, String?) -> Unit
     ): AlertDialog {
@@ -39,20 +40,29 @@ object DialogHelper {
         //Поделиться
         val swShareZip = view.findViewById<SwitchCompat>(R.id.sw_share_zip)
 
-        //Экспортировать зашифрованные?
         val llExportEncrypted = view.findViewById<LinearLayout>(R.id.ll_export_encrypted)
-
-        if (numberEncrypted == 0) {
-            llExportEncrypted.visibility = View.GONE
-        } else {
-            val tvCountProtectedText = view.findViewById<TextView>(R.id.tv_export_encrypted_text)
-            tvCountProtectedText.text = view.resources.getQuantityString(
-                R.plurals.objects_required_count,
-                numberEncrypted,
-                numberEncrypted
-            )
-        }
         val swExportEncrypted = view.findViewById<SwitchCompat>(R.id.sw_export_encrypted)
+
+        //Экспортировать ли зашифрованные
+        if (notebookPath == null) { //Если экспорт всех книжек, показываем
+            if (numberEncrypted == 0) { //сколько зашифрованных
+                llExportEncrypted.visibility = View.GONE
+            } else {
+                val tvCountProtectedText =
+                    view.findViewById<TextView>(R.id.tv_export_encrypted_text)
+                tvCountProtectedText.text = view.resources.getQuantityString(
+                    R.plurals.objects_required_count,
+                    numberEncrypted,
+                    numberEncrypted
+                )
+            }
+        } else { //Экспорт только одной книжки, не показываем
+            val tvTitle = view.findViewById<TextView>(R.id.dialog_export_title)
+            val tvSubtitle = view.findViewById<TextView>(R.id.dialog_export_subtitle)
+            tvTitle.text = "Экспорт записной книжки «${notebookPath}»"
+            tvSubtitle.text = "Архив будет сохранен в формате ZIP в папке:"
+            llExportEncrypted.visibility = View.GONE
+        }
 
         //пароль
         val swSetPassword = view.findViewById<SwitchCompat>(R.id.sw_set_password)
@@ -67,13 +77,10 @@ object DialogHelper {
             .create()
 
         dialog.setOnShowListener {
-
             val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-
             positiveButton.isEnabled = true
 
             swSetPassword.setOnCheckedChangeListener { _, isChecked ->
-
                 if (isChecked) {
                     tilPassword.visibility = View.VISIBLE
                     positiveButton.isEnabled = false
@@ -112,11 +119,14 @@ object DialogHelper {
 
             positiveButton.setOnClickListener {
                 val password = etPassword.text.toString().takeIf { it.isNotBlank() }
-                onExportConfirmed(swShareZip.isChecked, swExportEncrypted.isChecked, password)
+                onExportConfirmed(
+                    swShareZip.isChecked,
+                    if (notebookPath != null) swExportEncrypted.isChecked else true,
+                    password
+                )
                 dialog.dismiss()
             }
         }
-
 
         return dialog
     }

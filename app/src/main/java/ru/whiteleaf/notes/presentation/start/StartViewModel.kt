@@ -1,6 +1,7 @@
 package ru.whiteleaf.notes.presentation.start
 
 import android.content.Context
+import android.os.Environment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,8 +16,9 @@ import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.share.ShareNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.notebooks.DeleteNotebookByPathUseCase
@@ -40,7 +42,7 @@ class StartViewModel(
     private val renameNotebookUseCase: RenameNotebookUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val deleteNotebookUseCase: DeleteNotebookByPathUseCase,
-    private val shareNotebookUseCase: ShareNotebookUseCase,
+    private val exportNotebookUseCase: ExportNotebookUseCase,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
     private val getRecentNotesUseCase: GetRecentNotesUseCase,
@@ -62,6 +64,9 @@ class StartViewModel(
     private var visibleRecentCount = MAX_ITEMS
     private var visibleNotebooksCount = MAX_ITEMS
     private var visibleNotesCount = MAX_ITEMS
+
+    val exportPath =
+        "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
     init {
         loadData()
@@ -270,26 +275,45 @@ class StartViewModel(
         }
     }
 
-    fun shareNotebook(notebookPath: String) {
-        _message.postValue("Создание архива...")
+    fun exportNotebook(
+        context: Context,
+        notebookPath: String,
+        shareFile: Boolean,
+        password: String?
+    ) {
         viewModelScope.launch {
-            try {
-                val result = shareNotebookUseCase(notebookPath)
-                if (result.isSuccess) {
-                    val uri = result.getOrNull()
-                    if (uri != null) {
-                        _navigationEvent.postValue(StartNavigationEvent.ShareUri(uri))
-                        _message.postValue("Архив создан успешно")
-                    }
-                } else
-                    _message.postValue(
-                        result.exceptionOrNull()?.message ?: "Ошибка экспорта"
-                    )
-            } catch (e: Exception) {
-                _message.postValue("Ошибка передачи архива записной книжки: ${e.message}")
+            val result = exportNotebookUseCase(context, notebookPath, password)
+
+            if (result.isSuccess) {
+                _message.postValue("Архив успешно создан")
+                if (shareFile)
+                    _navigationEvent.postValue(StartNavigationEvent.ShareUri(result.getOrNull()))
+            } else {
+                _message.postValue("Отмена экспорта")
             }
         }
     }
+
+//    fun shareNotebook(context: Context, notebookPath: String) {
+//        _message.postValue("Создание архива...")
+//        viewModelScope.launch {
+//            try {
+//                val result = exportNotebookUseCase(context, notebookPath)
+//                if (result.isSuccess) {
+//                    val uri = result.getOrNull()
+//                    if (uri != null) {
+//                        _navigationEvent.postValue(StartNavigationEvent.ShareUri(uri))
+//                        _message.postValue("Архив создан успешно")
+//                    }
+//                } else
+//                    _message.postValue(
+//                        result.exceptionOrNull()?.message ?: "Ошибка экспорта"
+//                    )
+//            } catch (e: Exception) {
+//                _message.postValue("Ошибка передачи архива записной книжки: ${e.message}")
+//            }
+//        }
+//    }
 
     fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {

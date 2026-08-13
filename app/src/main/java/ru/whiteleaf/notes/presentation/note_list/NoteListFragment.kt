@@ -32,7 +32,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
-    private var notebookTitle = ""
+    private var notebookPath = ""
     private var isEncrypted = false
 
     private lateinit var noteLinearAdapter: NotesLinearAdapter
@@ -55,7 +55,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         navigateToNote = false
         (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
-        notebookTitle = args.notebookPath.toString()
+        notebookPath = args.notebookPath.toString()
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
         isPlannerView = viewModel.getViewMode()
@@ -87,22 +87,21 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
     }
 
-    private fun navigateEvent(event: NavigationEvent) {
+    private fun navigateEvent(event: NoteListNavigationEvent) {
         when (event) {
-            NavigationEvent.Idle -> {}
 
-            is NavigationEvent.ExportLink -> shareExportFile(event.uri)
+            is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
 
-            is NavigationEvent.NavigateToNote -> {
+            is NoteListNavigationEvent.NavigateToNote -> {
                 navigateToNote = true
                 navigateToNoteEdit(event.noteId)
             }
 
-            is NavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
+            is NoteListNavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
 
-            NavigationEvent.NavigateUp -> findNavController().navigateUp()
-
-            NavigationEvent.ShowBiometric -> viewModel.unlockNotebook(requireActivity())
+            NoteListNavigationEvent.Idle -> {}
+            NoteListNavigationEvent.NavigateUp -> findNavController().navigateUp()
+            NoteListNavigationEvent.ShowBiometric -> viewModel.unlockNotebook(requireActivity())
         }
         viewModel.onNavigated()
     }
@@ -191,19 +190,32 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun onOptionsRenameNotebook() {
-        DialogHelper.createRenameNotebookDialog(requireContext(), notebookTitle)
+        DialogHelper.createRenameNotebookDialog(requireContext(), notebookPath)
         { newName -> viewModel.renameNotebook(newName, requireContext()) }.show()
     }
 
     private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook(requireContext())
     private fun onOptionsDecryptNotebook() = viewModel.decryptNotebook(requireContext())
 
-    private fun onOptionsShareNotebook() = viewModel.shareNotebook(requireContext())
+    private fun onOptionsShareNotebook() {
+        DialogHelper.createExportDialog(
+            requireContext(),
+            viewModel.exportPath,
+            notebookPath,
+            0,
+        ) { shareFile, _, password ->
+            viewModel.exportNotebook(
+                requireContext(),
+                shareFile,
+                password
+            )
+        }.show()
+    }
 
     private fun onOptionsDeleteNotebook() {
         DialogHelper.createDeleteNotebookDialog(
             context = requireContext(),
-            notebookTitle = notebookTitle,
+            notebookTitle = notebookPath,
             onDeleteConfirmed = { viewModel.deleteNotebook(requireContext()) }
         ).show()
     }
@@ -262,10 +274,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         findNavController().navigate(action)
     }
 
-    private fun reopenNotebook(newName: String) {
+    private fun reopenNotebook(newPath: String) {
 //        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
 //        findNavController().navigate(action)
-        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(newName)
+        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(newPath)
         val navOptions = NavOptions.Builder()
             .setPopUpTo(R.id.noteListFragment, inclusive = true) // удаляем текущий NoteListFragment
             .build()
