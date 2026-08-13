@@ -109,11 +109,10 @@ class NoteEditViewModel(
             try {
                 val note = getNoteUseCase(noteId, notebookPath)
 
-                _note.postValue(note)
+                _note.value = note
 
-                if (note.notebookPath != null) viewModelScope.launch {
-                    _isNotebookProtected.postValue(isNotebookProtectedUseCase(note.notebookPath))
-                }
+                if (note.notebookPath != null)
+                    _isNotebookProtected.value = isNotebookProtectedUseCase(note.notebookPath)
 
                 if (currentScrollPosition == null) currentScrollPosition = getNoteScrollPosition()
 

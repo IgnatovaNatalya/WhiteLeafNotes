@@ -309,7 +309,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                     btnLockIndicator.setOnClickListener { viewModel.lockNote() }
                 } else btnLockIndicator.visibility = View.GONE
 
-
                 val note = state.note
                 titleEditText.setText(note.title)
 
@@ -425,11 +424,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private fun clearListeners() {
         // 1. Удаляем слушатель с optionsButton (из Activity)
-        val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
-        optionsButton?.setOnClickListener(null)
+        //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
+        //optionsButton?.setOnClickListener(null)
 
         // 2. Удаляем слушатель с btnLockIndicator (из Activity)
-        btnLockIndicator.setOnClickListener(null)
+        //btnLockIndicator.setOnClickListener(null)
 
         // 3. Удаляем OnWindowFocusChangeListener
         windowFocusListener?.let {
