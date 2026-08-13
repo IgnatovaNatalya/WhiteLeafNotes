@@ -6,7 +6,7 @@
     <string name="edit">Редактировать</string>
     <string name="rename">Переименовать</string>
     <string name="move">Переместить</string>
-    <string name="share">Поделиться</string>
+    <string name="share_note">Поделиться</string>
     <string name="delete">Удалить</string>
 
     <string name="search">Поиск</string>
@@ -94,6 +94,7 @@
     <string name="export_encrypted">Включить зашифрованные записные книжки</string>
 
     <string name="change_date">Изменить дату</string>
+    <string name="export">Экспорт</string>
 
 </resources>
 

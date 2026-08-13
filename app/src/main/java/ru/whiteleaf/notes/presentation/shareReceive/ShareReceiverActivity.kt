@@ -114,7 +114,7 @@ class ShareReceiverActivity : AppCompatActivity() {
                 onItemSelected = { itemId ->
                     when (itemId) {
                         R.id.options_save_note -> saveNote()
-                        R.id.options_append_note -> appendNote()
+                        //R.id.options_append_note -> appendNote()
                         R.id.options_cancel -> finish()
                     }
                 }

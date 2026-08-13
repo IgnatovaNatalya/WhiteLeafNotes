@@ -18,13 +18,19 @@ class NotebooksFragment : BindingFragment<FragmentNotebooksBinding>(),
     }
 
     override fun onDeleteNotebook(notebook: Notebook) {
-
     }
 
     override fun onRenameNotebook(notebook: Notebook) {
     }
 
-    override fun onShareNotebook(notebook: Notebook) {
+    override fun onEncryptNotebook(notebook: Notebook) {
+
+    }
+
+    override fun onDecryptNotebook(notebook: Notebook) {
+    }
+
+    override fun onExportNotebook(notebook: Notebook) {
     }
 
 

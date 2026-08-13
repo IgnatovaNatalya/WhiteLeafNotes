@@ -10,6 +10,7 @@ import androidx.appcompat.widget.ListPopupWindow
 import androidx.core.content.ContextCompat
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.domain.model.ContextMenuItem
+import ru.whiteleaf.notes.domain.model.Notebook
 
 object ContextMenuHelper {
 
@@ -93,7 +94,7 @@ object ContextMenuHelper {
     fun getOptionsMenuShareReceiver(context: Context): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.options_save_note),
-            createMenuItem(context, R.id.options_append_note),
+            //createMenuItem(context, R.id.options_append_note),
             createMenuItem(context, R.id.options_cancel)
         )
     }
@@ -101,20 +102,22 @@ object ContextMenuHelper {
     // Пункты контекстного меню для заметок
     fun getNoteContextMenuItems(context: Context): List<ContextMenuItem> {
         return listOf(
-            createMenuItem(context, R.id.note_menu_rename),
-            createMenuItem(context, R.id.note_menu_change_date),
-            createMenuItem(context, R.id.note_menu_move),
-            createMenuItem(context, R.id.note_menu_share),
-            createMenuItem(context, R.id.note_menu_delete)
+            createMenuItem(context, R.id.context_menu_rename),
+            createMenuItem(context, R.id.context_menu_change_date),
+            createMenuItem(context, R.id.context_menu_move),
+            createMenuItem(context, R.id.context_menu_share_note),
+            createMenuItem(context, R.id.context_menu_delete)
         )
     }
 
     // Пункты контекстного меню для записных книжек
-    fun getNotebookContextMenuItems(context: Context): List<ContextMenuItem> {
+    fun getNotebookContextMenuItems(context: Context, notebook: Notebook): List<ContextMenuItem> {
         return listOf(
-            createMenuItem(context, R.id.note_menu_rename),
-            createMenuItem(context, R.id.note_menu_share),
-            createMenuItem(context, R.id.note_menu_delete)
+            createMenuItem(context, R.id.context_menu_rename),
+            if (!notebook.isEncrypted) createMenuItem(context, R.id.context_menu_encrypt)
+            else createMenuItem(context, R.id.context_menu_decrypt),
+            createMenuItem(context, R.id.context_menu_export),
+            createMenuItem(context, R.id.context_menu_delete)
         )
     }
 

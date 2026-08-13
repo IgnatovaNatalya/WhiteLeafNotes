@@ -46,12 +46,14 @@ class NotebookViewHolder(
         ContextMenuHelper.showPopupMenu(
             context = anchorView.context,
             anchorView = anchorView,
-            items = ContextMenuHelper.getNotebookContextMenuItems(anchorView.context),
+            items = ContextMenuHelper.getNotebookContextMenuItems(anchorView.context, notebook),
             onItemSelected = { itemId ->
                 when (itemId) {
-                    R.id.note_menu_rename -> contextActionHandler.onRenameNotebook(notebook)
-                    R.id.note_menu_share -> contextActionHandler.onShareNotebook(notebook)
-                    R.id.note_menu_delete -> contextActionHandler.onDeleteNotebook(notebook)
+                    R.id.context_menu_rename -> contextActionHandler.onRenameNotebook(notebook)
+                    R.id.context_menu_encrypt -> contextActionHandler.onEncryptNotebook(notebook)
+                    R.id.context_menu_decrypt -> contextActionHandler.onDecryptNotebook(notebook)
+                    R.id.context_menu_export -> contextActionHandler.onExportNotebook(notebook)
+                    R.id.context_menu_delete -> contextActionHandler.onDeleteNotebook(notebook)
                 }
             }
         )

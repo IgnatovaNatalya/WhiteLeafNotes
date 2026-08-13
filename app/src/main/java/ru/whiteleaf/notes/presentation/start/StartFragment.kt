@@ -170,6 +170,12 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         }.show()
     }
 
+    override fun onEncryptNotebook(notebook: Notebook) {
+    }
+
+    override fun onDecryptNotebook(notebook: Notebook) {
+    }
+
     override fun onMoveNote(note: Note) {
         val dialog = DialogHelper.createMoveNoteDialog(
             requireContext(),
@@ -204,7 +210,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onShareNotebook(notebook: Notebook) {
+    override fun onExportNotebook(notebook: Notebook) {
         DialogHelper.createExportDialog(
             requireContext(),
             viewModel.exportPath,
