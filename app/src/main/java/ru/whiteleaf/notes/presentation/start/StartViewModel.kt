@@ -290,16 +290,20 @@ class StartViewModel(
                     _message.postValue("Записная книжка уже защищищена")
                     return@launch
                 }
-                createKeyForNotebookUseCase(notebook.path)
-                unlockNotebookUseCase(
+                val locked = unlockNotebookUseCase(
                     notebook.path,
                     context,
                     title = "Защита записной кникки",
                     reason = "Для защиты"
                 )
-                encryptNotebookUseCase(notebook.path)
-                loadData()
-                _message.value = "Записная книжка зашифрована"
+                if (locked) {
+                    createKeyForNotebookUseCase(notebook.path)
+                    encryptNotebookUseCase(notebook.path)
+                    loadData()
+                    _message.postValue ( "Записная книжка защищена")
+                }
+                else  _message.postValue("Отмена установки защиты")
+
             } catch (e: AuthenticationRequiredException) {
                 _message.postValue("Не удалось зашифровать записную книжку: ${e.message}")
                 println("DEBUG: StartVM fail encrypt notebook: ${e.message}")

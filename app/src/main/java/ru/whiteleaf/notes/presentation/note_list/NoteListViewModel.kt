@@ -190,20 +190,24 @@ class NoteListViewModel(
                     _noteListState.value = NoteListState.Error("Записная книжка уже защищищена")
                     return@launch
                 }
-                createKeyForNotebookUseCase(notebookPath)
-                unlockNotebookUseCase(
+
+                val locked = unlockNotebookUseCase(
                     notebookPath,
                     context,
                     title = "Защита записной кникки",
                     reason = "Для защиты"
                 )
-                encryptNotebookUseCase(notebookPath)
-                loadNotes()
-                _message.value = "Записная книжка зашифрована"
+                if (locked) {
+                    createKeyForNotebookUseCase(notebookPath)
+                    encryptNotebookUseCase(notebookPath)
+                    loadNotes()
+                    _message.postValue("Записная книжка защищена")
+                } else _message.postValue("Отмена установки защиты")
+
             } catch (e: AuthenticationRequiredException) {
                 _noteListState.value =
                     NoteListState.Error("Не удалось зашифровать записную книжку: ${e.message}")
-                //_noteListState.value = NoteListState.Blocked
+
                 println("DEBUG: NoteListVM fail encrypt notebook: ${e.message}")
 
             } catch (e: Exception) {
