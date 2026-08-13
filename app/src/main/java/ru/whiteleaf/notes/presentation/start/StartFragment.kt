@@ -170,11 +170,9 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         }.show()
     }
 
-    override fun onEncryptNotebook(notebook: Notebook) {
-    }
+    override fun onEncryptNotebook(notebook: Notebook) = viewModel.encryptNotebook(requireContext(), notebook)
 
-    override fun onDecryptNotebook(notebook: Notebook) {
-    }
+    override fun onDecryptNotebook(notebook: Notebook) = viewModel.decryptNotebook(requireContext(), notebook)
 
     override fun onMoveNote(note: Note) {
         val dialog = DialogHelper.createMoveNoteDialog(

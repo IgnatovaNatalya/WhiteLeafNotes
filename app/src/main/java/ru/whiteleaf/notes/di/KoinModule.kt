@@ -156,7 +156,11 @@ val koinModule = module {
             exportNotebookUseCase = get(),
             unlockNotebookUseCase = get(),
             isNotebookProtectedUseCase = get(),
-            getRecentNotesUseCase = get()
+            getRecentNotesUseCase = get(),
+            createKeyForNotebookUseCase = get(),
+            deleteKeyForNotebookUseCase = get(),
+            encryptNotebookUseCase = get(),
+            decryptNotebookUseCase = get()
         )
     }
 

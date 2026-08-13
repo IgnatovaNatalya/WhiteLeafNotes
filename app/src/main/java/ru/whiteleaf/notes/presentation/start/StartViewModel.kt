@@ -21,6 +21,10 @@ import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
+import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.encryption.DeleteKeyForNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.encryption.EncryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
@@ -46,6 +50,10 @@ class StartViewModel(
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
     private val getRecentNotesUseCase: GetRecentNotesUseCase,
+    private val createKeyForNotebookUseCase: CreateKeyForNotebookUseCase,
+    private val deleteKeyForNotebookUseCase: DeleteKeyForNotebookUseCase,
+    private val encryptNotebookUseCase: EncryptNotebookUseCase,
+    private val decryptNotebookUseCase: DecryptNotebookUseCase
 ) : ViewModel() {
 
     private val _navigationEvent = MutableLiveData<StartNavigationEvent>()
@@ -275,6 +283,56 @@ class StartViewModel(
         }
     }
 
+    fun encryptNotebook(context: Context, notebook: Notebook) {
+        viewModelScope.launch {
+            try {
+                if (isNotebookProtectedUseCase(notebook.path)) {
+                    _message.postValue("Записная книжка уже защищищена")
+                    return@launch
+                }
+                createKeyForNotebookUseCase(notebook.path)
+                unlockNotebookUseCase(
+                    notebook.path,
+                    context,
+                    title = "Защита записной кникки",
+                    reason = "Для защиты"
+                )
+                encryptNotebookUseCase(notebook.path)
+                loadData()
+                _message.value = "Записная книжка зашифрована"
+            } catch (e: AuthenticationRequiredException) {
+                _message.postValue("Не удалось зашифровать записную книжку: ${e.message}")
+                println("DEBUG: StartVM fail encrypt notebook: ${e.message}")
+            } catch (e: Exception) {
+                _message.postValue("Ошибка шифрования: ${e.message}")
+                println("DEBUG: StartVM: Ошибка шифрования: ${e.message}")
+            }
+        }
+    }
+
+    fun decryptNotebook(context: Context, notebook: Notebook) {
+        viewModelScope.launch {
+            try {
+                if (!isNotebookProtectedUseCase(notebook.path)) {
+                    _message.postValue("Защита не установлена")
+                    return@launch
+                }
+                val unlocked =
+                    unlockNotebookUseCase(notebook.path, context, reason = "Для снятия защиты")
+                if (!unlocked) {
+                    _message.postValue("Не удалось подтвердить личность")
+                    return@launch
+                }
+                decryptNotebookUseCase(notebook.path)
+                deleteKeyForNotebookUseCase(notebook.path)
+                loadData()
+                _message.value = "Защита записной книжки снята"
+            } catch (e: Exception) {
+                _message.postValue("Ошибка расшифровки: ${e.message}")
+            }
+        }
+    }
+
     fun exportNotebook(
         context: Context,
         notebookPath: String,
@@ -294,26 +352,6 @@ class StartViewModel(
         }
     }
 
-//    fun shareNotebook(context: Context, notebookPath: String) {
-//        _message.postValue("Создание архива...")
-//        viewModelScope.launch {
-//            try {
-//                val result = exportNotebookUseCase(context, notebookPath)
-//                if (result.isSuccess) {
-//                    val uri = result.getOrNull()
-//                    if (uri != null) {
-//                        _navigationEvent.postValue(StartNavigationEvent.ShareUri(uri))
-//                        _message.postValue("Архив создан успешно")
-//                    }
-//                } else
-//                    _message.postValue(
-//                        result.exceptionOrNull()?.message ?: "Ошибка экспорта"
-//                    )
-//            } catch (e: Exception) {
-//                _message.postValue("Ошибка передачи архива записной книжки: ${e.message}")
-//            }
-//        }
-//    }
 
     fun deleteNotebook(notebook: Notebook, context: Context) {
         viewModelScope.launch {
