@@ -306,9 +306,9 @@ class NoteEditViewModel(
     }
 
     fun saveNoteScrollPosition(scrollPosition: Int) {
-        if (noteId != null && notebookPath != null) {
+        if (noteId != null ) {
             println("DEBUG: NoteEditVM: saveNoteScrollPosition: noteId=$noteId, notebookPath=$notebookPath, pos=$scrollPosition")
-            settingsInteractor.saveNoteScrollPosition(noteId, notebookPath, scrollPosition)
+            settingsInteractor.saveNoteScrollPosition(noteId, notebookPath?:"", scrollPosition)
         }
     }
 
@@ -318,8 +318,8 @@ class NoteEditViewModel(
     }
 
     fun getNoteScrollPosition(): Int {
-        return if (noteId != null && notebookPath != null) {
-            settingsInteractor.getNoteScrollPosition(noteId, notebookPath) ?: 0
+        return if (noteId != null ) {
+            settingsInteractor.getNoteScrollPosition(noteId, notebookPath?:"") ?: 0
         } else 0
     }
 

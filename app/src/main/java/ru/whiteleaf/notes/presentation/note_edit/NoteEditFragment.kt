@@ -127,7 +127,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             //при переходе фокуса, клавиатура скрывается системой
             //println("DEBUG: NoteEditFragment: Window focus gone,saving scroll")
 
-            viewModel.updateFullNote(titleEditText.text.toString(), contentEditText.text.toString(), false)
+            viewModel.updateFullNote(
+                titleEditText.text.toString(),
+                contentEditText.text.toString(),
+                false
+            )
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
 
@@ -254,7 +258,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             viewModel.getAllNotebooks(),
             viewModel.note.value?.notebookPath ?: "",
         ) { targetNotebookPath ->
-            viewModel.moveNote( requireContext(),targetNotebookPath)
+            viewModel.moveNote(requireContext(), targetNotebookPath)
         }.show()
     }
 
@@ -359,9 +363,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
             }
+
             NoteEditState.ShowBiometricForSave -> {
                 println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSave")
-                viewModel.unlockAndSavePending(requireContext(),  false)
+                viewModel.unlockAndSavePending(requireContext(), false)
             }
 
             NoteEditState.ShowBiometricForSaveOnExit -> {
