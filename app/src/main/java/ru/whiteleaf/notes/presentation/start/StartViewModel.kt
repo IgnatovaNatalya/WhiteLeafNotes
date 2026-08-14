@@ -30,7 +30,6 @@ import ru.whiteleaf.notes.domain.use_case.recent.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
-import ru.whiteleaf.notes.presentation.note_list.NoteListState
 import kotlin.collections.forEach
 
 const val MAX_ITEMS = 3
@@ -200,7 +199,7 @@ class StartViewModel(
             try {
                 val newNote = createNoteUseCase(null)
                 _navigationEvent.postValue(StartNavigationEvent.NavigateToCreatedNote(newNote))
-                _message.postValue("Заметка создана")
+                    //_message.postValue("Заметка создана")
             } catch (e: Exception) {
                 _message.postValue("Ошибка создания заметки: ${e.message}")
             }

@@ -25,7 +25,6 @@ import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
-import ru.whiteleaf.notes.presentation.note_list.NoteListState
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,

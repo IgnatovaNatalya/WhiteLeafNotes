@@ -248,6 +248,9 @@ class NoteListViewModel(
             try {
                 val newNote = createNoteUseCase(notebookPath)
                 _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(newNote.id))
+            } catch (e: AuthenticationRequiredException) {
+                showMessage("Записная книжка заблокирована")
+                _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric)
             } catch (e: Exception) {
                 showMessage("Ошибка создания заметки: ${e.message}")
             }
