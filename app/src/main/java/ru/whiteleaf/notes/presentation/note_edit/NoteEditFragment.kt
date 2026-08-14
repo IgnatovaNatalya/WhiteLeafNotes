@@ -253,8 +253,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             requireContext(),
             viewModel.getAllNotebooks(),
             viewModel.note.value?.notebookPath ?: "",
-        ) { newNotebookName ->
-            viewModel.moveNote(newNotebookName)
+        ) { targetNotebookPath ->
+            viewModel.moveNote( requireContext(),targetNotebookPath)
         }.show()
     }
 

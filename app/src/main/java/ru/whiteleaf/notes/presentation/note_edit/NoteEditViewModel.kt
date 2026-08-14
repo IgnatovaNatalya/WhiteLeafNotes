@@ -25,6 +25,7 @@ import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
+import ru.whiteleaf.notes.presentation.note_list.NoteListState
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
@@ -225,7 +226,7 @@ class NoteEditViewModel(
 
             } catch (e: AuthenticationRequiredException) {
                 if (onExit) _noteEditState.postValue(NoteEditState.ShowBiometricForSaveOnExit)
-                else _noteEditState.postValue( NoteEditState.ShowBiometricForSave)
+                else _noteEditState.postValue(NoteEditState.ShowBiometricForSave)
 
                 println("DEBUG: NoteEditVM: Authentication required while updating full note onExit=$onExit: ${e.message}")
 
@@ -261,21 +262,32 @@ class NoteEditViewModel(
         }
     }
 
-    fun moveNote(notebookTitle: String) { ///
+    fun moveNote(context: Context, targetNotebookPath: String) { ///
         val currentNote = _note.value ?: return
 
         viewModelScope.launch {
             try {
-                moveNoteUseCase(currentNote, notebookTitle)
-                _navigateBack.postValue(true)
+                val unlocked =
+
+                    if (isNotebookProtectedUseCase(targetNotebookPath)) unlockNotebookUseCase(
+                        targetNotebookPath, context, title = "Целевая записная книжка защищена",
+                        reason = "Для перемещения"
+                    ) else true
+
+                if (unlocked) {
+                    moveNoteUseCase(currentNote, targetNotebookPath)
+                    _navigateBack.postValue(true)
+                } else {
+                    _noteEditState.value = NoteEditState.Blocked
+                    showMessage("Ошибка разблокировки")
+                }
             } catch (e: AuthenticationRequiredException) {
                 _noteEditState.value = NoteEditState.Blocked
-                println("DEBUG: NoteEditVM: key not unlocked while move note: ${e.message}")
+                println("DEBUG: NoteEditVM:  AuthenticationRequiredException ${e.message}")
             } catch (e: Exception) {
                 _message.postValue("Ошибка перемещения: ${e.message}")
             }
         }
-
     }
 
     fun deleteNote() {

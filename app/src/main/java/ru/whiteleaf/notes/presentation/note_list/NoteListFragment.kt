@@ -239,8 +239,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             requireContext(),
             viewModel.getAllNotebooks(),
             note.notebookPath ?: ""
-        ) { newNotebookName ->
-            viewModel.moveNote(note, newNotebookName)
+        ) { targetNotebookPath ->
+            viewModel.moveNote(requireContext(), note, targetNotebookPath)
         }.show()
     }
 

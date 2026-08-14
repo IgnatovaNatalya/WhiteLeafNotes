@@ -194,7 +194,7 @@ class NoteListViewModel(
                 val locked = unlockNotebookUseCase(
                     notebookPath,
                     context,
-                    title = "Защита записной кникки",
+                    title = "Защита записной книжки",
                     reason = "Для защиты"
                 )
                 if (locked) {
@@ -265,11 +265,29 @@ class NoteListViewModel(
         }
     }
 
-    fun moveNote(note: Note, targetNotebookPath: String?) {
+    fun moveNote(context: Context, note: Note, targetNotebookPath: String?) {
         viewModelScope.launch {
             try {
-                moveNoteUseCase(note, targetNotebookPath)
-                loadNotes()
+                val unlocked =
+                    if (targetNotebookPath != null)
+                        if (isNotebookProtectedUseCase(targetNotebookPath)) unlockNotebookUseCase(
+                            targetNotebookPath, context, title = "Целевая записная книжка защищена",
+                            reason = "Для перемещения"
+                        ) else true
+                    else true
+
+                if(unlocked) {
+                    moveNoteUseCase(note, targetNotebookPath)
+                    loadNotes()
+                }
+                else {
+                    _noteListState.postValue(NoteListState.Blocked)
+                    showMessage("Отмена перемещения")
+                }
+            } catch (e: AuthenticationRequiredException) {
+                _noteListState.postValue(NoteListState.Blocked)
+                showMessage("Ошибка разблокировки ${e.message}")
+                println("DEBUG: NoteListVM: moveNote: AuthenticationRequiredException ${e.message}")
             } catch (e: Exception) {
                 showMessage("Ошибка перемещения заметки: ${e.message}")
             }

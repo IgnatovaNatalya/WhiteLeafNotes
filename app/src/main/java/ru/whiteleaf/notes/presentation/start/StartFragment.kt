@@ -179,8 +179,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             requireContext(),
             viewModel.getAllNotebooks(),
             note.notebookPath ?: ""
-        ) { newNotebookName ->
-            viewModel.moveNote(note, newNotebookName)
+        ) { targetNotebookPath ->
+            viewModel.moveNote(requireContext(), note, targetNotebookPath)
         }
         dialog.show()
     }

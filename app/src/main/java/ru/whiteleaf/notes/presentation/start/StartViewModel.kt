@@ -30,6 +30,7 @@ import ru.whiteleaf.notes.domain.use_case.recent.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
+import ru.whiteleaf.notes.presentation.note_list.NoteListState
 import kotlin.collections.forEach
 
 const val MAX_ITEMS = 3
@@ -261,11 +262,23 @@ class StartViewModel(
         }
     }
 
-    fun moveNote(note: Note, targetNotebookPath: String?) {
+    fun moveNote(context: Context, note: Note, targetNotebookPath: String?) {
         viewModelScope.launch {
             try {
-                moveNoteUseCase(note, targetNotebookPath)
-                loadData()
+                val unlocked =
+                    if (targetNotebookPath != null)
+                        if (isNotebookProtectedUseCase(targetNotebookPath)) unlockNotebookUseCase(
+                            targetNotebookPath, context, title = "Целевая записная книжка защищена",
+                            reason = "Для перемещения"
+                        ) else true
+                    else true
+                if(unlocked) {
+                    moveNoteUseCase(note, targetNotebookPath)
+                    loadData()
+                }
+            } catch (e: AuthenticationRequiredException) {
+                _message.postValue("Ошибка разблокировки")
+                println("DEBUG: StartVM: moveNote: AuthenticationRequiredException ${e.message}")
             } catch (e: Exception) {
                 _message.postValue("Ошибка перемещения заметки: ${e.message}")
             }
@@ -293,7 +306,7 @@ class StartViewModel(
                 val locked = unlockNotebookUseCase(
                     notebook.path,
                     context,
-                    title = "Защита записной кникки",
+                    title = "Защита записной книжки",
                     reason = "Для защиты"
                 )
                 if (locked) {
@@ -302,7 +315,7 @@ class StartViewModel(
                     loadData()
                     _message.postValue ( "Записная книжка защищена")
                 }
-                else  _message.postValue("Отмена установки защиты")
+                else _message.postValue("Отмена установки защиты")
 
             } catch (e: AuthenticationRequiredException) {
                 _message.postValue("Не удалось зашифровать записную книжку: ${e.message}")

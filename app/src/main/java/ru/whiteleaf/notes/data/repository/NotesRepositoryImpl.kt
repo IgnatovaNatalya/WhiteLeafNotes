@@ -192,7 +192,70 @@ class NoteRepositoryImpl(
     override suspend fun moveNote(note: Note, targetNotebookPath: String?) {
         withContext(Dispatchers.IO) {
             try {
-                val sourceFile = noteDataSource.getNoteFile(note.notebookPath, note.id)
+                val sourcePath = note.notebookPath
+
+                // Если перемещение в ту же папку — ничего не делаем
+                if (sourcePath == targetNotebookPath) {
+                    return@withContext
+                }
+
+                val sourceProtected = sourcePath != null && encryptionRepository.hasKey(sourcePath)
+                val targetProtected = targetNotebookPath != null && encryptionRepository.hasKey(
+                    targetNotebookPath
+                )
+
+                // Проверяем, что ключи (если нужны) разблокированы
+                if (sourceProtected && !encryptionRepository.isUnlocked(sourcePath)) {
+                    throw AuthenticationRequiredException("Key is locked for source notebook $sourcePath")
+                }
+                if (targetProtected && !encryptionRepository.isUnlocked(targetNotebookPath)) {
+                    throw AuthenticationRequiredException("Key is locked for target notebook $targetNotebookPath")
+                }
+
+                val sourceFile = noteDataSource.getNoteFile(sourcePath, note.id)
+                if (!sourceFile.exists()) {
+                    throw IOException("Source note file not found: ${note.id}")
+                }
+
+                // Если ни один блокнот не защищён — просто перемещаем файл (быстрый путь)
+                if (!sourceProtected && !targetProtected) {
+                    val targetDir = if (targetNotebookPath != null) {
+                        File(noteDataSource.baseDir, targetNotebookPath).apply {
+                            noteDataSource.createDirectory(this)
+                        }
+                    } else {
+                        noteDataSource.baseDir
+                    }
+                    val targetFile = File(targetDir, "${note.id}.txt")
+                    if (targetFile.exists()) {
+                        throw IOException("File already exists in target directory")
+                    }
+                    noteDataSource.moveFile(sourceFile, targetFile)
+                    // Дату сохраняем (если нужно) — moveFile сохраняет метаданные? Лучше явно установить
+                    if (note.modifiedAt > 0) {
+                        noteDataSource.setNoteDate(targetFile, note.modifiedAt)
+                    }
+                    return@withContext
+                }
+
+                // Читаем сырое содержимое (возможно, зашифрованное)
+                val rawContent = noteDataSource.readNoteContent(sourceFile)
+
+                // Расшифровываем, если исходный защищён
+                val plainContent = if (sourceProtected) {
+                    encryptionRepository.decryptNote(sourcePath, rawContent)
+                } else {
+                    rawContent
+                }
+
+                // Шифруем, если целевой защищён
+                val finalContent = if (targetProtected) {
+                    encryptionRepository.encryptNote(targetNotebookPath, plainContent)
+                } else {
+                    plainContent
+                }
+
+                // Создаём целевую директорию
                 val targetDir = if (targetNotebookPath != null) {
                     File(noteDataSource.baseDir, targetNotebookPath).apply {
                         noteDataSource.createDirectory(this)
@@ -202,16 +265,30 @@ class NoteRepositoryImpl(
                 }
 
                 val targetFile = File(targetDir, "${note.id}.txt")
-
-                if (sourceFile.exists()) {
-                    if (targetFile.exists()) {
-                        throw IOException("Файл с таким именем уже существует в целевой папке")
-                    }
-
-                    noteDataSource.moveFile(sourceFile, targetFile)
+                if (targetFile.exists()) {
+                    throw IOException("File already exists in target directory")
                 }
+
+                // Записываем содержимое в целевой файл
+                noteDataSource.writeNoteContent(targetFile, finalContent)
+
+                // Восстанавливаем дату последнего изменения
+                if (note.modifiedAt > 0) {
+                    noteDataSource.setNoteDate(targetFile, note.modifiedAt)
+                } else {
+                    // Если дата не задана, ставим текущую
+                    noteDataSource.setNoteDate(targetFile, System.currentTimeMillis())
+                }
+
+                // Удаляем исходный файл
+                noteDataSource.deleteNote(sourcePath, note.id)
+
+            } catch (e: AuthenticationRequiredException) {
+                // Пробрасываем выше для обработки в ViewModel
+                throw e
             } catch (e: Exception) {
-                throw IOException("Ошибка перемещения заметки: ${e.message}")
+                Log.e("NoteRepository", "Error moving note: ${e.message}")
+                throw IOException("Error moving note: ${e.message}")
             }
         }
     }
