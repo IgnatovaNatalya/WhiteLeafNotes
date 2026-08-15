@@ -200,4 +200,8 @@
         <item name="android:fontFamily">@font/nunito_medium</item>
     </style>
 
+    <style name="FabRoundedOverlay" parent="">
+        <item name="cornerSize">24dp</item>
+    </style>
+
 </resources>

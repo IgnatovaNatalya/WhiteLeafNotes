@@ -58,7 +58,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:itemCount="3"
-        android:visibility="visible"
+        android:visibility="gone"
         tools:listitem="item_note_in_list" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -71,8 +71,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:itemCount="12"
-        android:paddingHorizontal="16dp"
-        android:visibility="gone"
+        android:paddingHorizontal="12dp"
+        android:visibility="visible"
         tools:listitem="@layout/item_planner_note" />
 
     <TextView
@@ -97,6 +97,7 @@
         app:backgroundTint="?attr/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:tint="?attr/colorOnPrimary" />
+        app:tint="?attr/colorOnPrimary"
+        app:shapeAppearanceOverlay="@style/FabRoundedOverlay" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

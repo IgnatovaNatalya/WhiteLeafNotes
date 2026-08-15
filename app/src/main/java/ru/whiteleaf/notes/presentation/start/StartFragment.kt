@@ -34,8 +34,13 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupFab()
         setupRecyclerView()
         setupObservers()
+    }
+
+    private fun setupFab() {
+        binding.startCreateNote.setOnClickListener { viewModel.createNewNote() }
     }
 
     private fun setupRecyclerView() {
@@ -144,10 +149,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         findNavController().navigate(action)
     }
 
-    private fun createNewNote() { //todo может сделать FAB
-        viewModel.createNewNote()
-    }
-
     override fun onRenameNote(note: Note) {
         DialogHelper.createRenameNoteDialog(requireContext(), note.title) { newTitle ->
             viewModel.updateNoteTitle(note, newTitle)
@@ -227,7 +228,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onResume() {
         super.onResume()
-
         viewModel.loadData()
     }
 }
