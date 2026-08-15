@@ -27,6 +27,14 @@
     <!--контекстное меню записной книжки-->
 
     <item
+        android:id="@+id/context_menu_pin"
+        android:title="@string/pin_notebook"/>
+
+    <item
+        android:id="@+id/context_menu_unpin"
+        android:title="@string/unpin_notebook"/>
+
+    <item
         android:id="@+id/context_menu_encrypt"
         android:title="@string/protect"/>
     <item
@@ -67,7 +75,7 @@
     <item android:id="@+id/options_unprotect_notebook"
         android:title="@string/unprotect"/>
 
-    <item android:id="@+id/options_share_notebook"
+    <item android:id="@+id/options_export_notebook"
         android:title="@string/export" />
 
     <item android:id="@+id/options_delete_notebook"

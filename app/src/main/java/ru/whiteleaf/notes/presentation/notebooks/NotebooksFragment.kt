@@ -23,8 +23,13 @@ class NotebooksFragment : BindingFragment<FragmentNotebooksBinding>(),
     override fun onRenameNotebook(notebook: Notebook) {
     }
 
-    override fun onEncryptNotebook(notebook: Notebook) {
+    override fun onPinNotebook(notebook: Notebook) {
+    }
 
+    override fun onUnpinNotebook(notebook: Notebook) {
+    }
+
+    override fun onEncryptNotebook(notebook: Notebook) {
     }
 
     override fun onDecryptNotebook(notebook: Notebook) {

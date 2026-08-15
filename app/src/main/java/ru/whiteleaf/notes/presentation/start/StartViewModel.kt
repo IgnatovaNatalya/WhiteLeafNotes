@@ -394,6 +394,14 @@ class StartViewModel(
         }
     }
 
+    fun pinNotebook(notebook:Notebook) {
+        _message.postValue("Закрепление записной книжки")
+    }
+
+    fun unpinNotebook(notebook:Notebook) {
+        _message.postValue("Открепление записной книжки")
+    }
+
     fun onNavigated() = _navigationEvent.postValue(StartNavigationEvent.Idle)
 
     fun clearMessage() = _message.postValue(null)

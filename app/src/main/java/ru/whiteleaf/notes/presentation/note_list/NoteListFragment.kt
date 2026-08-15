@@ -165,7 +165,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
                         R.id.options_unprotect_notebook -> onOptionsDecryptNotebook()
                         R.id.options_protect_notebook -> onOptionsEncryptNotebook()
-                        R.id.options_share_notebook -> onOptionsShareNotebook()
+                        R.id.options_export_notebook -> onOptionsShareNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()
                     }
                 }

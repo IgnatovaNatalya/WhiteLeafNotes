@@ -171,6 +171,14 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         }.show()
     }
 
+    override fun onPinNotebook(notebook: Notebook) {
+        viewModel.pinNotebook(notebook)
+    }
+
+    override fun onUnpinNotebook(notebook: Notebook) {
+        viewModel.unpinNotebook(notebook)
+    }
+
     override fun onEncryptNotebook(notebook: Notebook) = viewModel.encryptNotebook(requireContext(), notebook)
 
     override fun onDecryptNotebook(notebook: Notebook) = viewModel.decryptNotebook(requireContext(), notebook)

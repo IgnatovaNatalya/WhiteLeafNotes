@@ -8,10 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
+import ru.whiteleaf.notes.common.utils.formatDateNoteGrid
 import ru.whiteleaf.notes.domain.model.Note
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class NoteInGridViewHolder(
     itemView: View,
@@ -57,7 +55,7 @@ class NoteInGridViewHolder(
             tvTitle.setTextColor(typedValue.data)
 
         }
-        tvDate.text = formatDate(note.modifiedAt)
+        tvDate.text = formatDateNoteGrid(note.modifiedAt)
         //tvTitle.text = note.title.trimStart('-')//.ifEmpty { "" }
         tvTitle.text = titleText.trimStart('-')
 
@@ -84,10 +82,5 @@ class NoteInGridViewHolder(
                 }
             }
         )
-    }
-
-    private fun formatDate(timestamp: Long): String {
-        val dateFormat = SimpleDateFormat("dd MMM", Locale("ru"))
-        return dateFormat.format(Date(timestamp))
     }
 }

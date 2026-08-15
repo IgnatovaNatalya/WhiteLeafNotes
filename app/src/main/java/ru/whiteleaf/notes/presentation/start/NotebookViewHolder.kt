@@ -2,6 +2,7 @@ package ru.whiteleaf.notes.presentation.start
 
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
@@ -17,6 +18,8 @@ class NotebookViewHolder(
     private val name: TextView = view.findViewById(R.id.notebook_name)
     private val noteCount: TextView = view.findViewById(R.id.note_count)
     private val icon: ImageView = view.findViewById(R.id.notebook_icon)
+    private val llNotebook: LinearLayout = view.findViewById(R.id.ll_notebook)
+    private val pinIcon : ImageView = view.findViewById(R.id.pin_icon)
 
     fun bind(notebook: Notebook) {
         name.text = notebook.path
@@ -32,11 +35,17 @@ class NotebookViewHolder(
             icon.setImageResource(R.drawable.ic_folder)
         }
 
-        itemView.setOnClickListener {
-            onNotebookClicked(notebook)
-        }
+        pinIcon.visibility = View.VISIBLE
+        pinIcon.setOnClickListener { contextActionHandler.onUnpinNotebook(notebook) }
 
-        itemView.setOnLongClickListener {
+        llNotebook.setOnClickListener { onNotebookClicked(notebook)  }
+        icon.setOnClickListener { onNotebookClicked(notebook)  }
+
+        llNotebook.setOnLongClickListener {
+            showContextMenu(itemView, notebook)
+            true
+        }
+        icon.setOnLongClickListener {
             showContextMenu(itemView, notebook)
             true
         }
@@ -50,6 +59,8 @@ class NotebookViewHolder(
             onItemSelected = { itemId ->
                 when (itemId) {
                     R.id.context_menu_rename -> contextActionHandler.onRenameNotebook(notebook)
+                    R.id.context_menu_pin -> contextActionHandler.onPinNotebook(notebook)
+                    R.id.context_menu_unpin -> contextActionHandler.onUnpinNotebook(notebook)
                     R.id.context_menu_encrypt -> contextActionHandler.onEncryptNotebook(notebook)
                     R.id.context_menu_decrypt -> contextActionHandler.onDecryptNotebook(notebook)
                     R.id.context_menu_export -> contextActionHandler.onExportNotebook(notebook)

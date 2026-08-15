@@ -73,7 +73,7 @@ object ContextMenuHelper {
                 createMenuItem(context, R.id.options_unprotect_notebook)
             else
                 createMenuItem(context, R.id.options_protect_notebook),
-            createMenuItem(context, R.id.options_share_notebook),
+            createMenuItem(context, R.id.options_export_notebook),
             createMenuItem(context, R.id.options_delete_notebook)
         )
     }
@@ -116,6 +116,7 @@ object ContextMenuHelper {
             createMenuItem(context, R.id.context_menu_rename),
             if (!notebook.isEncrypted) createMenuItem(context, R.id.context_menu_encrypt)
             else createMenuItem(context, R.id.context_menu_decrypt),
+            createMenuItem(context, R.id.context_menu_pin),
             createMenuItem(context, R.id.context_menu_export),
             createMenuItem(context, R.id.context_menu_delete)
         )

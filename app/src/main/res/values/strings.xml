@@ -95,6 +95,8 @@
 
     <string name="change_date">Изменить дату</string>
     <string name="export">Экспорт</string>
+    <string name="pin_notebook">Закрепить</string>
+    <string name="unpin_notebook">Открепить</string>
 
 </resources>
 

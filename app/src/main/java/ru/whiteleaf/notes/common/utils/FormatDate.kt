@@ -3,6 +3,9 @@ package ru.whiteleaf.notes.common.utils
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -49,4 +52,9 @@ fun formatDateNoteList(timestamp: Long): String {
     val day = date.day.toString().padStart(2, '0')
     val month = date.month.number.toString().padStart(2, '0')
     return "$day.$month.${date.year}"
+}
+
+fun formatDateNoteGrid(timestamp: Long): String {
+    val dateFormat = SimpleDateFormat("dd MMM", Locale("ru"))
+    return dateFormat.format(Date(timestamp))
 }
