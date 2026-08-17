@@ -72,6 +72,23 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         return if (prefs.contains(key)) prefs.getInt(key, 0) else null
     }
 
+    override fun clearNoteScrollPosition(noteId: String, notebookPath: String) {
+        val key = makeScrollKey(noteId, notebookPath)
+        prefs.edit { remove(key) }
+    }
+
+    override fun updateNoteScrollPosition(oldNote: Note, newNote: Note) {
+        val oldKey = makeScrollKey(oldNote.id, oldNote.notebookPath ?: "")
+        val newKey = makeScrollKey(newNote.id, newNote.notebookPath ?: "")
+        val pos = if (prefs.contains(oldKey)) prefs.getInt(oldKey, 0) else null
+        if (pos != null) {
+            prefs.edit {
+                remove(oldKey)
+                putInt(newKey, pos)
+            }
+        }
+    }
+
     private fun makeScrollKey(noteId: String, notebookPath: String): String {
         return "$KEY_NOTE_SCROLL_POSITION_PREFIX${notebookPath}_${noteId}"
     }

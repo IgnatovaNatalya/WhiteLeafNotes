@@ -7,6 +7,7 @@ import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 class DeleteNoteUseCase(private val repository: NotesRepository, private val preferencesRepository: PreferencesRepository)  {
     suspend operator fun invoke(note: Note) {
         preferencesRepository.removeRecentNote(note.id, note.notebookPath)
+        preferencesRepository.clearNoteScrollPosition(note.id, note.notebookPath?:"")
         repository.deleteNote(note)
     }
 }

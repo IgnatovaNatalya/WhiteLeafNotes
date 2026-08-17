@@ -12,6 +12,8 @@ class RenameNoteUseCase(
 
         val renamedNote = repository.renameNote(oldNote, newName)
         preferencesRepository.updateRecentEntry(oldNote, renamedNote)
+        preferencesRepository.updateNoteScrollPosition( oldNote,renamedNote)
+
         return renamedNote
     }
 }

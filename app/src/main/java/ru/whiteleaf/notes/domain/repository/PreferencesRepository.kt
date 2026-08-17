@@ -21,6 +21,9 @@ interface PreferencesRepository {
         notebookPath: String
     ): Int?   // null – нет сохранённой позиции
 
+    fun clearNoteScrollPosition(noteId:String, notebookPath: String)
+    fun updateNoteScrollPosition(oldNote:Note, newNote:Note)
+
     fun getRecentNotes(): List<RecentNote>
     fun saveRecentNote(note: Note)
     fun updateRecentNoteNotebookPath(

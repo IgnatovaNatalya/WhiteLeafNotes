@@ -9,6 +9,9 @@ class MoveNoteUseCase(
     private val preferencesRepository: PreferencesRepository
 ) {
     suspend operator fun invoke(note: Note, targetNotebookPath: String?) {
+
+        repository.moveNote(note, targetNotebookPath)
+
         if (!preferencesRepository.updateRecentNoteNotebookPath(
                 note.id,
                 note.notebookPath,
@@ -16,6 +19,9 @@ class MoveNoteUseCase(
             )
         ) preferencesRepository.saveRecentNote(note.copy(notebookPath = targetNotebookPath))
 
-        repository.moveNote(note, targetNotebookPath)
+        preferencesRepository.updateNoteScrollPosition(
+            note,
+            note.copy(notebookPath = targetNotebookPath)
+        )
     }
 }
