@@ -95,9 +95,6 @@ class StartViewModel(
 
         viewModelScope.launch {
             try {
-                recentList = getRecentNotesUseCase()
-                notebookList = getNotebooksUseCase()
-
                 val rootNotes = getNotesUseCase(null) // Заметки в корневой папке
 
                 rootNotes.forEach { note ->
@@ -108,6 +105,9 @@ class StartViewModel(
                 }
 
                 rootNoteList = rootNotes.filter { it.isNotEmpty() }
+
+                recentList = getRecentNotesUseCase()
+                notebookList = getNotebooksUseCase()
 
                 buildStartItems()
 
