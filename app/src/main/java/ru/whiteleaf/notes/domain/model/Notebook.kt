@@ -1,9 +1,5 @@
 package ru.whiteleaf.notes.domain.model
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
 data class Notebook(
     val path: String, // Путь папки в корневой папке заметок
     val createdAt: Long,
@@ -12,6 +8,4 @@ data class Notebook(
     val isUnlocked: Boolean = false,
     val isLastOpened: Boolean = false,
     val isPinned: Boolean = false
-) : Parcelable {
-    val name = path
-}
+)

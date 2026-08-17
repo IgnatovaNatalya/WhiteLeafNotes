@@ -27,22 +27,22 @@ class ExportAllNotesUseCase(
             val notebooks = notebookRepository.getNotebooks()
 
             for (notebook in notebooks) {
-                progressCallback?.onNotebookExportStarted(notebook.name)
+                progressCallback?.onNotebookExportStarted(notebook.path)
                 if (encryptionRepository.hasKey(notebook.path)) {
                     //если зашифрованная
                     if (exportEncrypted) {
                         val unlocked = encryptionRepository.unlockNotebook(
                             notebook.path,
                             context,
-                            "Экспорт защищенной книжки «${notebook.name}»",
+                            "Экспорт защищенной книжки «${notebook.path}»",
                             "Для экспорта"
                         )
                         if (unlocked) {
                             notesToExport.addAll(noteRepository.getNotes(notebook.path))
                             noteBooksToExport.add(notebook)
-                            println("DEBUG: ExportAllNotesUseCase: Unlock success protected notebook ${notebook.name} added to export")
+                            println("DEBUG: ExportAllNotesUseCase: Unlock success protected notebook ${notebook.path} added to export")
                         } else {
-                            println("DEBUG: ExportAllNotesUseCase: Unlock failed, skip protected notebook ${notebook.name}")
+                            println("DEBUG: ExportAllNotesUseCase: Unlock failed, skip protected notebook ${notebook.path}")
                         }
                     }
 
@@ -50,7 +50,7 @@ class ExportAllNotesUseCase(
                     //если не зашифрованная
                     notesToExport.addAll(noteRepository.getNotesList(notebook.path))
                     noteBooksToExport.add(notebook)
-                    println("DEBUG: ExportAllNotesUseCase: Open notebook ${notebook.name} added to export")
+                    println("DEBUG: ExportAllNotesUseCase: Open notebook ${notebook.path} added to export")
                 }
             }
 

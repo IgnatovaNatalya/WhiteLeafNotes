@@ -47,12 +47,11 @@ class ImportZipNotesUseCase(
     }
 
     private suspend fun processNotebookDirectory(directory: File) {
-        val notebookName = directory.name
-        var notebookPath = notebookName
+        var notebookPath =  directory.name
         var counter = 1
 
         while (notebookRepository.notebookExist(notebookPath))
-            notebookPath = "${notebookName}_${counter++}"
+            notebookPath = "${notebookPath}_${counter++}"
 
         notebookRepository.createNotebook(notebookPath)
 
