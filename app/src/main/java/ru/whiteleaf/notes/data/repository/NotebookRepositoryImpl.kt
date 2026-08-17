@@ -32,10 +32,12 @@ class NotebookRepositoryImpl(
                             //modifiedAt = notebookDataSource.getLastModifiedDate(dir),
                             isEncrypted = encryptionRepository.hasKey(dir.name),
                             isUnlocked = encryptionRepository.isUnlocked(dir.name),
-                            isLastOpened = lastOpened == dir.name
+                            isLastOpened = lastOpened == dir.name,
+                            isPinned = preferencesRepository.isNotebookPinned(dir.name)
                         )
                     }
-                //.sortedByDescending { it.modifiedAt }
+                    //.sortedByDescending { it.modifiedAt }
+                    .sortedByDescending { it.isPinned }
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка получения записных книжек: ${e.message}")
                 emptyList()
@@ -83,7 +85,7 @@ class NotebookRepositoryImpl(
 
                 if (isProtected) {
                     encryptionRepository.clearUnlockedFlag(notebook.path) //убираем из списка разблокированных
-                    encryptionRepository.deleteKeyForNotebook( notebook.path)
+                    encryptionRepository.deleteKeyForNotebook(notebook.path)
                 }
                 println("DEBUG: Notebook repository: start delete notebook")
 

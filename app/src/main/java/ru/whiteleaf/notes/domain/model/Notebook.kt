@@ -10,7 +10,8 @@ data class Notebook(
     val noteCount: Int = 0,
     val isEncrypted: Boolean = false,
     val isUnlocked: Boolean = false,
-    val isLastOpened: Boolean = false
+    val isLastOpened: Boolean = false,
+    val isPinned: Boolean = false
 ) : Parcelable {
     val name = path
 }

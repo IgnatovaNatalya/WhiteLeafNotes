@@ -13,6 +13,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
     companion object {
         private const val KEY_VIEW_MODE_PREFIX = "view_mode_planner_"
         private const val KEY_LAST_OPENED_NOTEBOOK = "last_notebook_path"
+        private const val KEY_PIN_PREFIX = "notebook_pinned_"
         private const val KEY_NOTE_SCROLL_POSITION_PREFIX = "note_scroll_pos_"
         private const val KEY_RECENT_NOTES = "recent_notes"
         private const val MAX_SIZE = 5
@@ -40,6 +41,23 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         return prefs.getBoolean(key, defaultIsPlanner)
     }
 
+    //PINED NOTEBOOKS
+    override fun pinNotebook(notebookPath: String) {
+        val key = "$KEY_PIN_PREFIX$notebookPath"
+        prefs.edit { putBoolean(key, true) }
+    }
+
+    override fun unpinNotebook(notebookPath: String) {
+        val key = "$KEY_PIN_PREFIX$notebookPath"
+        prefs.edit { remove(key) }
+    }
+
+    override fun isNotebookPinned(notebookPath: String): Boolean {
+        val key = "$KEY_PIN_PREFIX$notebookPath"
+        return prefs.contains(key)
+    }
+
+
     //SCROLL POS
 
     override fun saveNoteScrollPosition(noteId: String, notebookPath: String, scrollY: Int) {
@@ -64,51 +82,60 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         if (oldPath == newPath) return
 
         val allEntries = prefs.all // Map<String, *>
-        val editor = prefs.edit()
+        prefs.edit {
+            allEntries.forEach { (key, value) ->
+                when {
+                    // Ключ режима просмотра для этого блокнота
+                    key == "$KEY_VIEW_MODE_PREFIX$oldPath" -> {
+                        val newKey = "$KEY_VIEW_MODE_PREFIX$newPath"
+                        putBoolean(newKey, value as Boolean)
+                        remove(key)
+                    }
 
-        allEntries.forEach { (key, value) ->
-            when {
-                // Ключ режима просмотра для этого блокнота
-                key == "$KEY_VIEW_MODE_PREFIX$oldPath" -> {
-                    val newKey = "$KEY_VIEW_MODE_PREFIX$newPath"
-                    editor.putBoolean(newKey, value as Boolean)
-                    editor.remove(key)
-                }
-                // Ключ позиции скролла для заметок в этом блокноте
+                    // Ключ закрепеленности
+                    key == "$KEY_PIN_PREFIX$oldPath" -> {
+                        val newKey = "$KEY_PIN_PREFIX$newPath"
+                        putBoolean(newKey, value as Boolean)
+                        remove(key)
+                    }
+                    // Ключ позиции скролла для заметок в этом блокноте
 
-                key.startsWith("$KEY_NOTE_SCROLL_POSITION_PREFIX$oldPath" + "_") -> {
-                    // Заменяем старый путь на новый в ключе
-                    println("DEBUG: PreferencesRepositoryImpl: updateNotebookPreferences Scroll oldPath=$oldPath, newPath=$newPath, pos=$value")
-                    val suffix = key.removePrefix("$KEY_NOTE_SCROLL_POSITION_PREFIX$oldPath" + "_")
-                    val newKey = "$KEY_NOTE_SCROLL_POSITION_PREFIX$newPath" + "_$suffix"
-                    editor.putInt(newKey, value as Int)
-                    editor.remove(key)
+                    key.startsWith("$KEY_NOTE_SCROLL_POSITION_PREFIX$oldPath" + "_") -> {
+                        // Заменяем старый путь на новый в ключе
+                        println("DEBUG: PreferencesRepositoryImpl: updateNotebookPreferences Scroll oldPath=$oldPath, newPath=$newPath, pos=$value")
+                        val suffix =
+                            key.removePrefix("$KEY_NOTE_SCROLL_POSITION_PREFIX$oldPath" + "_")
+                        val newKey = "$KEY_NOTE_SCROLL_POSITION_PREFIX$newPath" + "_$suffix"
+                        putInt(newKey, value as Int)
+                        remove(key)
+                    }
                 }
             }
-        }
 
-        val lastPath = prefs.getString(KEY_LAST_OPENED_NOTEBOOK, null)
-        if (lastPath == oldPath) {
-            editor.putString(KEY_LAST_OPENED_NOTEBOOK, newPath)
+            val lastPath = prefs.getString(KEY_LAST_OPENED_NOTEBOOK, null)
+            if (lastPath == oldPath) {
+                putString(KEY_LAST_OPENED_NOTEBOOK, newPath)
+            }
         }
-
-        editor.apply()
     }
 
 
-    override fun deleteNotebookPreferences(notebookPath: String) {
+    override fun removeNotebookPreferences(notebookPath: String) {
         val allEntries = prefs.all
-        val editor = prefs.edit()
-
-        allEntries.forEach { (key, _) ->
-            when {
-                // Удаляем ключ режима просмотра
-                key == "$KEY_VIEW_MODE_PREFIX$notebookPath" -> editor.remove(key)
-                // Удаляем все ключи позиций скролла для этого блокнота
-                key.startsWith("$KEY_NOTE_SCROLL_POSITION_PREFIX$notebookPath" + "_") -> editor.remove(key)
+        prefs.edit {
+            allEntries.forEach { (key, _) ->
+                when {
+                    // Удаляем ключ режима просмотра
+                    key == "$KEY_VIEW_MODE_PREFIX$notebookPath" -> remove(key)
+                    // Удаляем ключ закрепления
+                    key == "$KEY_PIN_PREFIX$notebookPath" -> remove(key)
+                    // Удаляем все ключи позиций скролла для этого блокнота
+                    key.startsWith("$KEY_NOTE_SCROLL_POSITION_PREFIX$notebookPath" + "_") -> remove(
+                        key
+                    )
+                }
             }
         }
-        editor.apply()
     }
 
     //RECENT

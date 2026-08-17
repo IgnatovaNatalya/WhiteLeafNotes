@@ -29,6 +29,8 @@ import ru.whiteleaf.notes.domain.use_case.notebooks.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.PinNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import kotlin.collections.forEach
 
@@ -53,7 +55,10 @@ class StartViewModel(
     private val createKeyForNotebookUseCase: CreateKeyForNotebookUseCase,
     private val deleteKeyForNotebookUseCase: DeleteKeyForNotebookUseCase,
     private val encryptNotebookUseCase: EncryptNotebookUseCase,
-    private val decryptNotebookUseCase: DecryptNotebookUseCase
+    private val decryptNotebookUseCase: DecryptNotebookUseCase,
+    private val pinNotebookUseCase: PinNotebookUseCase,
+    private val unpinNotebookUseCase: UnpinNotebookUseCase
+
 ) : ViewModel() {
 
     private val _navigationEvent = MutableLiveData<StartNavigationEvent>()
@@ -199,7 +204,7 @@ class StartViewModel(
             try {
                 val newNote = createNoteUseCase(null)
                 _navigationEvent.postValue(StartNavigationEvent.NavigateToCreatedNote(newNote))
-                    //_message.postValue("Заметка создана")
+                //_message.postValue("Заметка создана")
             } catch (e: Exception) {
                 _message.postValue("Ошибка создания заметки: ${e.message}")
             }
@@ -271,7 +276,7 @@ class StartViewModel(
                             reason = "Для перемещения"
                         ) else true
                     else true
-                if(unlocked) {
+                if (unlocked) {
                     moveNoteUseCase(note, targetNotebookPath)
                     loadData()
                 }
@@ -312,9 +317,8 @@ class StartViewModel(
                     createKeyForNotebookUseCase(notebook.path)
                     encryptNotebookUseCase(notebook.path)
                     loadData()
-                    _message.postValue ( "Записная книжка защищена")
-                }
-                else _message.postValue("Отмена установки защиты")
+                    _message.postValue("Записная книжка защищена")
+                } else _message.postValue("Отмена установки защиты")
 
             } catch (e: AuthenticationRequiredException) {
                 _message.postValue("Не удалось зашифровать записную книжку: ${e.message}")
@@ -394,12 +398,14 @@ class StartViewModel(
         }
     }
 
-    fun pinNotebook(notebook:Notebook) {
-        _message.postValue("Закрепление записной книжки")
+    fun pinNotebook(notebook: Notebook) {
+        pinNotebookUseCase(notebook.path)
+        loadData()
     }
 
-    fun unpinNotebook(notebook:Notebook) {
-        _message.postValue("Открепление записной книжки")
+    fun unpinNotebook(notebook: Notebook) {
+        unpinNotebookUseCase(notebook.path)
+        loadData()
     }
 
     fun onNavigated() = _navigationEvent.postValue(StartNavigationEvent.Idle)

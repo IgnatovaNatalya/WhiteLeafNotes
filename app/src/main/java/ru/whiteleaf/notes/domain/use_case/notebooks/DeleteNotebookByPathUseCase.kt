@@ -10,6 +10,7 @@ class DeleteNotebookByPathUseCase(
     suspend operator fun invoke(notebookPath: String) {
 
         preferencesRepository.removeRecentNotesByNotebookPath(notebookPath)
+        preferencesRepository.removeNotebookPreferences(notebookPath)
 
         val notebook = notebookRepository.getNotebookByPath(notebookPath)
         if (notebook != null) {

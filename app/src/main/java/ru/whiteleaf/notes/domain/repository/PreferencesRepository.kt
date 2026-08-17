@@ -10,6 +10,10 @@ interface PreferencesRepository {
     fun saveViewMode(notebookPath: String, isPlannerMode: Boolean)
     fun getViewMode(notebookPath: String, defaultIsPlanner: Boolean = false): Boolean
 
+    fun pinNotebook(notebookPath: String)
+    fun unpinNotebook(notebookPath: String)
+    fun isNotebookPinned(notebookPath: String):Boolean
+
     fun saveNoteScrollPosition(noteId: String, notebookPath: String, scrollY: Int)
 
     fun getNoteScrollPosition(
@@ -24,12 +28,13 @@ interface PreferencesRepository {
         oldNotebookPath: String?,
         newNotebookPath: String?
     ): Boolean
-
     fun updateRecentEntry(oldNote:Note, newNote:Note) : Boolean
-
     fun removeRecentNotesByNotebookPath(notebookPath: String)
     fun removeRecentNote(noteId: String, notebookPath: String?)
     fun updateNotebookPathInRecent(oldNotebookPath: String?, newNotebookPath: String?)
+
     fun updateNotebookPreferences(oldPath: String, newPath: String)
-    fun deleteNotebookPreferences(notebookPath: String)
+    fun removeNotebookPreferences(notebookPath: String)
+
+
 }

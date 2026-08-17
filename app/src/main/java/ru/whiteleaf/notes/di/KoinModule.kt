@@ -56,6 +56,8 @@ import ru.whiteleaf.notes.domain.use_case.encryption.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.PinNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import java.security.KeyStore
@@ -136,6 +138,9 @@ val koinModule = module {
     factory { SaveRecentNoteUseCase(get()) }
     factory { RemoveRecentNoteUseCase(get()) }
 
+    factory { PinNotebookUseCase(get()) }
+    factory { UnpinNotebookUseCase(get()) }
+
     //interactor
     factory { SettingsInteractor(get()) }
 
@@ -160,7 +165,9 @@ val koinModule = module {
             createKeyForNotebookUseCase = get(),
             deleteKeyForNotebookUseCase = get(),
             encryptNotebookUseCase = get(),
-            decryptNotebookUseCase = get()
+            decryptNotebookUseCase = get(),
+            pinNotebookUseCase = get(),
+            unpinNotebookUseCase = get(),
         )
     }
 
