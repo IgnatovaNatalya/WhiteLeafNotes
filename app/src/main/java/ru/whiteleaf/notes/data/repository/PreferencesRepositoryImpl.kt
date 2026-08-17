@@ -202,7 +202,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
         val json = prefs.getString(KEY_RECENT_NOTES, null) ?: return emptyList()
         return try {
             gson.fromJson(json, noteType) ?: emptyList()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }

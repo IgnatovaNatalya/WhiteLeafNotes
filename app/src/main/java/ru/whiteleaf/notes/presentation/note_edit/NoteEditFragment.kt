@@ -53,7 +53,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private lateinit var contentEditText: EditText
     private lateinit var buttonScroll: ImageButton
     private lateinit var noteScrollView: NestedScrollView
-    private lateinit var noteProtected: LinearLayout
+    private lateinit var noteBlocked: LinearLayout
+    private lateinit var noteBlockedUnsaved: LinearLayout
     private lateinit var btnLockIndicator: ImageButton
 
     private var windowFocusListener: ViewTreeObserver.OnWindowFocusChangeListener? = null
@@ -72,7 +73,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         contentEditText = binding.noteEditText
         buttonScroll = binding.noteScrollDown
         noteScrollView = binding.noteEditScrollView
-        noteProtected = binding.noteInProtectedNotebook
+        noteBlocked = binding.llBlocked
+        noteBlockedUnsaved = binding.llBlockedUnsaved
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
@@ -196,13 +198,16 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun setupClickListeners() {
-        binding.noteEditDate.setOnClickListener {
-            showMaterialDatePickerDialog()
-        }
+        binding.noteEditDate.setOnClickListener { showMaterialDatePickerDialog() }
 
         binding.unlockButton.setOnClickListener {
             viewModel.unlockNotebook(requireContext())
         }
+        binding.unlockAndSaveButton.setOnClickListener {
+            viewModel.unlockAndSavePending(requireContext(), false)
+        }
+
+        binding.cancelButton.setOnClickListener { findNavController().popBackStack() }
     }
 
     fun showMaterialDatePickerDialog() {
@@ -304,7 +309,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 println("DEBUG: NoteEditFragment: Rendering note")
                 noteScrollView.visibility = View.VISIBLE
                 binding.noteEditProgressBar.visibility = View.GONE
-                noteProtected.visibility = View.GONE
+                noteBlocked.visibility = View.GONE
+                noteBlockedUnsaved.visibility = View.GONE
 
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
@@ -332,7 +338,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                         titleEditText.requestFocus()
                         contentEditText.requestFocus()
                         showKeyboard()
-                        contentEditText.setSelection(lastCursorPosition)
+                        if (contentEditText.text.length >= lastCursorPosition) contentEditText.setSelection(
+                            lastCursorPosition
+                        ) else contentEditText.setSelection(contentEditText.text.length)
                         lastCursorPosition = -1
                     }
                 }
@@ -342,7 +350,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 println("DEBUG: NoteEditFragment: Rendering loading")
                 noteScrollView.visibility = View.GONE
                 binding.noteEditProgressBar.visibility = View.VISIBLE
-                noteProtected.visibility = View.GONE
+                noteBlocked.visibility = View.GONE
+                noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
             }
 
@@ -350,7 +359,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 println("DEBUG: NoteEditFragment: Rendering error")
                 noteScrollView.visibility = View.GONE
                 binding.noteEditProgressBar.visibility = View.GONE
-                noteProtected.visibility = View.GONE
+                noteBlocked.visibility = View.GONE
+                noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
                 renderMessage(state.message)
             }
@@ -358,10 +368,23 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             NoteEditState.Blocked -> {
                 println("DEBUG: NoteEditFragment: Rendering blocked")
                 binding.noteEditProgressBar.visibility = View.GONE
-                noteProtected.visibility = View.VISIBLE
+                noteBlocked.visibility = View.VISIBLE
+                noteBlockedUnsaved.visibility = View.GONE
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
+                buttonScroll.visibility = View.GONE
+            }
+
+            NoteEditState.BlockedUnsaved -> {
+                println("DEBUG: NoteEditFragment: Rendering blocked")
+                binding.noteEditProgressBar.visibility = View.GONE
+                noteBlocked.visibility = View.GONE
+                noteBlockedUnsaved.visibility = View.VISIBLE
+                noteScrollView.visibility = View.GONE
+                btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
+                btnLockIndicator.visibility = View.VISIBLE
+                buttonScroll.visibility = View.GONE
             }
 
             NoteEditState.ShowBiometricForSave -> {

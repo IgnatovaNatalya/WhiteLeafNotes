@@ -90,6 +90,9 @@ class NoteEditViewModel(
     fun getAllNotebooks(): List<Notebook> = notebookList
 
     fun reloadNotePosition() {
+
+        if (_noteEditState.value !is NoteEditState.Success) return
+
         val currentNote = _note.value
 
         if (currentNote != null) {
@@ -177,29 +180,23 @@ class NoteEditViewModel(
 
     fun updateNoteDate(newDate: Long) {
         viewModelScope.launch {
-
             val currentNote = _note.value ?: return@launch
             val updatedNote = currentNote.copy(modifiedAt = newDate)
-
             _isDateUpdating.value = true
 
             try {
                 updateNoteDateUseCase(currentNote, newDate)
 
-                val scrollPosition = getNoteScrollPosition()
-
                 _note.value = updatedNote
                 _noteEditState.postValue(
                     NoteEditState.Success(
                         updatedNote,
-                        scrollPosition,
+                        currentScrollPosition?:0,
                         _isNotebookProtected.value == true
                     )
                 )
-
                 _message.postValue("Дата заметки обновлена")
             } catch (e: AuthenticationRequiredException) {
-
                 _noteEditState.value = NoteEditState.Blocked
                 println("DEBUG: NoteEditVM: key not unlocked while date: ${e.message}")
             } catch (e: Exception) {
@@ -267,7 +264,6 @@ class NoteEditViewModel(
         viewModelScope.launch {
             try {
                 val unlocked =
-
                     if (isNotebookProtectedUseCase(targetNotebookPath)) unlockNotebookUseCase(
                         targetNotebookPath, context, title = "Целевая записная книжка защищена",
                         reason = "Для перемещения"
@@ -344,7 +340,6 @@ class NoteEditViewModel(
     }
 
     fun unlockAndSavePending(context: Context, thenExit: Boolean) {
-
         try {
             viewModelScope.launch {
                 val unlocked = if (notebookPath != null) unlockNotebookUseCase(
@@ -368,6 +363,11 @@ class NoteEditViewModel(
                         val updatedNote = currentNote.copy(content = pendingSaveContent!!)
                         saveNoteContentUseCase(updatedNote)
                         _note.postValue(updatedNote)
+                        _noteEditState.value = NoteEditState.Success(
+                            note = updatedNote,
+                            scrollPosition = currentScrollPosition?:0,
+                            isEncrypted = _isNotebookProtected.value == true
+                        )
                     }
 
                     if (thenExit) _navigateBack.postValue(true) //вызывает выход из фрагмента
@@ -376,11 +376,12 @@ class NoteEditViewModel(
                     pendingSaveTitle = null
 
                 } else {
-                    _noteEditState.postValue(NoteEditState.Error("Не удалось разблокировать записную книжку"))
+                    _noteEditState.postValue(NoteEditState.BlockedUnsaved)
+                    _message.postValue("Не удалось разблокировать")
                 }
             }
         } catch (e: AuthenticationRequiredException) {
-            _noteEditState.value = NoteEditState.Blocked
+            _noteEditState.value = NoteEditState.BlockedUnsaved
             println("DEBUG: NoteEditVM: key not unlocked while unlockAndSavePending: ${e.message}")
         } catch (e: Exception) {
             _message.postValue("Не удалось сохранить ${e.message}")
@@ -415,12 +416,13 @@ class NoteEditViewModel(
                     }
                     true
                 } else {
-                    _noteEditState.postValue(NoteEditState.Error("Не удалось разблокировать записную книжку"))
+                    _noteEditState.postValue(NoteEditState.BlockedUnsaved)
+                    _message.postValue("Не удалось разблокировать")
                     false
                 }
             }
         } catch (e: AuthenticationRequiredException) {
-            _noteEditState.value = NoteEditState.Blocked
+            _noteEditState.value = NoteEditState.BlockedUnsaved
             println("DEBUG: NoteEditVM: key not unlocked while unlockAndFullSave: ${e.message}")
         } catch (e: Exception) {
             _message.postValue("Не удалось сохранить ${e.message}")

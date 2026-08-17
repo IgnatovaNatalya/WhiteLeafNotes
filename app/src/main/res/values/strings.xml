@@ -55,9 +55,17 @@
     <string name="protect">Зашифровать</string>
     <string name="unprotect">Снять защиту</string>
 
-    <string name="is_protected">Записная книжка защищена</string>
-    <string name="note_is_protected">Редактирование заметки\nв защищенной записной книжке</string>
+    <string name="notebook_blocked_title">Записная книжка защищена</string>
+    <string name="note_blocked_title">Заметка защищена</string>
+    <string name="note_blocked_subtitle">Вы находитесь в защищенной записной книжке. Для редактирования нажмите кнопку</string>
+
+    <string name="note_blocked_unsaved_title">Заметка заблокирована</string>
+    <string name="note_blocked_unsaved_subtitle">Во время последнего редактирования были внесены изменения, которые не удалось сохранить</string>
+
     <string name="unlock">Разблокировать</string>
+    <string name="unlock_and_save">Разблокировать и сохранить</string>
+    <string name="unsaved_cancel">Выйти</string>
+
 
     <plurals name="notes_count">
         <item quantity="one">%d заметка</item>
