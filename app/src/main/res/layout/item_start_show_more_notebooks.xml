@@ -7,17 +7,16 @@
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="12dp"
-        android:layout_marginTop="12dp"
-        android:background="?attr/android:windowBackground"
+        android:layout_height="1dp"
+        android:background="?attr/colorSurface"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/btn_more"
         android:layout_width="42dp"
         android:layout_height="24dp"
-        android:contentDescription= "@string/show_more"
+        android:contentDescription="@string/show_more"
         android:paddingHorizontal="14dp"
         android:paddingVertical="10dp"
         android:background="@drawable/bg_rounded_corners_stroke"
@@ -25,6 +24,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:visibility="gone"/>
+        app:layout_constraintBottom_toBottomOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

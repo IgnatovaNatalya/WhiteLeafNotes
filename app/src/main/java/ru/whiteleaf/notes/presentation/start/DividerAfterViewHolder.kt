@@ -6,5 +6,5 @@ import androidx.recyclerview.widget.RecyclerView
 class DividerAfterViewHolder(
     view: View
 ) : RecyclerView.ViewHolder(view) {
-    fun bind() {  }
+    fun bind() {}
 }

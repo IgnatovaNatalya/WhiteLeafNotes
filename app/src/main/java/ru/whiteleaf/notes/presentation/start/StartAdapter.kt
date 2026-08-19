@@ -46,7 +46,6 @@ class StartAdapter(
         private const val TYPE_DIVIDER_HEADER = 10
         private const val TYPE_DIVIDER_LINE = 11
         private const val TYPE_DIVIDER_AFTER = 12
-        private const val TYPE_EMPTY = 13
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -67,8 +66,6 @@ class StartAdapter(
             StartListItem.DividerHeader -> TYPE_DIVIDER_HEADER
             StartListItem.DividerAfter -> TYPE_DIVIDER_AFTER
             is StartListItem.DividerLine -> TYPE_DIVIDER_LINE
-
-            is StartListItem.EmptyNotebooks, is StartListItem.EmptyNotes-> TYPE_EMPTY
 
         }
     }
@@ -117,7 +114,7 @@ class StartAdapter(
             TYPE_SHOW_MORE_NOTEBOOKS -> {
                 ShowMoreButtonViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_show_more, parent, false),
+                        .inflate(R.layout.item_start_show_more_notebooks, parent, false),
                     onShowMoreNotebooks
                 )
             }
@@ -157,14 +154,14 @@ class StartAdapter(
             TYPE_DIVIDER_HEADER -> {
                 DividerHeaderViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_divider_header, parent, false)
+                        .inflate(R.layout.item_start_divider_header, parent, false)
                 )
             }
 
             TYPE_DIVIDER_LINE -> {
                 DividerLineViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_divider_line, parent, false)
+                        .inflate(R.layout.item_start_divider_line, parent, false)
                 )
             }
 
@@ -172,13 +169,6 @@ class StartAdapter(
                 DividerAfterViewHolder(
                     LayoutInflater.from(parent.context)
                         .inflate(R.layout.item_show_more, parent, false)
-                )
-            }
-
-            TYPE_EMPTY -> {
-                EmptyListViewHolder(
-                    LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_start_empty_list, parent, false)
                 )
             }
 
@@ -195,14 +185,14 @@ class StartAdapter(
             )
 
             is StartListItem.RecentNoteItem -> (holder as RecentNoteViewHolder).bind(item.recentNote)
-            is StartListItem.ShowMoreRecent -> (holder as ShowMoreButtonViewHolder).bind(true)
+            is StartListItem.ShowMoreRecent -> (holder as ShowMoreButtonViewHolder).bind()
 
             is StartListItem.HeaderNotebooks -> (holder as HeaderViewHolder).bind(
                 "ЗАПИСНЫЕ КНИЖКИ", true
             )
 
             is StartListItem.NotebookItem -> (holder as NotebookViewHolder).bind(item.notebook)
-            is StartListItem.ShowMoreNotebooks -> (holder as ShowMoreButtonViewHolder).bind(true)
+            is StartListItem.ShowMoreNotebooks -> (holder as ShowMoreButtonViewHolder).bind()
             StartListItem.CreateNotebook -> (holder as CreateNotebookViewHolder).bind()
 
             is StartListItem.HeaderRootNotes -> (holder as HeaderViewHolder).bind(
@@ -210,16 +200,11 @@ class StartAdapter(
             )
 
             is StartListItem.NoteItem -> (holder as StartNoteViewHolder).bind(item.note)
-            is StartListItem.ShowMoreNotes -> (holder as ShowMoreButtonViewHolder).bind(true)
+            is StartListItem.ShowMoreNotes -> (holder as ShowMoreButtonViewHolder).bind()
 
             is StartListItem.DividerLine -> (holder as DividerLineViewHolder).bind()
             StartListItem.DividerHeader -> (holder as DividerHeaderViewHolder).bind()
-
-            is StartListItem.EmptyNotebooks -> (holder as EmptyListViewHolder).bind("Записных книжек пока нет")
-            is StartListItem.EmptyNotes -> (holder as EmptyListViewHolder).bind("Заметок пока нет")
-
-            StartListItem.DividerAfter -> (holder as DividerAfterViewHolder).bind() // разделитель без кнопки
-
+            StartListItem.DividerAfter -> (holder as DividerAfterViewHolder).bind()
         }
     }
 

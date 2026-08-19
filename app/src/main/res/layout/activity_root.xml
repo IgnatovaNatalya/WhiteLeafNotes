@@ -36,7 +36,6 @@
                 android:text="@string/start_title"
                 android:paddingBottom="8dp"
                 android:width="200dp"
-                android:background="@drawable/bg_app_title"
                 android:textColor="@color/medium_blue" />
 
             <ImageButton

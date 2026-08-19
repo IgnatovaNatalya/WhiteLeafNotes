@@ -23,9 +23,6 @@ sealed class StartListItem {
     object DividerLine : StartListItem()
     object DividerAfter: StartListItem() //show more без кнопки
 
-    object EmptyNotebooks : StartListItem()
-    object EmptyNotes : StartListItem()
-
     // Для DiffUtil
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -48,10 +45,6 @@ sealed class StartListItem {
             DividerLine -> other is DividerLine
             DividerHeader -> other is DividerHeader
             DividerAfter -> other is DividerAfter
-
-            EmptyNotebooks -> other is EmptyNotebooks
-            EmptyNotes -> other is EmptyNotes
-
         }
     }
 

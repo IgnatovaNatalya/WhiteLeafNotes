@@ -148,7 +148,8 @@ class StartViewModel(
         items.add(StartListItem.DividerHeader)
 
         if (notebooksToShow.isEmpty()) {
-            items.add(StartListItem.EmptyNotebooks)
+            items.add(StartListItem.CreateNotebook)
+            items.add(StartListItem.DividerAfter)
         } else {
             notebooksToShow.forEachIndexed { index, notebook ->
                 items.add(StartListItem.NotebookItem(notebook))
@@ -157,11 +158,10 @@ class StartViewModel(
                     items.add(StartListItem.DividerLine)
                 else
                     if (notebooksToShow.size < notebookList.size) {
-                        items.add(StartListItem.DividerLine)
-                        items.add(StartListItem.CreateNotebook)
                         items.add(StartListItem.ShowMoreNotebooks)
-                    }
-                    else {
+                        items.add(StartListItem.CreateNotebook)
+                        items.add(StartListItem.DividerAfter)
+                    } else {
                         items.add(StartListItem.DividerLine)
                         items.add(StartListItem.CreateNotebook)
                         items.add(StartListItem.DividerAfter)
@@ -171,14 +171,13 @@ class StartViewModel(
 
         // Секция заметок
         val rootNotesToShow = rootNoteList.take(visibleNotesCount)
-        println("DEBUG: StartVM: build start items, rootNotes items count: ${rootNoteList.size}, showing ${rootNotesToShow.size}")
 
-        items.add(StartListItem.HeaderRootNotes)
-        items.add(StartListItem.DividerHeader)
+        if (rootNotesToShow.isNotEmpty()) {
+            println("DEBUG: StartVM: build start items, rootNotes items count: ${rootNoteList.size}, showing ${rootNotesToShow.size}")
 
-        if (rootNotesToShow.isEmpty()) {
-            items.add(StartListItem.EmptyNotes)
-        } else {
+            items.add(StartListItem.HeaderRootNotes)
+            items.add(StartListItem.DividerHeader)
+
             rootNotesToShow.forEachIndexed { index, note ->
                 items.add(StartListItem.NoteItem(note))
                 if (index < rootNotesToShow.lastIndex)
@@ -186,6 +185,7 @@ class StartViewModel(
                 else
                     if (rootNotesToShow.size < rootNoteList.size) items.add(StartListItem.ShowMoreNotes)
                     else items.add(StartListItem.DividerAfter)
+
             }
         }
 
@@ -219,11 +219,15 @@ class StartViewModel(
         }
     }
 
-    fun createNotebook(path:String) {
+    fun createNotebook(path: String) {
         viewModelScope.launch {
             try {
                 val newNotebook = createNotebookUseCase(path)
-                _navigationEvent.postValue(StartNavigationEvent.NavigateToCreatedNotebook(newNotebook))
+                _navigationEvent.postValue(
+                    StartNavigationEvent.NavigateToCreatedNotebook(
+                        newNotebook
+                    )
+                )
 
             } catch (e: Exception) {
                 _message.postValue("Ошибка создания записной книжки: ${e.message}")
