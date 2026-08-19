@@ -311,8 +311,8 @@ class NoteRepositoryImpl(
                 if (oldFile.exists()) {
                     noteDataSource.moveFile(oldFile, newFile)
                 }
-                //note.copy(title = newName)///
-                getNote(newId, note.notebookPath)
+                note.copy(id = newId, title = newName)
+                //getNote(newId, note.notebookPath) так нельзя потому что будет ошибка если ключ истек
 
             } catch (e: Exception) {
                 Log.e("NoteRepository", "Ошибка переименования заметки: ${e.message}")
