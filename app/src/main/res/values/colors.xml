@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Основные цвета -->
-    <color name="white">#FFFFFF</color>
-    <color name="container_light">#FAFAFA</color>
+
+    <color name="background_light">#FCFCFC</color><!--фоновый фон для всего приложения-->
+    <color name="container_light">#FFFFFF</color><!--более яркий оттенок для  фона активного элемента-->
     <color name="popup_light">#FAFAFA</color>
     <color name="text_primary_light">#333333</color>
     <color name="text_secondary_light">#888888</color>

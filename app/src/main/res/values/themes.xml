@@ -16,9 +16,9 @@
         <item name="colorOnPrimaryContainer">@color/container_light</item>
 
         <item name="colorSecondary">@color/accent_blue</item>
-        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorOnSecondary">@color/container_light</item>
         <item name="colorSecondaryContainer">@color/accent_blue</item>
-        <item name="colorOnSecondaryContainer">@color/white</item>
+        <item name="colorOnSecondaryContainer">@color/container_light</item>
 
         <item name="colorTertiary">@color/dark_blue</item>
         <item name="android:colorControlHighlight">@color/accent_blue</item>
@@ -34,12 +34,12 @@
         <item name="colorControlNormal">@color/text_primary_light</item>
         <item name="android:textColorTertiary">@color/text_primary_dark</item>
 
-        <item name="colorPrimarySurface">@color/white</item>
+        <item name="colorPrimarySurface">@color/container_light</item>
 
         <item name="colorSurfaceVariant">@color/popup_light</item>
 
         <!-- Устанавливаем фон окна через windowBackground -->
-        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowBackground">@color/background_light</item>
 
         <!-- Стиль для текста -->
         <item name="textAppearanceBodyLarge">@style/TextAppearance.WhiteList.BodyLarge</item>

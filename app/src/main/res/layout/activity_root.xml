@@ -23,9 +23,7 @@
             android:clickable="true"
             android:fitsSystemWindows="false"
             app:navigationIcon="@drawable/ic_menu"
-            app:subtitle=""
             app:subtitleTextAppearance="@style/toolbarSubtitleStyle"
-            app:title=""
             app:titleTextAppearance="@style/toolbarTitleStyle">
 
             <TextView
@@ -34,9 +32,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:paddingBottom="8dp"
                 android:gravity="center"
                 android:text="@string/start_title"
+                android:paddingBottom="8dp"
+                android:width="200dp"
+                android:background="@drawable/bg_app_title"
                 android:textColor="@color/medium_blue" />
 
             <ImageButton
@@ -66,7 +66,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_ind_unlocked"
-                android:visibility="visible"
+                android:visibility="gone"
                 app:tint="?attr/android:textColorPrimary" />
 
         </com.google.android.material.appbar.MaterialToolbar>
@@ -95,8 +95,8 @@
         app:itemHorizontalPadding="16dp"
         app:itemMaxLines="2"
         app:itemTextAppearance="@style/DrawerItemStyle"
-        app:itemTextColor="?attr/android:textColorPrimary"
         app:itemTextAppearanceActiveBoldEnabled="false"
+        app:itemTextColor="?attr/android:textColorPrimary"
         app:itemVerticalPadding="8dp"
         app:menu="@menu/drawer_menu" />
 

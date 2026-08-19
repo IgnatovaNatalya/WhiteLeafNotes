@@ -126,16 +126,16 @@ class StartViewModel(
 
         if (recentToShow.isNotEmpty()) {
             items.add(StartListItem.HeaderRecent)
-            items.add(StartListItem.Divider)
+            items.add(StartListItem.DividerHeader)
 
             recentToShow.forEachIndexed { index, note ->
                 items.add(StartListItem.RecentNoteItem(note))
 
                 if (index < recentToShow.lastIndex)
-                    items.add(StartListItem.Divider)
+                    items.add(StartListItem.DividerLine)
                 else
                     if (recentToShow.size < recentList.size) items.add(StartListItem.ShowMoreRecent) else items.add(
-                        StartListItem.Divider
+                        StartListItem.DividerAfter
                     )
             }
         }
@@ -145,7 +145,7 @@ class StartViewModel(
         println("DEBUG: StartVM: build start items, notebooks items count: ${notebookList.size} , showing ${notebooksToShow.size}")
 
         items.add(StartListItem.HeaderNotebooks)
-        items.add(StartListItem.Divider)
+        items.add(StartListItem.DividerHeader)
 
         if (notebooksToShow.isEmpty()) {
             items.add(StartListItem.EmptyNotebooks)
@@ -154,10 +154,18 @@ class StartViewModel(
                 items.add(StartListItem.NotebookItem(notebook))
 
                 if (index < notebooksToShow.lastIndex)
-                    items.add(StartListItem.Divider)
+                    items.add(StartListItem.DividerLine)
                 else
-                    if (notebooksToShow.size < notebookList.size) items.add(StartListItem.ShowMoreNotebooks)
-                    else items.add(StartListItem.Divider)
+                    if (notebooksToShow.size < notebookList.size) {
+                        items.add(StartListItem.DividerLine)
+                        items.add(StartListItem.CreateNotebook)
+                        items.add(StartListItem.ShowMoreNotebooks)
+                    }
+                    else {
+                        items.add(StartListItem.DividerLine)
+                        items.add(StartListItem.CreateNotebook)
+                        items.add(StartListItem.DividerAfter)
+                    }
             }
         }
 
@@ -166,7 +174,7 @@ class StartViewModel(
         println("DEBUG: StartVM: build start items, rootNotes items count: ${rootNoteList.size}, showing ${rootNotesToShow.size}")
 
         items.add(StartListItem.HeaderRootNotes)
-        items.add(StartListItem.Divider)
+        items.add(StartListItem.DividerHeader)
 
         if (rootNotesToShow.isEmpty()) {
             items.add(StartListItem.EmptyNotes)
@@ -174,10 +182,10 @@ class StartViewModel(
             rootNotesToShow.forEachIndexed { index, note ->
                 items.add(StartListItem.NoteItem(note))
                 if (index < rootNotesToShow.lastIndex)
-                    items.add(StartListItem.Divider)
+                    items.add(StartListItem.DividerLine)
                 else
                     if (rootNotesToShow.size < rootNoteList.size) items.add(StartListItem.ShowMoreNotes)
-                    else items.add(StartListItem.Divider)
+                    else items.add(StartListItem.DividerAfter)
             }
         }
 
@@ -207,6 +215,18 @@ class StartViewModel(
                 //_message.postValue("Заметка создана")
             } catch (e: Exception) {
                 _message.postValue("Ошибка создания заметки: ${e.message}")
+            }
+        }
+    }
+
+    fun createNotebook(path:String) {
+        viewModelScope.launch {
+            try {
+                val newNotebook = createNotebookUseCase(path)
+                _navigationEvent.postValue(StartNavigationEvent.NavigateToCreatedNotebook(newNotebook))
+
+            } catch (e: Exception) {
+                _message.postValue("Ошибка создания записной книжки: ${e.message}")
             }
         }
     }

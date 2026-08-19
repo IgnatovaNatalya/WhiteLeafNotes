@@ -9,14 +9,14 @@
 
         <!-- Основные цвета (акценты остаются теми же) -->
         <item name="colorPrimary">@color/accent_coral</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/container_light</item>
         <item name="colorPrimaryContainer">@color/container_dark</item>
-        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorOnPrimaryContainer">@color/container_light</item>
 
         <item name="colorSecondary">@color/text_primary_dark</item>
-        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorOnSecondary">@color/container_light</item>
         <item name="colorSecondaryContainer">@color/accent_blue</item>
-        <item name="colorOnSecondaryContainer">@color/white</item>
+        <item name="colorOnSecondaryContainer">@color/container_light</item>
 
         <item name="colorTertiary">@color/text_primary_dark</item>
         <item name="android:colorControlHighlight">@color/popup_dark</item>
@@ -36,7 +36,7 @@
 
 
         <!-- Устанавливаем фон окна через windowBackground -->
-        <item name="android:windowBackground">@color/divider_dark</item>
+        <item name="android:windowBackground">@color/background_dark</item>
 
         <!-- Стиль для текста -->
         <item name="textAppearanceBodyLarge">@style/TextAppearance.WhiteList.BodyLarge.Dark

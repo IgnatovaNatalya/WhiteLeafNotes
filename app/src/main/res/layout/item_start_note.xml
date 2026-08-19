@@ -5,7 +5,8 @@
     android:layout_height="30dp"
     android:orientation="horizontal"
     android:clickable="true"
-    android:paddingHorizontal="16dp">
+    android:paddingHorizontal="16dp"
+    android:background="?attr/colorPrimaryContainer">
 
     <TextView
         android:id="@+id/start_note_title"

@@ -20,7 +20,7 @@
 
     <string name="no_notes">Вы пока не создали\nни одной заметки</string>
 
-    <string name="create_notebook">Создать записную книжку</string>
+    <string name="create_notebook">+ Создать</string>
     <string name="create_note">Создать заметку</string>
 
     <string name="empty_notebooks">Записных книжек пока нет</string>

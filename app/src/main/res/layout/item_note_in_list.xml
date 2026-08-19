@@ -8,7 +8,8 @@
     android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp">
+    android:paddingHorizontal="16dp"
+    android:background="?attr/colorPrimaryContainer">
 
     <TextView
         android:id="@+id/note_in_list_title"

@@ -12,7 +12,10 @@ class ShowMoreButtonViewHolder(
 
     private val btn = view.findViewById<ImageButton>(R.id.btn_more)
 
-    fun bind() {
-        btn.setOnClickListener { onClick() }
+    fun bind(showButton: Boolean) {
+        if (showButton) {
+            btn.visibility = View.VISIBLE
+            btn.setOnClickListener { onClick() }
+        } else btn.visibility = View.GONE
     }
 }

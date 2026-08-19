@@ -16,6 +16,7 @@ import ru.whiteleaf.notes.databinding.FragmentStartBinding
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
 import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
 import ru.whiteleaf.notes.data.model.RecentNote
 
@@ -58,6 +59,11 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
             contextNoteActionHandler = this,
             contextNotebookActionHandler = this,
+            onCreateNotebookClicked = {
+                createCreateNotebookDialog(requireContext()) { name ->
+                    viewModel.createNotebook(name)
+                }.show()
+            },
         )
 
         binding.startRecyclerView.adapter = adapter
@@ -179,9 +185,11 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         viewModel.unpinNotebook(notebook)
     }
 
-    override fun onEncryptNotebook(notebook: Notebook) = viewModel.encryptNotebook(requireContext(), notebook)
+    override fun onEncryptNotebook(notebook: Notebook) =
+        viewModel.encryptNotebook(requireContext(), notebook)
 
-    override fun onDecryptNotebook(notebook: Notebook) = viewModel.decryptNotebook(requireContext(), notebook)
+    override fun onDecryptNotebook(notebook: Notebook) =
+        viewModel.decryptNotebook(requireContext(), notebook)
 
     override fun onMoveNote(note: Note) {
         val dialog = DialogHelper.createMoveNoteDialog(
