@@ -44,8 +44,10 @@ class StartAdapter(
         private const val TYPE_SHOW_MORE_NOTES = 9
 
         private const val TYPE_DIVIDER_HEADER = 10
-        private const val TYPE_DIVIDER_LINE = 11
-        private const val TYPE_DIVIDER_AFTER = 12
+        private const val TYPE_DIVIDER_AFTER = 11
+        private const val TYPE_DIVIDER_LINE_BG = 12
+        private const val TYPE_DIVIDER_LINE = 13
+
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -58,6 +60,7 @@ class StartAdapter(
             is StartListItem.NotebookItem -> TYPE_NOTEBOOK
             is StartListItem.ShowMoreNotebooks -> TYPE_SHOW_MORE_NOTEBOOKS
             StartListItem.CreateNotebook -> TYPE_CREATE_NOTEBOOK
+            StartListItem.DividerLine -> TYPE_DIVIDER_LINE
 
             is StartListItem.HeaderRootNotes -> TYPE_HEADER_NOTES
             is StartListItem.NoteItem -> TYPE_NOTE
@@ -65,8 +68,7 @@ class StartAdapter(
 
             StartListItem.DividerHeader -> TYPE_DIVIDER_HEADER
             StartListItem.DividerAfter -> TYPE_DIVIDER_AFTER
-            is StartListItem.DividerLine -> TYPE_DIVIDER_LINE
-
+            is StartListItem.DividerLineBg -> TYPE_DIVIDER_LINE_BG
         }
     }
 
@@ -90,7 +92,7 @@ class StartAdapter(
             TYPE_SHOW_MORE_RECENT -> {
                 ShowMoreButtonViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_show_more, parent, false),
+                        .inflate(R.layout.item_start_show_more, parent, false),
                     onShowMoreRecent
                 )
             }
@@ -114,9 +116,14 @@ class StartAdapter(
             TYPE_SHOW_MORE_NOTEBOOKS -> {
                 ShowMoreButtonViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_start_show_more_notebooks, parent, false),
+                        .inflate(R.layout.item_start_show_more, parent, false),
                     onShowMoreNotebooks
                 )
+            }
+
+            TYPE_DIVIDER_LINE -> {
+                DividerLineViewHolder(LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_start_divider_white, parent, false))
             }
 
             TYPE_CREATE_NOTEBOOK -> {
@@ -146,7 +153,7 @@ class StartAdapter(
             TYPE_SHOW_MORE_NOTES -> {
                 ShowMoreButtonViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_show_more, parent, false),
+                        .inflate(R.layout.item_start_show_more, parent, false),
                     onShowMoreNotes
                 )
             }
@@ -158,7 +165,7 @@ class StartAdapter(
                 )
             }
 
-            TYPE_DIVIDER_LINE -> {
+            TYPE_DIVIDER_LINE_BG -> {
                 DividerLineViewHolder(
                     LayoutInflater.from(parent.context)
                         .inflate(R.layout.item_start_divider_line, parent, false)
@@ -168,7 +175,7 @@ class StartAdapter(
             TYPE_DIVIDER_AFTER -> {
                 DividerAfterViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_show_more, parent, false)
+                        .inflate(R.layout.item_start_show_more, parent, false)
                 )
             }
 
@@ -194,6 +201,7 @@ class StartAdapter(
             is StartListItem.NotebookItem -> (holder as NotebookViewHolder).bind(item.notebook)
             is StartListItem.ShowMoreNotebooks -> (holder as ShowMoreButtonViewHolder).bind()
             StartListItem.CreateNotebook -> (holder as CreateNotebookViewHolder).bind()
+            StartListItem.DividerLine ->  (holder as DividerLineViewHolder).bind()
 
             is StartListItem.HeaderRootNotes -> (holder as HeaderViewHolder).bind(
                 "ЗАМЕТКИ", true
@@ -202,9 +210,10 @@ class StartAdapter(
             is StartListItem.NoteItem -> (holder as StartNoteViewHolder).bind(item.note)
             is StartListItem.ShowMoreNotes -> (holder as ShowMoreButtonViewHolder).bind()
 
-            is StartListItem.DividerLine -> (holder as DividerLineViewHolder).bind()
+            is StartListItem.DividerLineBg -> (holder as DividerLineViewHolder).bind()
             StartListItem.DividerHeader -> (holder as DividerHeaderViewHolder).bind()
             StartListItem.DividerAfter -> (holder as DividerAfterViewHolder).bind()
+
         }
     }
 

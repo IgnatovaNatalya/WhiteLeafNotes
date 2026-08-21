@@ -13,6 +13,7 @@ sealed class StartListItem {
     data class NotebookItem(val notebook: Notebook) : StartListItem()
     object ShowMoreNotebooks : StartListItem()
     object CreateNotebook : StartListItem()
+    object DividerLine : StartListItem()
 
     object HeaderRootNotes : StartListItem()
     data class NoteItem(val note: Note) : StartListItem()
@@ -20,8 +21,8 @@ sealed class StartListItem {
 
 
     object DividerHeader : StartListItem()
-    object DividerLine : StartListItem()
-    object DividerAfter: StartListItem() //show more без кнопки
+    object DividerLineBg : StartListItem()
+    object DividerAfter : StartListItem() //show more без кнопки
 
     // Для DiffUtil
     override fun equals(other: Any?): Boolean {
@@ -38,10 +39,12 @@ sealed class StartListItem {
             ShowMoreNotebooks -> other is ShowMoreNotebooks
             CreateNotebook -> other is CreateNotebook
 
+
             HeaderRootNotes -> other is HeaderRootNotes
             is NoteItem -> this == other
             ShowMoreNotes -> other is ShowMoreNotes
 
+            DividerLineBg -> other is DividerLineBg
             DividerLine -> other is DividerLine
             DividerHeader -> other is DividerHeader
             DividerAfter -> other is DividerAfter

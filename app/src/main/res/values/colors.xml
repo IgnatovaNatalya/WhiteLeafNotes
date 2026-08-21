@@ -2,8 +2,8 @@
 <resources>
     <!-- Основные цвета -->
 
-    <color name="background_light">#FCFCFC</color><!--фоновый фон для всего приложения-->
-    <color name="container_light">#FFFFFF</color><!--более яркий оттенок для  фона активного элемента-->
+    <color name="background_light">#FFFFFF</color><!--фоновый фон для всего приложения - белый-->
+    <color name="container_light">#FAFAFA</color><!-- оттенок для фона элемента-->
     <color name="popup_light">#FAFAFA</color>
     <color name="text_primary_light">#333333</color>
     <color name="text_secondary_light">#888888</color>

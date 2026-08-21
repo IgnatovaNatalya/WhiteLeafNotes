@@ -132,7 +132,7 @@ class StartViewModel(
                 items.add(StartListItem.RecentNoteItem(note))
 
                 if (index < recentToShow.lastIndex)
-                    items.add(StartListItem.DividerLine)
+                    items.add(StartListItem.DividerLineBg)
                 else
                     if (recentToShow.size < recentList.size) items.add(StartListItem.ShowMoreRecent) else items.add(
                         StartListItem.DividerAfter
@@ -149,22 +149,22 @@ class StartViewModel(
 
         if (notebooksToShow.isEmpty()) {
             items.add(StartListItem.CreateNotebook)
-            items.add(StartListItem.DividerAfter)
+            items.add(StartListItem.DividerLineBg)
         } else {
             notebooksToShow.forEachIndexed { index, notebook ->
                 items.add(StartListItem.NotebookItem(notebook))
 
                 if (index < notebooksToShow.lastIndex)
-                    items.add(StartListItem.DividerLine)
+                    items.add(StartListItem.DividerLineBg)
                 else
                     if (notebooksToShow.size < notebookList.size) {
                         items.add(StartListItem.ShowMoreNotebooks)
                         items.add(StartListItem.CreateNotebook)
-                        items.add(StartListItem.DividerAfter)
-                    } else {
                         items.add(StartListItem.DividerLine)
+                    } else {
+                        items.add(StartListItem.DividerLineBg)
                         items.add(StartListItem.CreateNotebook)
-                        items.add(StartListItem.DividerAfter)
+                        items.add(StartListItem.DividerLine)
                     }
             }
         }
@@ -181,7 +181,7 @@ class StartViewModel(
             rootNotesToShow.forEachIndexed { index, note ->
                 items.add(StartListItem.NoteItem(note))
                 if (index < rootNotesToShow.lastIndex)
-                    items.add(StartListItem.DividerLine)
+                    items.add(StartListItem.DividerLineBg)
                 else
                     if (rootNotesToShow.size < rootNoteList.size) items.add(StartListItem.ShowMoreNotes)
                     else items.add(StartListItem.DividerAfter)
