@@ -414,7 +414,7 @@ object DialogHelper {
             .create()
     }
 
-    fun createDatePickerDialog(
+    fun createChangeDateDialog(
         currentDate: Long,
         onDateSelected: (Long) -> Unit
     ): MaterialDatePicker<Long> {

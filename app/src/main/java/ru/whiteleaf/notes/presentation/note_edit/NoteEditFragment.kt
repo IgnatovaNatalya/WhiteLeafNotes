@@ -17,6 +17,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import kotlinx.coroutines.launch
@@ -30,9 +31,10 @@ import ru.whiteleaf.notes.databinding.FragmentNoteEditBinding
 import ru.whiteleaf.notes.domain.model.Note
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
-import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
+import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
 import ru.whiteleaf.notes.common.utils.formatDate
+import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
@@ -150,27 +152,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private fun setupObservers() {
         viewModel.noteEditState.observe(viewLifecycleOwner) { state ->
-            renderNote(state)
+            renderState(state)
         }
 
-        viewModel.isNotebookProtected.observe(viewLifecycleOwner) { isProtected ->
-            toggleSecurePreview(isProtected)
-        }
-
-        viewModel.message.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                renderMessage(message)
-                viewModel.clearMessage()
-            }
-        }
-
-        viewModel.noteFile.observe(viewLifecycleOwner) { noteFile ->
-            ShareHelper.shareFile(requireContext(), noteFile)
-        }
-
-        viewModel.navigateBack.observe(viewLifecycleOwner) {
-            notSaveOnPause = true
-            findNavController().popBackStack()
+        viewModel.navigationEvent.observe(viewLifecycleOwner) { event ->
+            renderEvent(event)
         }
     }
 
@@ -189,6 +175,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             onAfterTextChanged = { text -> viewModel.updateNoteContent(text) }
         )
 
+        contentEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+            isEditing = hasFocus
+        }
+
         titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val textInput = titleEditText.text.toString()
@@ -198,10 +188,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun setupClickListeners() {
-        binding.noteEditDate.setOnClickListener { showMaterialDatePickerDialog() }
+        binding.noteEditDate.setOnClickListener { changeNoteDate() }
 
         binding.unlockButton.setOnClickListener {
-            viewModel.unlockNotebook(requireContext())
+            viewModel.unlockAndSavePendingContent(requireContext())
         }
         binding.unlockAndSaveButton.setOnClickListener {
             viewModel.unlockAndSavePending(requireContext(), false)
@@ -210,15 +200,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         binding.cancelButton.setOnClickListener { findNavController().popBackStack() }
     }
 
-    fun showMaterialDatePickerDialog() {
+    fun changeNoteDate() {
         viewModel.updateFullNote(
             title = titleEditText.text.toString(),
             content = contentEditText.text.toString(),
             onExit = false
         )
         viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
-        val note = viewModel.note.value ?: return
-        createDatePickerDialog(
+        val note = viewModel.getNote() ?: return
+        createChangeDateDialog(
             note.modifiedAt,
             onDateSelected = { date -> viewModel.updateNoteDate(date) }
         ).show(childFragmentManager, "date_picker")
@@ -253,15 +243,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             .showSoftInput(titleEditText, InputMethodManager.SHOW_IMPLICIT)
     }
 
-    private fun onOptionsChangeNoteDate() {
-        showMaterialDatePickerDialog()
-    }
+    private fun onOptionsChangeNoteDate() = changeNoteDate()
 
     private fun onOptionsMoveNote() {
         DialogHelper.createMoveNoteDialog(
             requireContext(),
             viewModel.getAllNotebooks(),
-            viewModel.note.value?.notebookPath ?: "",
+            args.notebookPath ?: "",
         ) { targetNotebookPath ->
             viewModel.moveNote(requireContext(), targetNotebookPath)
         }.show()
@@ -302,7 +290,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         { viewModel.deleteNote() }.show()
     }
 
-    private fun renderNote(state: NoteEditState) {
+    private fun renderState(state: NoteEditState) {
         when (state) {
 
             is NoteEditState.Success -> {
@@ -311,13 +299,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 binding.noteEditProgressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
+                toggleSecurePreview(state.isEncrypted)
 
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
                     btnLockIndicator.setOnClickListener(null)
                     btnLockIndicator.setOnClickListener { viewModel.lockNote() }
-                } else btnLockIndicator.visibility = View.GONE
+                } else
+                    btnLockIndicator.visibility = View.GONE
 
                 val note = state.note
                 titleEditText.setText(note.title)
@@ -365,38 +355,65 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 renderMessage(state.message)
             }
 
-            NoteEditState.Blocked -> {
-                println("DEBUG: NoteEditFragment: Rendering blocked")
+            is NoteEditState.Blocked -> {
+                println("DEBUG: NoteEditFragment: Rendering blocked hasChanges=${state.hasUnsavedChanges}")
                 binding.noteEditProgressBar.visibility = View.GONE
-                noteBlocked.visibility = View.VISIBLE
-                noteBlockedUnsaved.visibility = View.GONE
+
+                if (state.hasUnsavedChanges) {
+                    noteBlocked.visibility = View.VISIBLE
+                    noteBlockedUnsaved.visibility = View.GONE
+                } else {
+                    noteBlocked.visibility = View.GONE
+                    noteBlockedUnsaved.visibility = View.VISIBLE
+                }
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
                 buttonScroll.visibility = View.GONE
-            }
-
-            NoteEditState.BlockedUnsaved -> {
-                println("DEBUG: NoteEditFragment: Rendering blocked")
-                binding.noteEditProgressBar.visibility = View.GONE
-                noteBlocked.visibility = View.GONE
-                noteBlockedUnsaved.visibility = View.VISIBLE
-                noteScrollView.visibility = View.GONE
-                btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
-                btnLockIndicator.visibility = View.VISIBLE
-                buttonScroll.visibility = View.GONE
-            }
-
-            NoteEditState.ShowBiometricForSave -> {
-                println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSave")
-                viewModel.unlockAndSavePending(requireContext(), false)
-            }
-
-            NoteEditState.ShowBiometricForSaveOnExit -> {
-                println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSaveOnExit")
-                viewModel.unlockAndSavePending(requireContext(), true)
             }
         }
+    }
+
+    private fun renderEvent(event: NoteEditNavigationEvent?) {
+        println("DEBUG: NoteEditFragment: renderEvent: event=$event")
+        when (event) {
+            NoteEditNavigationEvent.NavigateBack -> {
+                println("DEBUG: NoteEditFragment: NavigateBack")
+                notSaveOnPause = true
+                findNavController().popBackStack()
+                viewModel.clearEvent()
+            }
+
+            is NoteEditNavigationEvent.ShareFile -> ShareHelper.shareFile(
+                requireContext(),
+                event.uri
+            )
+
+            is NoteEditNavigationEvent.ShowBiometric -> {
+                println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSave OnExit=${event.onExit}")
+                viewModel.unlockAndSavePending(requireContext(), event.onExit)
+                viewModel.clearEvent()
+            }
+
+            is NoteEditNavigationEvent.ShowMessage -> {
+                renderMessage(event.message)
+                viewModel.clearEvent()
+            }
+
+            is NoteEditNavigationEvent.ReopenNote -> {
+                val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
+                    noteId = event.newId,
+                    notebookPath = args.notebookPath
+                )
+                val navOptions = NavOptions.Builder()
+                    .setPopUpTo(R.id.noteEditFragment, inclusive = true)
+                    .build()
+                findNavController().navigate(action, navOptions)
+            }
+
+            null -> {}
+        }
+
     }
 
     private fun renderMessage(msg: String) =
@@ -419,7 +436,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
-
 
     override fun onPause() {
         super.onPause()

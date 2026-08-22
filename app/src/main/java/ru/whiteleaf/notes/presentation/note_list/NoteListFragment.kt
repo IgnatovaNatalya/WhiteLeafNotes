@@ -25,7 +25,7 @@ import ru.whiteleaf.notes.databinding.FragmentNoteListBinding
 import ru.whiteleaf.notes.domain.model.Note
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
-import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
+import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
@@ -228,7 +228,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     override fun onChangeNoteDate(note: Note) {
-        createDatePickerDialog(
+        createChangeDateDialog(
             note.modifiedAt,
             { date -> viewModel.updateNoteDate(note, date) }
         ).show(childFragmentManager, "date_picker")

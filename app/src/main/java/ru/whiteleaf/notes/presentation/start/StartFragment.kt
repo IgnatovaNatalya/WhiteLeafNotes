@@ -17,7 +17,7 @@ import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
-import ru.whiteleaf.notes.common.utils.DialogHelper.createDatePickerDialog
+import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.data.model.RecentNote
 
 class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteActionHandler,
@@ -213,7 +213,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onChangeNoteDate(note: Note) {
         println("DEBUG: StartFragment: option change date clicked")
-        val dialog = createDatePickerDialog(
+        val dialog = createChangeDateDialog(
             note.modifiedAt,
             { date -> viewModel.updateNoteDate(note, date) }
         )

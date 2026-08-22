@@ -145,12 +145,13 @@ class StartViewModel(
         println("DEBUG: StartVM: build start items, notebooks items count: ${notebookList.size} , showing ${notebooksToShow.size}")
 
         items.add(StartListItem.HeaderNotebooks)
-        items.add(StartListItem.DividerHeader)
 
         if (notebooksToShow.isEmpty()) {
+            items.add(StartListItem.DividerLine)
             items.add(StartListItem.CreateNotebook)
-            items.add(StartListItem.DividerLineBg)
+            items.add(StartListItem.DividerLine)
         } else {
+            items.add(StartListItem.DividerHeader)
             notebooksToShow.forEachIndexed { index, notebook ->
                 items.add(StartListItem.NotebookItem(notebook))
 
