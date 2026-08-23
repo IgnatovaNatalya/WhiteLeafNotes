@@ -12,6 +12,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -58,6 +59,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private lateinit var noteBlocked: LinearLayout
     private lateinit var noteBlockedUnsaved: LinearLayout
     private lateinit var btnLockIndicator: ImageButton
+    private lateinit var progressBar: ProgressBar
 
     private var windowFocusListener: ViewTreeObserver.OnWindowFocusChangeListener? = null
 
@@ -76,9 +78,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         buttonScroll = binding.noteScrollDown
         noteScrollView = binding.noteEditScrollView
         noteBlocked = binding.llBlocked
+        noteBlocked = binding.llBlocked
         noteBlockedUnsaved = binding.llBlockedUnsaved
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
+        progressBar = binding.noteEditProgressBar
 
 
         val backCallback = object : OnBackPressedCallback(true) {
@@ -131,11 +135,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             //при переходе фокуса, клавиатура скрывается системой
             //println("DEBUG: NoteEditFragment: Window focus gone,saving scroll")
 
-            viewModel.updateFullNote(
-                titleEditText.text.toString(),
-                contentEditText.text.toString(),
-                false
-            )
+//            viewModel.updateFullNote(
+//                titleEditText.text.toString(),
+//                contentEditText.text.toString(),
+//                false
+//            )
+            viewModel.updateNoteTitleIfChanged(titleEditText.text.toString())
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
 
@@ -145,7 +150,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
         } else if (wasInterrupted) {
             wasInterrupted = false
-            //println("DEBUG: NoteEditFragment: Window focus recieved")
+            //println("DEBUG: NoteEditFragment: Window focus received")
             viewModel.reloadNotePosition()
         }
     }
@@ -182,7 +187,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val textInput = titleEditText.text.toString()
-                viewModel.updateNoteTitle(textInput)
+                viewModel.updateNoteTitleIfChanged(textInput)
             }
         }
     }
@@ -296,7 +301,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             is NoteEditState.Success -> {
                 println("DEBUG: NoteEditFragment: Rendering note")
                 noteScrollView.visibility = View.VISIBLE
-                binding.noteEditProgressBar.visibility = View.GONE
+                progressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 toggleSecurePreview(state.isEncrypted)
@@ -339,7 +344,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             NoteEditState.Loading -> {
                 println("DEBUG: NoteEditFragment: Rendering loading")
                 noteScrollView.visibility = View.GONE
-                binding.noteEditProgressBar.visibility = View.VISIBLE
+                progressBar.visibility = View.VISIBLE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
@@ -348,7 +353,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             is NoteEditState.Error -> {
                 println("DEBUG: NoteEditFragment: Rendering error")
                 noteScrollView.visibility = View.GONE
-                binding.noteEditProgressBar.visibility = View.GONE
+                progressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
@@ -357,14 +362,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
             is NoteEditState.Blocked -> {
                 println("DEBUG: NoteEditFragment: Rendering blocked hasChanges=${state.hasUnsavedChanges}")
-                binding.noteEditProgressBar.visibility = View.GONE
+                progressBar.visibility = View.GONE
 
                 if (state.hasUnsavedChanges) {
-                    noteBlocked.visibility = View.VISIBLE
-                    noteBlockedUnsaved.visibility = View.GONE
-                } else {
                     noteBlocked.visibility = View.GONE
                     noteBlockedUnsaved.visibility = View.VISIBLE
+                } else {
+                    noteBlocked.visibility = View.VISIBLE
+                    noteBlockedUnsaved.visibility = View.GONE
                 }
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)

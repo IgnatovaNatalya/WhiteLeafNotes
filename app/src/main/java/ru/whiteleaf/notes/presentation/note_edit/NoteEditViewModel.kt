@@ -100,15 +100,7 @@ class NoteEditViewModel(
 
         if (_noteEditState.value !is NoteEditState.Success) return
 
-        if (currentNote != null) {
-            _noteEditState.postValue(
-                NoteEditState.Success(
-                    note,
-                    scrollPosition = currentScrollPosition ?: 0,
-                    isNotebookProtectedUseCase(note.notebookPath ?: "")
-                )
-            )
-        } else loadNote()
+        postNote(note)
     }
 
     private fun loadNote() {
@@ -118,9 +110,9 @@ class NoteEditViewModel(
             try {
                 val note = getNoteUseCase(noteId, notebookPath)
                 currentNote = note
-                println("DEBUG: NoteEditVM: Note loaded: ${note.printDebug()}")
-
                 if (currentScrollPosition == null) currentScrollPosition = getNoteScrollPosition()
+
+                println("DEBUG: NoteEditVM: Note loaded: ${note.printDebug()}. scroll=$currentScrollPosition")
 
                 postNote(note)
 
@@ -141,22 +133,17 @@ class NoteEditViewModel(
         _noteEditState.value = NoteEditState.Blocked(false)
     }
 
-    fun updateNoteTitle(newTitle: String) {
+    fun updateNoteTitleIfChanged(newTitle: String) {
         val note = currentNote ?: return
+        if (newTitle == note.title) return
 
         viewModelScope.launch {
             try {
                 println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote: ${currentNote?.printDebug()}")
-                if (newTitle != note.title) currentNote = renameNoteUseCase(note, newTitle)
+                currentNote = renameNoteUseCase(note, newTitle)
                 reopenNote(currentNote?.id ?: "")
-                //                _noteEditState.postValue(
-//                    NoteEditState.Success(
-//                        currentNote!!,
-//                        currentScrollPosition ?: 0,
-//                        isNotebookProtectedUseCase(note.notebookPath ?: "")
-//                    ),
-//                )
             } catch (e: Exception) {
+                postNote(note)  //если название изменить не удалось, возвращаем прежнее
                 showMessage("Ошибка при переименовании заметки: ${e.message}")
             }
         }
@@ -214,14 +201,14 @@ class NoteEditViewModel(
         val note = currentNote ?: return
 
         println(
-            "DEBUG: NoteEditVM: full upd on exit=$onExit, title=$title, content=${content.take(10)}"
+            "DEBUG: NoteEditVM: updateFullNote: title=$title, content=${content.take(10)} onExit=$onExit"
         )
 
         viewModelScope.launch {
             try {
                 val updatedNote = updateFullNoteUseCase(note, title, content)
                 showMessage("Заметка сохранена")
-                if (onExit) navigateBack() else reopenNote(updatedNote.id) //postNote(updatedNote)
+                if (onExit) navigateBack() //else reopenNote(updatedNote.id) //postNote(updatedNote)
 
             } catch (e: AuthenticationRequiredException) {
                 showBiometric(onExit)
@@ -376,13 +363,14 @@ class NoteEditViewModel(
                                     pendingSaveContent!!
                                 )
                         } else currentNote = renameNoteUseCase(note, pendingSaveTitle!!)
+                        reopenNote(currentNote?.id) //если менялся заголовок пеероткрываем заметеку
                     } else if (pendingSaveContent != null) {
                         val updatedNote = note.copy(content = pendingSaveContent!!)
                         saveNoteContentUseCase(updatedNote)
                         currentNote = updatedNote
-                        postNote(updatedNote)
+                        postNote(updatedNote) //если только контента - туже заметку отображаем обновленную
                     }
-                    if (thenExit) navigateBack() else reopenNote(currentNote?.id)
+                    if (thenExit) navigateBack()
                     pendingSaveContent = null
                     pendingSaveTitle = null
 
@@ -395,7 +383,9 @@ class NoteEditViewModel(
             _noteEditState.value = NoteEditState.Blocked(true)
             println("DEBUG: NoteEditVM: key not unlocked while unlockAndSavePending: ${e.message}")
         } catch (e: Exception) {
-            showMessage("Не удалось сохранить ${e.message}")
+            showMessage("Не удалось сохранить изменения${e.message}")
+            println("DEBUG: NoteEditVM: Не удалось сохранить изменения${e.message} отображаем ту же заметку")
+            postNote(note)
         }
     }
 
