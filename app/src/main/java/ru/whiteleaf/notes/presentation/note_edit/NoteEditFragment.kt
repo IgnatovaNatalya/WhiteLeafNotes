@@ -158,7 +158,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         binding.noteEditDate.setOnClickListener { changeNoteDate() }
 
         binding.unlockButton.setOnClickListener {
-            viewModel.unlockAndSavePendingContent(requireContext())
+            viewModel.unlockNote(requireContext())
         }
 
         binding.unlockAndSaveButton.setOnClickListener {
@@ -169,8 +169,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     fun changeNoteDate() {
-        //viewModel.updateNoteTitleIfChanged(titleEditText.text.toString())
-        //viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
         val note = viewModel.getNote() ?: return
         createChangeDateDialog(
             note.modifiedAt,
@@ -202,9 +200,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
     private fun onOptionsRenameNote() {
         titleEditText.requestFocus()
-
-//        (requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
-//            .showSoftInput(titleEditText, InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun onOptionsChangeNoteDate() = changeNoteDate()
@@ -351,6 +346,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
             is NoteEditNavigationEvent.ShowMessage -> {
                 renderMessage(event.message)
+                viewModel.clearEvent()
+            }
+
+            NoteEditNavigationEvent.ShowBiometric -> {
+                viewModel.unlockAndLoad(requireContext())
                 viewModel.clearEvent()
             }
 

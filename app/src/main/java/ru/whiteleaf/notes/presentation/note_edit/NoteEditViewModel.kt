@@ -56,12 +56,11 @@ class NoteEditViewModel(
     private var pendingSaveContent: String? = null
 
     private var currentScrollPosition: Int? = null
-    private var currentCursorPosition: Int = -1
 
     private var notebookList: List<Notebook> = emptyList()
 
     init {
-        loadNote()
+        viewModelScope.launch { loadNote() }
         loadNotebooks()
     }
 
@@ -79,14 +78,11 @@ class NoteEditViewModel(
 
     fun reloadNotePosition() {
         val note = currentNote ?: return
-
-        if (_noteEditState.value !is NoteEditState.Success) return
-
-        postNote(note)///
+        if (_noteEditState.value is NoteEditState.Success) postNote(note)
     }
 
-    private fun loadNote() {
-        if (noteId != null) viewModelScope.launch {
+    private suspend fun loadNote() {
+        if (noteId != null) {//viewModelScope.launch {
             _noteEditState.postValue(NoteEditState.Loading)
             println("DEBUG: NoteEditVM: Loading note id=$noteId path=$notebookPath")
             try {
@@ -101,7 +97,8 @@ class NoteEditViewModel(
                 if (note.isNotEmpty()) removeRecentNoteUseCase(note)
 
             } catch (e: AuthenticationRequiredException) {
-                _noteEditState.postValue(NoteEditState.Blocked(false))
+                //_noteEditState.postValue(NoteEditState.Blocked(false))
+                _navigationEvent.postValue(NoteEditNavigationEvent.ShowBiometric)
                 println("DEBUG: NoteEditVM: Key not unlocked while loading note: ${e.message}")
 
             } catch (e: Exception) {
@@ -150,7 +147,25 @@ class NoteEditViewModel(
         }
     }
 
-    fun unlockAndSavePendingContent(context: Context, reason: String? = null) {
+    fun unlockNote(context: Context) {
+        if (currentNote == null)
+            unlockAndLoad(context)
+        else
+            unlockAndSavePendingContent(context)
+    }
+
+    fun unlockAndLoad(context: Context) {
+        viewModelScope.launch {
+            val unlocked = if (notebookPath != null) unlockNotebookUseCase(
+                notebookPath, context, reason = "Для разблокирования"
+            ) else true
+
+            if (unlocked) loadNote()
+            else _noteEditState.postValue(NoteEditState.Blocked(false))
+        }
+    }
+
+    fun unlockAndSavePendingContent(context: Context) {
         val newContent = pendingSaveContent ?: return
         val note = currentNote ?: return
 
@@ -159,7 +174,7 @@ class NoteEditViewModel(
         viewModelScope.launch {
             try {
                 val unlocked = if (notebookPath != null) unlockNotebookUseCase(
-                    notebookPath, context, reason = reason ?: "Для редактирования"
+                    notebookPath, context, reason = "Для редактирования"
                 ) else true
 
                 if (unlocked) {
@@ -310,10 +325,6 @@ class NoteEditViewModel(
             settingsInteractor.getNoteScrollPosition(noteId, notebookPath ?: "") ?: 0
         } else 0
     }
-
-//    private fun reopenNote(newId: String?) {
-//        //if (newId != null) _navigationEvent.postValue(NoteEditNavigationEvent.ReopenNote(newId))
-//    }
 
     private fun showMessage(msg: String) =
         _navigationEvent.postValue(NoteEditNavigationEvent.ShowMessage(msg))
