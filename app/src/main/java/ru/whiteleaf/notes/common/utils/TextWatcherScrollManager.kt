@@ -18,7 +18,7 @@ object TextWatcherScrollManager {
         button.hide()
 
         val scrollCheck = {
-            val canScrollDown = scrollView.canScrollVertically(1)
+            val canScrollDown = scrollView.isVisible && scrollView.canScrollVertically(1)
             if (canScrollDown) {
                 button.show()
                 onVisibilityChanged?.invoke(true)
