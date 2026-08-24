@@ -1,27 +1,20 @@
 package ru.whiteleaf.notes.presentation.note_edit
 
 
-import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
@@ -34,8 +27,11 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
+import ru.whiteleaf.notes.common.utils.checkKeyboard
 import ru.whiteleaf.notes.common.utils.formatDate
-import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
+import ru.whiteleaf.notes.common.utils.hideKeyboard
+import ru.whiteleaf.notes.common.utils.showKeyboard
+import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
@@ -48,7 +44,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var isEditing = false
     private var notSaveOnPause = false
     private var wasInterrupted = false
-    private var isSaving = false
 
     private var lastCursorPosition = -1 //-1 если не была открыта клавиатура и не вводился текст
 
@@ -80,20 +75,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         noteBlocked = binding.llBlocked
         noteBlocked = binding.llBlocked
         noteBlockedUnsaved = binding.llBlockedUnsaved
-        btnLockIndicator =
-            (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
         progressBar = binding.noteEditProgressBar
 
+        btnLockIndicator =
+            (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-        val backCallback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                println("DEBUG: NoteEditFragment: OnBackPressedCallback called")
-                if (isSaving) return // уже сохраняем – игнорируем повторные нажатия
-                performSaveAndExit()
-            }
-        }
-
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
 
         setupWindowFocusChangeListener(view)
         setupOptionsMenu()
@@ -101,25 +87,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         setupEditTexts()
         setupScrollDown()
         setupClickListeners()
-    }
-
-    fun performSaveAndExit() {
-        println("DEBUG: NoteEditFragment: performSaveAndExit isSaving=$isSaving")
-        notSaveOnPause = true
-        isSaving = true
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            saveScrollPosition()
-            viewModel.saveToRecent()
-
-            viewModel.updateFullNote(
-                titleEditText.text.toString(),
-                contentEditText.text.toString(),
-                onExit = true
-            )
-            notSaveOnPause = false
-            isSaving = false
-        }
     }
 
 
@@ -135,12 +102,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             //при переходе фокуса, клавиатура скрывается системой
             //println("DEBUG: NoteEditFragment: Window focus gone,saving scroll")
 
-//            viewModel.updateFullNote(
-//                titleEditText.text.toString(),
-//                contentEditText.text.toString(),
-//                false
-//            )
-            viewModel.updateNoteTitleIfChanged(titleEditText.text.toString())
+            viewModel.updateNoteTitleIfChanged(titleEditText.text.toString()) //обновляем только заголовок, т.к. контент и так сохраняется при любом изменении
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
 
@@ -198,20 +160,17 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         binding.unlockButton.setOnClickListener {
             viewModel.unlockAndSavePendingContent(requireContext())
         }
+
         binding.unlockAndSaveButton.setOnClickListener {
-            viewModel.unlockAndSavePending(requireContext(), false)
+            viewModel.unlockAndSavePendingContent(requireContext())
         }
 
         binding.cancelButton.setOnClickListener { findNavController().popBackStack() }
     }
 
     fun changeNoteDate() {
-        viewModel.updateFullNote(
-            title = titleEditText.text.toString(),
-            content = contentEditText.text.toString(),
-            onExit = false
-        )
-        viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
+        //viewModel.updateNoteTitleIfChanged(titleEditText.text.toString())
+        //viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
         val note = viewModel.getNote() ?: return
         createChangeDateDialog(
             note.modifiedAt,
@@ -244,8 +203,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun onOptionsRenameNote() {
         titleEditText.requestFocus()
 
-        (requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
-            .showSoftInput(titleEditText, InputMethodManager.SHOW_IMPLICIT)
+//        (requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
+//            .showSoftInput(titleEditText, InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun onOptionsChangeNoteDate() = changeNoteDate()
@@ -274,18 +233,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     }
 
     private fun onOptionsShareNoteFile() {
-        if (noteIsNotEmpty()) {
-            viewModel.unlockAndFullSave(
-                requireContext(),
-                titleEditText.text.toString(),
-                contentEditText.text.toString()
-            )
-            viewModel.shareNoteFile()
-        } else renderMessage("Пустая заметка")
+        if (noteIsNotEmpty()) viewModel.shareFile(requireContext())
+        else renderMessage("Пустая заметка")
     }
-
-    private fun noteIsNotEmpty() =
-        titleEditText.text.toString().trim() != "" || contentEditText.text.toString().trim() != ""
 
     private fun onOptionsDeleteNote() {
         DialogHelper.createDeleteNoteConfirmationDialog(
@@ -299,12 +249,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         when (state) {
 
             is NoteEditState.Success -> {
-                println("DEBUG: NoteEditFragment: Rendering note")
+                println("DEBUG: NoteEditFragment: Rendering note, lastcursor=$lastCursorPosition")
                 noteScrollView.visibility = View.VISIBLE
                 progressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
-                toggleSecurePreview(state.isEncrypted)
+                toggleSecurePreview(requireActivity(), state.isEncrypted)
 
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
@@ -319,6 +269,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
                 binding.noteEditDate.text = formatDate(note.modifiedAt)
 
+                if (isEditing) showKeyboard(contentEditText)
+
                 if (contentEditText.text.toString() != note.content) {
                     isEditing = false
                     contentEditText.setText(note.content)
@@ -332,7 +284,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                         println("DEBUG: NoteEditFragment: Restore cursor $lastCursorPosition & showKeyboard ")
                         titleEditText.requestFocus()
                         contentEditText.requestFocus()
-                        showKeyboard()
+                        showKeyboard(contentEditText)
                         if (contentEditText.text.length >= lastCursorPosition) contentEditText.setSelection(
                             lastCursorPosition
                         ) else contentEditText.setSelection(contentEditText.text.length)
@@ -357,11 +309,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
+                buttonScroll.visibility = View.GONE
                 renderMessage(state.message)
             }
 
             is NoteEditState.Blocked -> {
                 println("DEBUG: NoteEditFragment: Rendering blocked hasChanges=${state.hasUnsavedChanges}")
+                hideKeyboard(contentEditText)
+
                 progressBar.visibility = View.GONE
 
                 if (state.hasUnsavedChanges) {
@@ -374,7 +329,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-                buttonScroll.visibility = View.GONE
+
             }
         }
     }
@@ -394,26 +349,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 event.uri
             )
 
-            is NoteEditNavigationEvent.ShowBiometric -> {
-                println("DEBUG: NoteEditFragment: Rendering ShowBiometricForSave OnExit=${event.onExit}")
-                viewModel.unlockAndSavePending(requireContext(), event.onExit)
-                viewModel.clearEvent()
-            }
-
             is NoteEditNavigationEvent.ShowMessage -> {
                 renderMessage(event.message)
                 viewModel.clearEvent()
-            }
-
-            is NoteEditNavigationEvent.ReopenNote -> {
-                val action = NoteListFragmentDirections.actionGlobalNoteEditFragment(
-                    noteId = event.newId,
-                    notebookPath = args.notebookPath
-                )
-                val navOptions = NavOptions.Builder()
-                    .setPopUpTo(R.id.noteEditFragment, inclusive = true)
-                    .build()
-                findNavController().navigate(action, navOptions)
             }
 
             null -> {}
@@ -424,65 +362,39 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private fun renderMessage(msg: String) =
         Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
 
-    private fun saveScrollPosition() {
-        val lastScrollPosition = noteScrollView.scrollY
-        viewModel.saveNoteScrollPosition(lastScrollPosition)
-        println("DEBUG: NoteEditFragment: Scroll saved to prefs: $lastScrollPosition")
-    }
-
-    fun toggleSecurePreview(isSecure: Boolean) {
-        println("DEBUG: toggleSecurePreview isSecure: $isSecure")
-        if (isSecure) {
-            requireActivity().window.setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-            )
-        } else {
-            requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        }
-    }
+    private fun noteIsNotEmpty() =
+        titleEditText.text.toString().trim() != "" || contentEditText.text.toString().trim() != ""
 
     override fun onPause() {
         super.onPause()
 
         if (!notSaveOnPause) {
-            //viewModel.updateNoteContent(contentEditText.text.toString())
-            //saveScrollPosition()
-            viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
+            viewModel.updateNoteContent(contentEditText.text.toString())
+            viewModel.saveNoteScrollPosition(noteScrollView.scrollY)
+            //viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             viewModel.saveToRecent()
-            //println("Debug: NoteEditFragment: Saved content on pause")
+            println("Debug: NoteEditFragment: Saved content on pause")
         } else println("Debug: NoteEditFragment: Paused and not saved")
     }
 
-    fun checkKeyboard(editText: EditText): Boolean {
-        val imm =
-            editText.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        return imm.isAcceptingText
-    }
 
-    fun showKeyboard() {
-        val imm =
-            contentEditText.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(contentEditText, InputMethodManager.SHOW_IMPLICIT)
-    }
+//    override fun onDestroyView() {
+//        clearListeners()
+//        super.onDestroyView()
+//    }
 
-    override fun onDestroyView() {
-        clearListeners()
-        super.onDestroyView()
-    }
+    //   private fun clearListeners() {
+    // 1. Удаляем слушатель с optionsButton (из Activity)
+    //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
+    //optionsButton?.setOnClickListener(null)
 
-    private fun clearListeners() {
-        // 1. Удаляем слушатель с optionsButton (из Activity)
-        //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
-        //optionsButton?.setOnClickListener(null)
+    // 2. Удаляем слушатель с btnLockIndicator (из Activity)
+    //btnLockIndicator.setOnClickListener(null)
 
-        // 2. Удаляем слушатель с btnLockIndicator (из Activity)
-        //btnLockIndicator.setOnClickListener(null)
-
-        // 3. Удаляем OnWindowFocusChangeListener
-        windowFocusListener?.let {
-            binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
-        }
-        windowFocusListener = null
-    }
+    // 3. Удаляем OnWindowFocusChangeListener
+//        windowFocusListener?.let {
+//            binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
+//        }
+//        windowFocusListener = null
+//    }
 }

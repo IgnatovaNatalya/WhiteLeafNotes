@@ -32,7 +32,6 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
-import ru.whiteleaf.notes.presentation.note_edit.NoteEditFragment
 
 class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
@@ -179,11 +178,6 @@ class RootActivity : AppCompatActivity() {
             }
         }
 
-        menuViewModel.isLoading.observe(this) { isLoading ->
-            // todo индикатор загрузки
-            // if (isLoading) { }
-        }
-
         menuViewModel.navigateToCreatedNote.observe(this) { note ->
             note?.let {
                 navigateToCreatedNote(note)
@@ -240,13 +234,13 @@ class RootActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
-        val currentFragment = navHostFragment?.childFragmentManager?.fragments?.firstOrNull()
+//        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+//        val currentFragment = navHostFragment?.childFragmentManager?.fragments?.firstOrNull()
 
-        if (currentFragment is NoteEditFragment) {
-            currentFragment.performSaveAndExit()
-            return true
-        }
+//        if (currentFragment is NoteEditFragment) {
+//            currentFragment.performSaveAndExit()
+//            return true
+//        }
 
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }

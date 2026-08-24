@@ -22,7 +22,6 @@ import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
-import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 
 class NoteEditViewModel(
@@ -31,7 +30,6 @@ class NoteEditViewModel(
     private val renameNoteUseCase: RenameNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val saveNoteContentUseCase: SaveNoteContentUseCase,
-    private val updateFullNoteUseCase: UpdateFullNoteUseCase,
     private val shareNoteFileUseCase: ShareNoteFileUseCase,
     private val updateNoteDateUseCase: UpdateNoteDateUseCase,
     private val noteId: String?,
@@ -50,27 +48,11 @@ class NoteEditViewModel(
     private val _navigationEvent = MutableLiveData<NoteEditNavigationEvent?>()
     val navigationEvent: LiveData<NoteEditNavigationEvent?> = _navigationEvent
 
-//    private val _note = MutableLiveData<Note>()
-//    val note: LiveData<Note> = _note
-
     private var currentNote: Note? = null
     fun getNote() = currentNote
 
-//    private val _isNotebookProtected = MutableLiveData<Boolean>()
-//    val isNotebookProtected: LiveData<Boolean> = _isNotebookProtected
-
-//    private val _noteFile = MutableLiveData<Uri?>()
-//    val noteFile: LiveData<Uri?> = _noteFile
-//
-//    private val _navigateBack = MutableLiveData<Boolean>()
-//    val navigateBack: LiveData<Boolean> = _navigateBack
-//
-//    private val _message = MutableLiveData<String?>()
-//    val message: LiveData<String?> = _message
-
     private val _isDateUpdating = MutableStateFlow(false)
 
-    private var pendingSaveTitle: String? = null
     private var pendingSaveContent: String? = null
 
     private var currentScrollPosition: Int? = null
@@ -100,7 +82,7 @@ class NoteEditViewModel(
 
         if (_noteEditState.value !is NoteEditState.Success) return
 
-        postNote(note)
+        postNote(note)///
     }
 
     private fun loadNote() {
@@ -141,7 +123,7 @@ class NoteEditViewModel(
             try {
                 println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote: ${currentNote?.printDebug()}")
                 currentNote = renameNoteUseCase(note, newTitle)
-                reopenNote(currentNote?.id ?: "")
+                //reopenNote(currentNote?.id ?: "")
             } catch (e: Exception) {
                 postNote(note)  //если название изменить не удалось, возвращаем прежнее
                 showMessage("Ошибка при переименовании заметки: ${e.message}")
@@ -159,11 +141,42 @@ class NoteEditViewModel(
                 currentNote = note.copy(content = content)
             } catch (e: AuthenticationRequiredException) {
                 pendingSaveContent = content
-                _noteEditState.value = NoteEditState.Blocked(true)
+                _noteEditState.postValue(NoteEditState.Blocked(false))
                 println("DEBUG: NoteEditVM: key not unlocked while updating: ${e.message}")
             } catch (e: Exception) {
                 showMessage("Ошибка при сохранении текста заметки: ${e.message}")
                 println("DEBUG: NoteEditVM: error: ${e.message}")
+            }
+        }
+    }
+
+    fun unlockAndSavePendingContent(context: Context, reason: String? = null) {
+        val newContent = pendingSaveContent ?: return
+        val note = currentNote ?: return
+
+        println("DEBUG: NoteEditVM: unlockAndSavePendingContent: ${currentNote?.printDebug()}")
+
+        viewModelScope.launch {
+            try {
+                val unlocked = if (notebookPath != null) unlockNotebookUseCase(
+                    notebookPath, context, reason = reason ?: "Для редактирования"
+                ) else true
+
+                if (unlocked) {
+                    val updatedNote = note.copy(content = newContent)
+                    saveNoteContentUseCase(updatedNote)
+                    postNote(updatedNote)
+                    currentNote = updatedNote
+                    pendingSaveContent = null
+                } else {
+                    _noteEditState.postValue(NoteEditState.Blocked(true))
+                }
+            } catch (e: AuthenticationRequiredException) {
+                _noteEditState.postValue(NoteEditState.Blocked(true))
+                println("DEBUG: NoteEditVM: key not unlocked while updating: ${e.message}")
+            } catch (e: Exception) {
+                showMessage("Ошибка при сохранении текста заметки: ${e.message}")
+                println("DEBUG: NoteEditVM: unlockAndSavePendingContent: error: ${e.message}")
             }
         }
     }
@@ -185,40 +198,14 @@ class NoteEditViewModel(
                         isNotebookProtectedUseCase(note.notebookPath ?: "")
                     )
                 )
-                showMessage("Дата заметки обновлена")
-            } catch (e: AuthenticationRequiredException) {
-                _noteEditState.value = NoteEditState.Blocked(false)
-                println("DEBUG: NoteEditVM: key not unlocked while date: ${e.message}")
+                showMessage("Дата заметки обновлена")///
+//            } catch (e: AuthenticationRequiredException) { по идее не должно быть
+//                _noteEditState.value = NoteEditState.Blocked(false)
+//                println("DEBUG: NoteEditVM: key not unlocked while date: ${e.message}")
             } catch (e: Exception) {
                 showMessage("Ошибка обновления даты: ${e.message}")
             } finally {
                 _isDateUpdating.value = false
-            }
-        }
-    }
-
-    fun updateFullNote(title: String, content: String, onExit: Boolean) { //основной
-        val note = currentNote ?: return
-
-        println(
-            "DEBUG: NoteEditVM: updateFullNote: title=$title, content=${content.take(10)} onExit=$onExit"
-        )
-
-        viewModelScope.launch {
-            try {
-                val updatedNote = updateFullNoteUseCase(note, title, content)
-                showMessage("Заметка сохранена")
-                if (onExit) navigateBack() //else reopenNote(updatedNote.id) //postNote(updatedNote)
-
-            } catch (e: AuthenticationRequiredException) {
-                showBiometric(onExit)
-                println("DEBUG: NoteEditVM: Authentication required while updating full note onExit=$onExit: ${e.message}")
-                if (content != note.content) pendingSaveContent = content
-                if (title != note.title) pendingSaveTitle = title
-            } catch (e: Exception) {
-                println("DEBUG: NoteEditVM: Error updating full note onExit=$onExit: ${e.message}")
-                showMessage("Ошибка сохранения заметки: ${e.message}")
-                postNote(note)
             }
         }
     }
@@ -236,10 +223,6 @@ class NoteEditViewModel(
     private fun navigateBack() =
         _navigationEvent.postValue(NoteEditNavigationEvent.NavigateBack)
 
-    private fun showBiometric(onExit: Boolean) {
-        _navigationEvent.value = NoteEditNavigationEvent.ShowBiometric(onExit)
-    }
-
     fun saveToRecent() {
         val note = currentNote ?: return
         viewModelScope.launch {
@@ -251,14 +234,20 @@ class NoteEditViewModel(
         }
     }
 
-    fun shareNoteFile() {
+    fun shareFile(context: Context) {
         val note = currentNote ?: return
         viewModelScope.launch {
             try {
-                val file = shareNoteFileUseCase(note)
-                _navigationEvent.value = NoteEditNavigationEvent.ShareFile(file)
+                val unlocked = if (notebookPath != null)
+                    unlockNotebookUseCase(notebookPath, context, "Для экспорта") else true
+
+                if (unlocked) _navigationEvent.postValue(
+                    NoteEditNavigationEvent.ShareFile(shareNoteFileUseCase(note))
+                )
+                else _noteEditState.postValue(NoteEditState.Blocked(false))
+
             } catch (e: Exception) {
-                showMessage("Ошибка передачи файла заметки: ${e.message}")
+                showMessage("Ошибка при экспорте заметки: ${e.message}")
             }
         }
     }
@@ -322,116 +311,9 @@ class NoteEditViewModel(
         } else 0
     }
 
-    fun unlockAndSavePendingContent(context: Context, reason: String? = null) {
-        viewModelScope.launch {
-            val unlocked = if (notebookPath != null) unlockNotebookUseCase(
-                notebookPath,
-                context,
-                reason = reason ?: "Для редактирования"
-            ) else true
-            if (unlocked) {
-                if (pendingSaveContent != null) {
-                    updateNoteContent(pendingSaveContent!!)
-                    pendingSaveContent = null
-                } else {
-                    loadNote()
-                }
-            } else {
-                _noteEditState.postValue(NoteEditState.Error("Не удалось разблокировать записную книжку"))
-            }
-        }
-    }
-
-    fun unlockAndSavePending(context: Context, thenExit: Boolean) {
-        val note = currentNote ?: return
-        try {
-            viewModelScope.launch {
-
-                val unlocked = if (notebookPath != null) unlockNotebookUseCase(
-                    notebookPath,
-                    context,
-                    reason = if (thenExit) "Для сохранения перед выходом" else "Для продолжения операции"
-                ) else true
-
-                if (unlocked) {
-                    if (pendingSaveTitle != null) {
-                        if (pendingSaveContent != null) {
-                            currentNote =
-                                updateFullNoteUseCase(
-                                    note,
-                                    pendingSaveTitle!!,
-                                    pendingSaveContent!!
-                                )
-                        } else currentNote = renameNoteUseCase(note, pendingSaveTitle!!)
-                        reopenNote(currentNote?.id) //если менялся заголовок пеероткрываем заметеку
-                    } else if (pendingSaveContent != null) {
-                        val updatedNote = note.copy(content = pendingSaveContent!!)
-                        saveNoteContentUseCase(updatedNote)
-                        currentNote = updatedNote
-                        postNote(updatedNote) //если только контента - туже заметку отображаем обновленную
-                    }
-                    if (thenExit) navigateBack()
-                    pendingSaveContent = null
-                    pendingSaveTitle = null
-
-                } else {
-                    _noteEditState.postValue(NoteEditState.Blocked(true))
-                    showMessage("Не удалось разблокировать")
-                }
-            }
-        } catch (e: AuthenticationRequiredException) {
-            _noteEditState.value = NoteEditState.Blocked(true)
-            println("DEBUG: NoteEditVM: key not unlocked while unlockAndSavePending: ${e.message}")
-        } catch (e: Exception) {
-            showMessage("Не удалось сохранить изменения${e.message}")
-            println("DEBUG: NoteEditVM: Не удалось сохранить изменения${e.message} отображаем ту же заметку")
-            postNote(note)
-        }
-    }
-
-    fun unlockAndFullSave(context: Context, title: String, content: String): Boolean {
-        val note = currentNote ?: return false
-        var saved = false
-        try {
-            viewModelScope.launch {
-                val unlocked = if (notebookPath != null) unlockNotebookUseCase(
-                    notebookPath,
-                    context,
-                    reason = "Для экспорта"
-                ) else true
-
-                saved = if (unlocked) {
-                    if (title != note.title) {
-                        if (content != note.content) {
-                            currentNote = updateFullNoteUseCase(note, title, content)
-                        } else {
-                            currentNote = renameNoteUseCase(note, title)
-                        }
-                        reopenNote(currentNote?.id)
-                    } else if (content != note.content) {
-                        val updatedNote = note.copy(content = content)
-                        saveNoteContentUseCase(updatedNote)
-                        postNote(updatedNote)
-                    }
-                    true
-                } else {
-                    _noteEditState.postValue(NoteEditState.Blocked(true))
-                    showMessage("Не удалось разблокировать")
-                    false
-                }
-            }
-        } catch (e: AuthenticationRequiredException) {
-            _noteEditState.value = NoteEditState.Blocked(true)
-            println("DEBUG: NoteEditVM: key not unlocked while unlockAndFullSave: ${e.message}")
-        } catch (e: Exception) {
-            showMessage("Не удалось сохранить ${e.message}")
-        }
-        return saved
-    }
-
-    private fun reopenNote(newId: String?) {
-        if (newId != null) _navigationEvent.postValue(NoteEditNavigationEvent.ReopenNote(newId))
-    }
+//    private fun reopenNote(newId: String?) {
+//        //if (newId != null) _navigationEvent.postValue(NoteEditNavigationEvent.ReopenNote(newId))
+//    }
 
     private fun showMessage(msg: String) =
         _navigationEvent.postValue(NoteEditNavigationEvent.ShowMessage(msg))
@@ -439,7 +321,6 @@ class NoteEditViewModel(
     fun clearEvent() {
         _navigationEvent.value = null
     }
-//
-//    fun clearMessage() = _message.postValue(null)
+
 }
 

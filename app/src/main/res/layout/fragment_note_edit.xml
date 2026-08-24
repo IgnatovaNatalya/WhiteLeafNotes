@@ -187,6 +187,7 @@
         android:paddingTop="3dp"
         android:scaleType="centerInside"
         android:src="@drawable/ic_down"
+        android:visibility="gone"
         app:layout_anchor="@id/note_edit_scroll_view"
         app:layout_anchorGravity="bottom|end" />
 
