@@ -55,7 +55,8 @@
     <string name="protect">Зашифровать</string>
     <string name="unprotect">Снять защиту</string>
 
-    <string name="notebook_blocked_title">Записная книжка защищена</string>
+    <string name="notebook_blocked_title">Записная книжка\nзащищена</string>
+    <string name="notebook_blocked_subtitle">Эта записная книжка защищена. Для просмотра и редактирования нажмите кнопку</string>
     <string name="note_blocked_title">Заметка защищена</string>
     <string name="note_blocked_subtitle">Вы находитесь в защищенной записной книжке. Для редактирования нажмите кнопку</string>
 

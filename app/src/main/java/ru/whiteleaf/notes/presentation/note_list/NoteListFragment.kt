@@ -275,8 +275,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun reopenNotebook(newPath: String) {
-//        val action = NoteListFragmentDirections.actionGlobalNoteListFragment(path)
-//        findNavController().navigate(action)
         val action = NoteListFragmentDirections.actionGlobalNoteListFragment(newPath)
         val navOptions = NavOptions.Builder()
             .setPopUpTo(R.id.noteListFragment, inclusive = true) // удаляем текущий NoteListFragment

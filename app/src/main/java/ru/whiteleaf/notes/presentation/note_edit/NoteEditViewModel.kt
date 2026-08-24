@@ -157,7 +157,7 @@ class NoteEditViewModel(
     fun unlockAndLoad(context: Context) {
         viewModelScope.launch {
             val unlocked = if (notebookPath != null) unlockNotebookUseCase(
-                notebookPath, context, reason = "Для разблокирования"
+                notebookPath, context, title ="Заметка защищена", reason = "Для разблокирования"
             ) else true
 
             if (unlocked) loadNote()
@@ -254,10 +254,12 @@ class NoteEditViewModel(
         viewModelScope.launch {
             try {
                 val unlocked = if (notebookPath != null)
-                    unlockNotebookUseCase(notebookPath, context, "Для экспорта") else true
+                    unlockNotebookUseCase(notebookPath, context, reason = "Для экспорта") else true
+
+                val file = shareNoteFileUseCase(note)
 
                 if (unlocked) _navigationEvent.postValue(
-                    NoteEditNavigationEvent.ShareFile(shareNoteFileUseCase(note))
+                    NoteEditNavigationEvent.ShareFile(file)
                 )
                 else _noteEditState.postValue(NoteEditState.Blocked(false))
 

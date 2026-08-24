@@ -11,9 +11,9 @@
         android:id="@+id/note_list_progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:indeterminateTint="@color/accent_blue"
         android:layout_marginBottom="48dp"
+        android:indeterminateTint="@color/accent_blue"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -25,17 +25,29 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:visibility="gone"
+        android:paddingHorizontal="16dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            style="@style/DialogTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="8dp"
             android:gravity="center"
-            android:text="@string/note_blocked_title" />
+            android:text="@string/notebook_blocked_title"
+            android:textColor="?attr/android:textColorPrimary" />
+
+        <TextView
+            style="@style/DialogSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
+            android:gravity="center"
+            android:text="@string/notebook_blocked_subtitle"
+            android:textColor="?attr/android:textColorSecondary" />
 
         <Button
             android:id="@+id/unlockButton"
@@ -45,8 +57,8 @@
             android:layout_marginVertical="8dp"
             android:background="@drawable/bg_button_round"
             android:padding="0dp"
-            android:textColor="?attr/colorOnPrimary"
-            android:text="@string/unlock" />
+            android:text="@string/unlock"
+            android:textColor="?attr/colorOnPrimary" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -55,10 +67,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="vertical"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:itemCount="3"
-        android:visibility="gone"
         tools:listitem="item_note_in_list" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -66,25 +78,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="4"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:itemCount="12"
         android:paddingHorizontal="12dp"
         android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:spanCount="4"
+        tools:itemCount="12"
         tools:listitem="@layout/item_planner_note" />
 
     <TextView
         android:id="@+id/empty_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="@string/no_notes"
         android:visibility="gone"
-        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -97,7 +109,7 @@
         app:backgroundTint="?attr/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:tint="?attr/colorOnPrimary"
-        app:shapeAppearanceOverlay="@style/FabRoundedOverlay" />
+        app:shapeAppearanceOverlay="@style/FabRoundedOverlay"
+        app:tint="?attr/colorOnPrimary" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
