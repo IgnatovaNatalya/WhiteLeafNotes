@@ -283,7 +283,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                         if (contentEditText.text.length >= lastCursorPosition) contentEditText.setSelection(
                             lastCursorPosition
                         ) else contentEditText.setSelection(contentEditText.text.length)
-                        lastCursorPosition = -1
+                        //lastCursorPosition = -1
                     }
                 }
             }

@@ -10,7 +10,7 @@
         android:id="@+id/startFragment"
         android:name="ru.whiteleaf.notes.presentation.start.StartFragment"
         android:label="Заметки и записные книжки"
-        tools:layout="@layout/fragment_start" >
+        tools:layout="@layout/fragment_start">
         <action
             android:id="@+id/action_startFragment_to_noteListFragment"
             app:destination="@id/noteListFragment"
@@ -24,26 +24,26 @@
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_startFragment_to_settingsFragment"
             app:destination="@id/settingsFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
         android:id="@+id/noteListFragment"
         android:name="ru.whiteleaf.notes.presentation.note_list.NoteListFragment"
         android:label="@string/fragment_note_list_label"
-        tools:layout="@layout/fragment_note_list" >
+        tools:layout="@layout/fragment_note_list">
         <argument
             android:name="notebookPath"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
         <action
             android:id="@+id/action_noteListFragment_to_noteEditFragment"
             app:destination="@id/noteEditFragment"
@@ -57,19 +57,19 @@
         android:id="@+id/noteEditFragment"
         android:name="ru.whiteleaf.notes.presentation.note_edit.NoteEditFragment"
         android:label=""
-        tools:layout="@layout/fragment_note_edit" >
+        tools:layout="@layout/fragment_note_edit">
 
         <argument
             android:name="noteId"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
 
         <argument
             android:name="notebookPath"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
 
         <deepLink
             android:id="@+id/deepLink"
@@ -88,7 +88,7 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"/>
+        app:popExitAnim="@anim/slide_out_right" />
 
     <action
         android:id="@+id/action_global_startFragment"
@@ -96,7 +96,7 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"/>
+        app:popExitAnim="@anim/slide_out_right" />
 
     <action
         android:id="@+id/action_global_noteListFragment"
@@ -113,7 +113,7 @@
         app:enterAnim="@anim/slide_in_bottom"
         app:exitAnim="@anim/slide_out_left"
         app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right"/>
+        app:popExitAnim="@anim/slide_out_right" />
 
     <fragment
         android:id="@+id/settingsFragment"
@@ -125,7 +125,14 @@
         android:id="@+id/notebooksFragment"
         android:name="ru.whiteleaf.notes.presentation.notebooks.NotebooksFragment"
         android:label="Записные книжки"
-        tools:layout="@layout/fragment_notebooks"/>
-
+        tools:layout="@layout/fragment_notebooks">
+        <action
+            android:id="@+id/action_notebooksFragment_to_noteListFragment"
+            app:destination="@id/noteListFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
 
 </navigation>
