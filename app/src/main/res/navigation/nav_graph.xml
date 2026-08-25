@@ -131,7 +131,7 @@
     <fragment
         android:id="@+id/notebooksFragment"
         android:name="ru.whiteleaf.notes.presentation.notebooks.NotebooksFragment"
-        android:label="Записные книжки"
+        android:label="Все записные книжки"
         tools:layout="@layout/fragment_notebooks">
         <action
             android:id="@+id/action_notebooksFragment_to_noteListFragment"

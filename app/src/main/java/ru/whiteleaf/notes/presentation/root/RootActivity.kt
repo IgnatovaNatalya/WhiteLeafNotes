@@ -90,7 +90,7 @@ class RootActivity : AppCompatActivity() {
                 R.id.notebooksFragment -> {
                     startHeader.visibility = View.GONE
                     lockIndicatorButton.visibility = View.GONE
-                    optionsButton.visibility = View.VISIBLE
+                    optionsButton.visibility = View.GONE
                     searchButton.visibility = View.VISIBLE
                     supportActionBar?.subtitle = null
                 }
