@@ -85,7 +85,6 @@ class RootActivity : AppCompatActivity() {
                     lockIndicatorButton.visibility = View.VISIBLE
                     optionsButton.visibility = View.VISIBLE
                     searchButton.visibility = View.GONE
-                    supportActionBar?.subtitle = "Записная книжка"
                 }
 
                 R.id.notebooksFragment -> {
@@ -138,9 +137,7 @@ class RootActivity : AppCompatActivity() {
 
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.startFragment,
-                R.id.settingsFragment,
-                R.id.notebooksFragment
+                R.id.startFragment
             ),
             drawerLayout
         )
@@ -233,15 +230,6 @@ class RootActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-
-//        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
-//        val currentFragment = navHostFragment?.childFragmentManager?.fragments?.firstOrNull()
-
-//        if (currentFragment is NoteEditFragment) {
-//            currentFragment.performSaveAndExit()
-//            return true
-//        }
-
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 

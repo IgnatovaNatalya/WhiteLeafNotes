@@ -54,10 +54,16 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         super.onViewCreated(view, savedInstanceState)
 
         navigateToNote = false
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = args.notebookPath
         notebookPath = args.notebookPath.toString()
+
+        val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
+
+        actionBar?.title = notebookPath
+        if (notebookPath !="") actionBar?.subtitle = "Записная книжка"
+
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
+
         isPlannerView = viewModel.getViewMode()
         println("DEBUG: Fragment onViewCreated viewMode is planner = $isPlannerView")
 
@@ -286,19 +292,11 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         println("👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
             is NoteListState.Success -> {
-
-                (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
-                    if (isPlannerView) "Планирование" else "Записная книжка"
-
                 if (isPlannerView) {
-                    (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
-                        "Планирование"
                     binding.recyclerViewList.visibility = View.GONE
                     binding.recyclerViewPlanner.visibility = View.VISIBLE
                     plannerAdapter.submitList(state.notes)
                 } else {
-                    (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
-                        "Записная книжка"
                     binding.recyclerViewList.visibility = View.VISIBLE
                     binding.recyclerViewPlanner.visibility = View.GONE
                     noteLinearAdapter.submitList(state.notes)

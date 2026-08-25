@@ -114,9 +114,10 @@ object ContextMenuHelper {
     fun getNotebookContextMenuItems(context: Context, notebook: Notebook): List<ContextMenuItem> {
         return listOf(
             createMenuItem(context, R.id.context_menu_rename),
-            if (!notebook.isEncrypted) createMenuItem(context, R.id.context_menu_encrypt)
-            else createMenuItem(context, R.id.context_menu_decrypt),
-            createMenuItem(context, R.id.context_menu_pin),
+            if (notebook.isEncrypted) createMenuItem(context, R.id.context_menu_decrypt)
+            else createMenuItem(context, R.id.context_menu_encrypt),
+            if (notebook.isPinned) createMenuItem( context, R.id.context_menu_unpin)
+            else createMenuItem(context, R.id.context_menu_pin),
             createMenuItem(context, R.id.context_menu_export),
             createMenuItem(context, R.id.context_menu_delete)
         )
