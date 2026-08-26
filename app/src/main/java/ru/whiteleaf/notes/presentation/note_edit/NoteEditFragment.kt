@@ -80,7 +80,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-
+        setupSecurityPreview()
         setupWindowFocusChangeListener(view)
         setupOptionsMenu()
         setupObservers()
@@ -89,6 +89,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         setupClickListeners()
     }
 
+
+    private fun setupSecurityPreview() {
+        toggleSecurePreview(requireActivity(), viewModel.getEncryptionStatus())
+    }
 
     private fun setupWindowFocusChangeListener(view: View) {
         windowFocusListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
@@ -249,7 +253,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 progressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
-                toggleSecurePreview(requireActivity(), state.isEncrypted)
 
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
@@ -339,10 +342,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 viewModel.clearEvent()
             }
 
-            is NoteEditNavigationEvent.ShareFile -> ShareHelper.shareFile(
-                requireContext(),
-                event.uri
-            )
+            is NoteEditNavigationEvent.ShareFile ->
+                ShareHelper.shareFile( requireContext(), event.uri)
 
             is NoteEditNavigationEvent.ShowMessage -> {
                 renderMessage(event.message)
@@ -356,7 +357,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
             null -> {}
         }
-
     }
 
     private fun renderMessage(msg: String) =
@@ -369,11 +369,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
 
         if (!notSaveOnPause) {
-            viewModel.updateNoteContent(contentEditText.text.toString())
+            //viewModel.updateNoteContent(contentEditText.text.toString())
             viewModel.saveNoteScrollPosition(noteScrollView.scrollY)
             //viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             viewModel.saveToRecent()
-            println("Debug: NoteEditFragment: Saved content on pause")
+            println("Debug: NoteEditFragment: Saved scroll and recent on pause")
         } else println("Debug: NoteEditFragment: Paused and not saved")
     }
 

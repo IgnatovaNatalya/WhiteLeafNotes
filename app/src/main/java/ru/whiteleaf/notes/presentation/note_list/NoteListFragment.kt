@@ -26,6 +26,7 @@ import ru.whiteleaf.notes.domain.model.Note
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
+import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
@@ -56,6 +57,16 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         navigateToNote = false
         notebookPath = args.notebookPath.toString()
 
+        setupTitleAndViewMode()
+        setupObservers()
+        setupOptionsMenu()
+        setupListRecyclerView()
+        setupPlannerRecyclerView()
+        setupFab()
+        setupUnlockButton()
+    }
+
+    private fun setupTitleAndViewMode() {
         val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
 
         actionBar?.title = notebookPath
@@ -67,15 +78,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         isPlannerView = viewModel.getViewMode()
         println("DEBUG: Fragment onViewCreated viewMode is planner = $isPlannerView")
 
-        setupObservers()
-        setupOptionsMenu()
-        setupListRecyclerView()
-        setupPlannerRecyclerView()
-        setupFab()
-        setupSecurityUI()
+        toggleSecurePreview(requireActivity(), viewModel.getEncryptionStatus())
     }
 
-    private fun setupSecurityUI() {
+    private fun setupUnlockButton() {
         binding.unlockButton.setOnClickListener {
             viewModel.unlockNotebook(requireActivity())
         }

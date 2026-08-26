@@ -69,14 +69,22 @@ class NoteListViewModel(
 
     private var notebookList: List<Notebook> = emptyList()
 
+
+
     val exportPath =
         "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
     init {
+
         loadViewMode()
         loadNotes()
         saveLastOpenedNotebook()
         loadNotebooks()
+
+    }
+
+    fun getEncryptionStatus():Boolean {
+        return isNotebookProtectedUseCase(notebookPath?:"")
     }
 
     private fun loadNotebooks() {

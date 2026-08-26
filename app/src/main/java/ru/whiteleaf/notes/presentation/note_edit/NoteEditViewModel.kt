@@ -64,6 +64,10 @@ class NoteEditViewModel(
         loadNotebooks()
     }
 
+    fun getEncryptionStatus():Boolean {
+        return isNotebookProtectedUseCase(notebookPath?:"")
+    }
+
     private fun loadNotebooks() {
         viewModelScope.launch {
             try {
@@ -120,6 +124,7 @@ class NoteEditViewModel(
             try {
                 println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote: ${currentNote?.printDebug()}")
                 currentNote = renameNoteUseCase(note, newTitle)
+                postNote(currentNote!!)
                 //reopenNote(currentNote?.id ?: "")
             } catch (e: Exception) {
                 postNote(note)  //если название изменить не удалось, возвращаем прежнее

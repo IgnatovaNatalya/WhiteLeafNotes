@@ -18,6 +18,7 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
+import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.data.model.RecentNote
 
 class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteActionHandler,
@@ -34,6 +35,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        toggleSecurePreview(requireActivity(), false) //на стартовом экране всегда не зашифровано
 
         setupFab()
         setupRecyclerView()
