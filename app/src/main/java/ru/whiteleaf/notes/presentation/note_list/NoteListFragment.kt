@@ -70,7 +70,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
 
         actionBar?.title = notebookPath
-        if (notebookPath !="") actionBar?.subtitle = "Записная книжка"
+        if (notebookPath != "") actionBar?.subtitle = "Записная книжка"
 
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
@@ -83,7 +83,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun setupUnlockButton() {
         binding.unlockButton.setOnClickListener {
-            viewModel.unlockNotebook(requireActivity())
+            viewModel.unlockNotebook(requireActivity(),"Для просмотра")
         }
     }
 
@@ -101,7 +101,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun navigateEvent(event: NoteListNavigationEvent) {
         when (event) {
-
             is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
 
             is NoteListNavigationEvent.NavigateToNote -> {
@@ -111,9 +110,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
             is NoteListNavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
 
-            NoteListNavigationEvent.Idle -> {}
             NoteListNavigationEvent.NavigateUp -> findNavController().navigateUp()
-            NoteListNavigationEvent.ShowBiometric -> viewModel.unlockNotebook(requireActivity())
+
+            is NoteListNavigationEvent.ShowBiometric ->
+                viewModel.unlockNotebook(requireActivity(), event.message)
+
+            NoteListNavigationEvent.Idle -> {}
         }
         viewModel.onNavigated()
     }

@@ -70,21 +70,18 @@ class NoteListViewModel(
     private var notebookList: List<Notebook> = emptyList()
 
 
-
     val exportPath =
         "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
     init {
-
         loadViewMode()
         loadNotes()
         saveLastOpenedNotebook()
         loadNotebooks()
-
     }
 
-    fun getEncryptionStatus():Boolean {
-        return isNotebookProtectedUseCase(notebookPath?:"")
+    fun getEncryptionStatus(): Boolean {
+        return isNotebookProtectedUseCase(notebookPath ?: "")
     }
 
     private fun loadNotebooks() {
@@ -129,7 +126,7 @@ class NoteListViewModel(
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
-                        _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric)
+                        _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для просмотра"))
                         return@launch
                     }
                 }
@@ -167,14 +164,15 @@ class NoteListViewModel(
         }
     }
 
-    fun unlockNotebook(context: Context) {
+    fun unlockNotebook(context: Context, reason: String) {
         val isProtected =
-            if (notebookPath != null) isNotebookProtectedUseCase(notebookPath) else false //encryptionRepository.hasKey(notebookPath) else false
+            if (notebookPath != null) isNotebookProtectedUseCase(notebookPath) else false
+
         println("DEBUG: unlock notebook, notebookPath = $notebookPath, isProtected = $isProtected")
 
         if (notebookPath != null && isProtected)
             viewModelScope.launch {
-                val unlocked = unlockNotebookUseCase(notebookPath, context)
+                val unlocked = unlockNotebookUseCase(notebookPath, context, reason = reason)
                 if (unlocked) {
                     println("DEBUG: unlock notebook: success")
                     loadNotes()
@@ -258,7 +256,7 @@ class NoteListViewModel(
                 _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(newNote.id))
             } catch (e: AuthenticationRequiredException) {
                 showMessage("Записная книжка заблокирована")
-                _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric)
+                _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для создания"))
             } catch (e: Exception) {
                 showMessage("Ошибка создания заметки: ${e.message}")
             }
@@ -287,11 +285,10 @@ class NoteListViewModel(
                         ) else true
                     else true
 
-                if(unlocked) {
+                if (unlocked) {
                     moveNoteUseCase(note, targetNotebookPath)
                     loadNotes()
-                }
-                else {
+                } else {
                     _noteListState.postValue(NoteListState.Blocked)
                     showMessage("Отмена перемещения")
                 }
