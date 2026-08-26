@@ -83,7 +83,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun setupUnlockButton() {
         binding.unlockButton.setOnClickListener {
-            viewModel.unlockNotebook(requireActivity(),"Для просмотра")
+            viewModel.unlockNotebook(requireActivity(), "Для просмотра", false)
         }
     }
 
@@ -95,11 +95,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 viewModel.clearMessage()
             }
         }
-        viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> navigateEvent(event) }
+        viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> renderEvent(event) }
+
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
     }
 
-    private fun navigateEvent(event: NoteListNavigationEvent) {
+    private fun renderEvent(event: NoteListNavigationEvent) {
         when (event) {
             is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
 
@@ -113,7 +114,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             NoteListNavigationEvent.NavigateUp -> findNavController().navigateUp()
 
             is NoteListNavigationEvent.ShowBiometric ->
-                viewModel.unlockNotebook(requireActivity(), event.message)
+                viewModel.unlockNotebook(requireActivity(), event.message, event.toCreate)
 
             NoteListNavigationEvent.Idle -> {}
         }

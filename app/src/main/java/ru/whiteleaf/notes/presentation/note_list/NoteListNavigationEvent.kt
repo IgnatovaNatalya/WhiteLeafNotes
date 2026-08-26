@@ -8,5 +8,5 @@ sealed class NoteListNavigationEvent {
     object NavigateUp : NoteListNavigationEvent()
     data class ReopenNotebook(val path: String) : NoteListNavigationEvent()
     data class ExportLink(val uri: Uri?) : NoteListNavigationEvent()
-    data class ShowBiometric(val message: String) : NoteListNavigationEvent()
+    data class ShowBiometric(val message: String, val toCreate: Boolean) : NoteListNavigationEvent()
 }

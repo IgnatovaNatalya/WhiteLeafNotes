@@ -216,7 +216,7 @@ class NoteEditViewModel(
                         isNotebookProtectedUseCase(note.notebookPath ?: "")
                     )
                 )
-                showMessage("Дата заметки обновлена")
+                showMessage("Дата заметки изменена")
             } catch (e: Exception) {
                 showMessage("Ошибка обновления даты: ${e.message}")
             } finally {

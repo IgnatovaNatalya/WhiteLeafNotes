@@ -126,7 +126,7 @@ class NoteListViewModel(
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
-                        _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для просмотра"))
+                        _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для просмотра", false))
                         return@launch
                     }
                 }
@@ -164,7 +164,7 @@ class NoteListViewModel(
         }
     }
 
-    fun unlockNotebook(context: Context, reason: String) {
+    fun unlockNotebook(context: Context, reason: String, toCreate:Boolean) {
         val isProtected =
             if (notebookPath != null) isNotebookProtectedUseCase(notebookPath) else false
 
@@ -175,7 +175,8 @@ class NoteListViewModel(
                 val unlocked = unlockNotebookUseCase(notebookPath, context, reason = reason)
                 if (unlocked) {
                     println("DEBUG: unlock notebook: success")
-                    loadNotes()
+                    if (toCreate) createNewNote()
+                    else loadNotes()
                 } else {
                     _noteListState.postValue(NoteListState.Blocked)
                 }
@@ -193,7 +194,7 @@ class NoteListViewModel(
         if (notebookPath != null) viewModelScope.launch {
             try {
                 if (isNotebookProtectedUseCase(notebookPath)) {
-                    _noteListState.value = NoteListState.Error("Записная книжка уже защищищена")
+                    _noteListState.value = NoteListState.Error("Записная книжка уже защищена")
                     return@launch
                 }
 
@@ -256,7 +257,7 @@ class NoteListViewModel(
                 _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(newNote.id))
             } catch (e: AuthenticationRequiredException) {
                 showMessage("Записная книжка заблокирована")
-                _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для создания"))
+                _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для создания", true))
             } catch (e: Exception) {
                 showMessage("Ошибка создания заметки: ${e.message}")
             }
@@ -321,7 +322,7 @@ class NoteListViewModel(
             try {
                 updateNoteDateUseCase(note, newDate)
                 loadNotes()
-                _message.postValue("Дата заметки обновлена")
+                _message.postValue("Дата заметки изменена")
             } catch (e: Exception) {
                 _message.postValue("Ошибка обновления даты: ${e.message}")
             }
