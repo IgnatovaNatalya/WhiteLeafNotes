@@ -313,7 +313,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
                 println("✅ Fragment showing ${state.notes.size} notes")
                 binding.noteListProgressBar.visibility = View.GONE
-                binding.emptyList.visibility = View.GONE
+                binding.emptyList.visibility =
+                    if (state.notes.isNotEmpty()) View.GONE else View.VISIBLE
                 binding.notebookProtected.visibility = View.GONE
 
                 isEncrypted = state.isEncrypted
