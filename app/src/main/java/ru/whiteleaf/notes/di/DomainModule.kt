@@ -19,6 +19,7 @@ import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.InsertNoteUseCase
@@ -49,6 +50,7 @@ val domainModule = module {
     factory { MoveNoteUseCase(get(), get()) }
 
     factory { ShareNoteFileUseCase(get()) }
+    factory { FindNotesUseCase(get()) }
 
     factory { GetNotebooksUseCase(get()) }
     factory { CreateNotebookUseCase(get()) }
