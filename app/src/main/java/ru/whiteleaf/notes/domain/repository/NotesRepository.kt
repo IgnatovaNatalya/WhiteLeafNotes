@@ -2,12 +2,13 @@ package ru.whiteleaf.notes.domain.repository
 
 import android.net.Uri
 import ru.whiteleaf.notes.domain.model.Note
+import ru.whiteleaf.notes.domain.model.NoteFound
 import ru.whiteleaf.notes.domain.model.Notebook
 
 interface NotesRepository {
     suspend fun getNotesList(notebookPath: String?): List<Note>
     suspend fun getNotes(notebookPath: String?): List<Note>
-    suspend fun getNote(noteId:String, notebookPath:String?): Note
+    suspend fun getNote(noteId: String, notebookPath: String?): Note
     suspend fun saveNote(note: Note)
     suspend fun deleteNote(note: Note)
     suspend fun moveNote(note: Note, targetNotebookPath: String?)
@@ -23,4 +24,10 @@ interface NotesRepository {
     suspend fun decryptAllNotes(notebookPath: String)
 
     suspend fun getRecentNoteTitle(notebookPath: String?, noteId: String): String
+
+    suspend fun findNotes(
+        notebookPath: String?,
+        query: String,
+        notebooks: List<Notebook> = emptyList()
+    ): List<NoteFound>
 }

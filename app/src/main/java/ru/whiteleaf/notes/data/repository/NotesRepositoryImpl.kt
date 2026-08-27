@@ -13,10 +13,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.whiteleaf.notes.common.utils.FileUtils.generateNoteId
 import ru.whiteleaf.notes.common.utils.FileUtils.sanitizeFileName
+import ru.whiteleaf.notes.domain.model.NoteFound
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import java.io.File
 import java.io.IOException
+import kotlin.math.max
+import kotlin.math.min
 
 class NoteRepositoryImpl(
     private val context: Context,
@@ -80,7 +83,7 @@ class NoteRepositoryImpl(
                                     it
                                 ) else it
                             }
-                            ?.take(40) //часть контента для отображения вместо названия если его нет
+                            ?.take(40) //часть контента для отображения вместо названия если нет названия
                             ?: ""
 
                         Note(
@@ -377,6 +380,138 @@ class NoteRepositoryImpl(
             println("DEBUG: NoteRepositoryImpl getRecentNoteTitle: ${e.message}")
             throw IOException("Failed to get  ${name}", e)
         }
+    }
+
+    override suspend fun findNotes(
+        notebookPath: String?,
+        query: String,
+        notebooks: List<Notebook>
+    ): List<NoteFound> = withContext(Dispatchers.IO) {
+        val lowerQuery = query.lowercase()
+        val result = mutableListOf<NoteFound>()
+
+        // Определяем список путей для обхода
+        val pathsToSearch = if (notebookPath != null) {
+            listOf(notebookPath)   // только указанный блокнот
+        } else {
+            // общий поиск: корень + все переданные блокноты
+            val allPaths = mutableListOf<String?>(null)
+            allPaths.addAll(notebooks.map { it.path })
+            allPaths
+        }
+
+        for (path in pathsToSearch) {
+            val dir =
+                if (path != null) File(noteDataSource.baseDir, path) else noteDataSource.baseDir
+            val files = noteDataSource.listFilesInDirectory(dir)
+                ?.filter { it.isFile && it.name.endsWith(".txt") }
+                ?: continue
+
+            val isProtected = path != null && encryptionRepository.hasKey(path)
+            val isUnlocked = isProtected && encryptionRepository.isUnlocked(path)
+
+            for (file in files) {
+                val id = file.nameWithoutExtension
+                val title = if (id.startsWith(FILE_NAME_PREFIX)) "" else id
+
+                // Поиск по названию (всегда)
+                if (title.lowercase().contains(lowerQuery) || id.lowercase().contains(lowerQuery)) {
+                    result.add(
+                        NoteFound(
+                            id = id,
+                            title = title,
+                            foundedInTitle = true,
+                            contentSearchPreview = null,
+                            contentPreviewOffset = null,
+                            contentPosition = null,
+                            modifiedAt = file.lastModified(),
+                            notebookPath = path
+                        )
+                    )
+                }
+
+                // Поиск по содержимому (только если можно прочитать)
+                val canReadContent = !isProtected || (isProtected && isUnlocked)
+                if (canReadContent) {
+                    try {
+                        val rawContent = noteDataSource.readNoteContent(file)
+                        val content = if (isProtected) {
+                            encryptionRepository.decryptNote(path!!, rawContent)
+                        } else {
+                            rawContent
+                        }
+
+                        // Находим все позиции вхождения (регистронезависимо)
+                        val lowerContent = content.lowercase()
+                        val positions = mutableListOf<Int>()
+                        var start = lowerContent.indexOf(lowerQuery)
+                        while (start != -1) {
+                            positions.add(start)
+                            start = lowerContent.indexOf(lowerQuery, start + 1)
+                        }
+
+                        // Для каждой позиции строим фрагмент и группируем по содержанию
+                        val fragmentMap =
+                            mutableMapOf<String, Pair<Int, Int>>() // contentPart -> (startOffset, firstPosition)
+                        for (pos in positions) {
+                            val (fragment, offset) = extractFragment(content, pos, query.length, 60)
+                            // Если такой фрагмент уже есть, не добавляем дубль
+                            if (!fragmentMap.containsKey(fragment)) {
+                                fragmentMap[fragment] = offset to pos
+                            }
+                        }
+
+                        // Добавляем результаты
+                        for ((fragment, pair) in fragmentMap) {
+                            val (offset, firstPos) = pair
+                            result.add(
+                                NoteFound(
+                                    id = id,
+                                    title = title,
+                                    foundedInTitle = false,
+                                    contentSearchPreview = fragment,
+                                    contentPreviewOffset = offset,
+                                    contentPosition = firstPos,
+                                    modifiedAt = file.lastModified(),
+                                    notebookPath = path
+                                )
+                            )
+                        }
+
+                    } catch (e: AuthenticationRequiredException) {
+                        // Ключ внезапно стал недоступен – пропускаем чтение содержимого
+                        // (поиск по названию уже сделан)
+                    } catch (e: Exception) {
+                        // Логируем, но не прерываем общий поиск
+                        Log.w(
+                            "NoteRepository",
+                            "Failed to read content for ${file.name}: ${e.message}"
+                        )
+                    }
+                }
+            }
+        }
+
+        // Сортируем по дате изменения (сначала новые)
+        result.sortedByDescending { it.modifiedAt }
+    }
+
+    // Вспомогательная функция для извлечения фрагмента
+    private fun extractFragment(
+        text: String,
+        position: Int,
+        queryLen: Int,
+        maxLen: Int
+    ): Pair<String, Int> {
+        val textLen = text.length
+        if (textLen <= maxLen) return Pair(text, 0)
+
+        // Вычисляем начало фрагмента так, чтобы запрос оказался примерно в центре
+        var start = position - (maxLen - queryLen) / 2
+        start = max(0, min(start, textLen - maxLen))
+        val end = min(start + maxLen, textLen)
+        val fragment = text.substring(start, end)
+        return Pair(fragment, start)
     }
 
 
