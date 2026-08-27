@@ -87,6 +87,7 @@ val viewmodelModule = module {
             encryptNotebookUseCase = get(),
             decryptNotebookUseCase = get(),
             getNotebooksUseCase = get(),
+            findNotesUseCase = get(),
             notebookPath = notebookPath,
         )
     }

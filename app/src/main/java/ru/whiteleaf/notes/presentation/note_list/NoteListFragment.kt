@@ -362,6 +362,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewPlanner.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
             }
+
+            is NoteListState.SearchResults -> {}
         }
     }
 

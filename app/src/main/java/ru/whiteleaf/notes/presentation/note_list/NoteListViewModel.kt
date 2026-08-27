@@ -29,6 +29,7 @@ import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookUnlockedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import java.io.IOException
 import java.security.InvalidKeyException
@@ -53,6 +54,7 @@ class NoteListViewModel(
     private val decryptNotebookUseCase: DecryptNotebookUseCase,
     private val preferencesInteractor: SettingsInteractor,
     private val getNotebooksUseCase: GetNotebooksUseCase,
+    private val findNotesUseCase: FindNotesUseCase,
     private val notebookPath: String?
 ) : ViewModel() {
 
@@ -67,7 +69,7 @@ class NoteListViewModel(
 
     private val _isPlannerView = MutableLiveData(false)
 
-    private var notebookList: List<Notebook> = emptyList()
+    private var notebooksList: List<Notebook> = emptyList()
 
 
     val exportPath =
@@ -87,14 +89,14 @@ class NoteListViewModel(
     private fun loadNotebooks() {
         viewModelScope.launch {
             try {
-                notebookList = getNotebooksUseCase()
+                notebooksList = getNotebooksUseCase()
             } catch (e: Exception) {
                 println("DEBUG: NoteListVm: loadNotebooks: Error loading notebooks: ${e.message}")
             }
         }
     }
 
-    fun getAllNotebooks(): List<Notebook> = notebookList
+    fun getAllNotebooks(): List<Notebook> = notebooksList
 
     private fun loadViewMode() {
         if (notebookPath == null) return
@@ -113,6 +115,36 @@ class NoteListViewModel(
         return _isPlannerView.value ?: false
     }
 
+    fun findNotes(query: String) {
+        println("DEBUG: NoteListVM: Поиск заметок, query=$query")
+        viewModelScope.launch {
+            _noteListState.postValue(NoteListState.Loading)
+
+            try {
+                val searchResults = findNotesUseCase(
+                    notebookPath,
+                    query,
+                    notebooksList.filter { it.path == notebookPath })
+
+                _noteListState.postValue(
+                    NoteListState.SearchResults("Зопоп", searchResults)
+                )
+
+            } catch (_: AuthenticationRequiredException) {
+                _noteListState.postValue(NoteListState.Blocked)
+            } catch (e: IOException) {
+                _noteListState.postValue(NoteListState.Error("Ошибка поиска заметок: ${e.message}"))
+            } catch (e: Exception) {
+                if (e.cause is InvalidKeyException) {
+                    _noteListState.postValue(NoteListState.Blocked)
+                    if (notebookPath != null) lockNotebookUseCase(notebookPath)
+                    println("DEBUG: NoteListViewmodel: InvalidKeyException ${e.message}")
+                } else
+                    _noteListState.postValue(NoteListState.Error(e.message ?: "Ошибка поиска"))
+            }
+        }
+    }
+
     fun loadNotes() {
         viewModelScope.launch {
             _noteListState.postValue(NoteListState.Loading)
@@ -126,7 +158,12 @@ class NoteListViewModel(
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
-                        _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для просмотра", false))
+                        _navigationEvent.postValue(
+                            NoteListNavigationEvent.ShowBiometric(
+                                "Для просмотра",
+                                false
+                            )
+                        )
                         return@launch
                     }
                 }
@@ -157,14 +194,18 @@ class NoteListViewModel(
                     if (notebookPath != null) lockNotebookUseCase(notebookPath)
                     println("DEBUG: NoteListViewmodel: InvalidKeyException ${e.message}")
                 } else
-                    _noteListState.postValue(NoteListState.Error(e.message ?: "Ошибка загрузки"))
+                    _noteListState.postValue(
+                        NoteListState.Error(
+                            e.message ?: "Ошибка загрузки"
+                        )
+                    )
             } finally {
                 println("DEBUG: NoteListViewmodel: Окончание загрузки заметок")
             }
         }
     }
 
-    fun unlockNotebook(context: Context, reason: String, toCreate:Boolean) {
+    fun unlockNotebook(context: Context, reason: String, toCreate: Boolean) {
         val isProtected =
             if (notebookPath != null) isNotebookProtectedUseCase(notebookPath) else false
 
@@ -257,7 +298,12 @@ class NoteListViewModel(
                 _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(newNote.id))
             } catch (e: AuthenticationRequiredException) {
                 showMessage("Записная книжка заблокирована")
-                _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric("Для создания", true))
+                _navigationEvent.postValue(
+                    NoteListNavigationEvent.ShowBiometric(
+                        "Для создания",
+                        true
+                    )
+                )
             } catch (e: Exception) {
                 showMessage("Ошибка создания заметки: ${e.message}")
             }
@@ -281,7 +327,9 @@ class NoteListViewModel(
                 val unlocked =
                     if (targetNotebookPath != null)
                         if (isNotebookProtectedUseCase(targetNotebookPath)) unlockNotebookUseCase(
-                            targetNotebookPath, context, title = "Целевая записная книжка защищена",
+                            targetNotebookPath,
+                            context,
+                            title = "Целевая записная книжка защищена",
                             reason = "Для перемещения"
                         ) else true
                     else true
@@ -334,7 +382,11 @@ class NoteListViewModel(
             viewModelScope.launch {
                 try {
                     val unlocked = if (isNotebookProtectedUseCase(notebookPath)) {
-                        unlockNotebookUseCase(notebookPath, context, reason = "Для переименования")
+                        unlockNotebookUseCase(
+                            notebookPath,
+                            context,
+                            reason = "Для переименования"
+                        )
                     } else true
 
                     if (!unlocked) {
@@ -345,7 +397,11 @@ class NoteListViewModel(
                     if (newName != notebookPath) {
                         renameNotebookUseCase(notebookPath, newName)
                         showMessage("Название записной книжки изменено")
-                        _navigationEvent.postValue(NoteListNavigationEvent.ReopenNotebook(newName))
+                        _navigationEvent.postValue(
+                            NoteListNavigationEvent.ReopenNotebook(
+                                newName
+                            )
+                        )
                     } else showMessage("Ошибка переименования")
                 } catch (e: AuthenticationRequiredException) {
                     _message.postValue("Записная книжка заблокирована: ${e.message}")
@@ -376,7 +432,11 @@ class NoteListViewModel(
                 try {
                     if (isNotebookProtectedUseCase(notebookPath)) {
                         val unlocked =
-                            unlockNotebookUseCase(notebookPath, context, reason = "Для удаления")
+                            unlockNotebookUseCase(
+                                notebookPath,
+                                context,
+                                reason = "Для удаления"
+                            )
 
                         if (!unlocked) {
                             _message.postValue("Не удалось подтвердить личность")
