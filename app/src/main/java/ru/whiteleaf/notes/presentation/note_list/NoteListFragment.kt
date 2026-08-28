@@ -27,6 +27,9 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
+import ru.whiteleaf.notes.presentation.note_list.grid.NotesGridAdapter
+import ru.whiteleaf.notes.presentation.note_list.linear.NotesLinearAdapter
+import ru.whiteleaf.notes.presentation.note_list.search.NoteSearchAdapter
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
@@ -38,6 +41,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private lateinit var noteLinearAdapter: NotesLinearAdapter
     private lateinit var plannerAdapter: NotesGridAdapter
+    private lateinit var noteSearchAdapter: NoteSearchAdapter
 
     private lateinit var btnLockIndicator: ImageButton
 
@@ -62,8 +66,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         setupOptionsMenu()
         setupListRecyclerView()
         setupPlannerRecyclerView()
-        setupFab()
-        setupUnlockButton()
+        setupSearchRecyclerView()
+        setupClickListeners()
     }
 
     private fun setupTitleAndViewMode() {
@@ -81,12 +85,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         toggleSecurePreview(requireActivity(), viewModel.getEncryptionStatus())
     }
 
-    private fun setupUnlockButton() {
-        binding.unlockButton.setOnClickListener {
-            viewModel.unlockNotebook(requireActivity(), "Для просмотра", false)
-        }
-    }
-
     private fun setupObservers() {
 
         viewModel.message.observe(viewLifecycleOwner) { message ->
@@ -98,27 +96,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> renderEvent(event) }
 
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
-    }
-
-    private fun renderEvent(event: NoteListNavigationEvent) {
-        when (event) {
-            is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
-
-            is NoteListNavigationEvent.NavigateToNote -> {
-                navigateToNote = true
-                navigateToNoteEdit(event.noteId)
-            }
-
-            is NoteListNavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
-
-            NoteListNavigationEvent.NavigateUp -> findNavController().navigateUp()
-
-            is NoteListNavigationEvent.ShowBiometric ->
-                viewModel.unlockNotebook(requireActivity(), event.message, event.toCreate)
-
-            NoteListNavigationEvent.Idle -> {}
-        }
-        viewModel.onNavigated()
     }
 
     private fun setupListRecyclerView() {
@@ -161,6 +138,24 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         }
     }
 
+    private fun setupSearchRecyclerView() {
+        noteSearchAdapter = NoteSearchAdapter(
+            onFoundNoteClicked = { noteFound ->
+                viewModel.onNoteFoundClicked(
+                    noteFound.id,
+                    noteFound.contentPosition ?: 0
+                )
+            },
+        )
+
+        binding.recyclerViewSearch.adapter = noteSearchAdapter
+        binding.recyclerViewSearch.layoutManager = LinearLayoutManager(requireContext())
+
+        binding.recyclerViewSearch.addItemDecoration(
+            DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+        )
+    }
+
     private fun setupOptionsMenu() {
         val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
         optionsButton?.setOnClickListener {
@@ -193,9 +188,17 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         viewModel.setViewMode(mode)
     }
 
-    private fun setupFab() {
+    private fun setupClickListeners() {
         binding.createNote.setOnClickListener {
             viewModel.createNewNote()
+        }
+
+        btnLockIndicator.setOnClickListener {
+            viewModel.lockNotebook()
+        }
+
+        binding.unlockButton.setOnClickListener {
+            viewModel.unlockNotebook(requireActivity(), "Для просмотра", false)
         }
     }
 
@@ -289,6 +292,15 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         findNavController().navigate(action)
     }
 
+    private fun navigateToNoteFound(noteId: String, contentPosition: Int) {
+        val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
+            noteId = noteId,
+            notebookPath = args.notebookPath,
+            contentPosition = contentPosition
+        )
+        findNavController().navigate(action)
+    }
+
     private fun reopenNotebook(newPath: String) {
         val action = NoteListFragmentDirections.actionGlobalNoteListFragment(newPath)
         val navOptions = NavOptions.Builder()
@@ -301,6 +313,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         println("👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
             is NoteListState.Success -> {
+
                 if (isPlannerView) {
                     binding.recyclerViewList.visibility = View.GONE
                     binding.recyclerViewPlanner.visibility = View.VISIBLE
@@ -310,6 +323,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                     binding.recyclerViewPlanner.visibility = View.GONE
                     noteLinearAdapter.submitList(state.notes)
                 }
+                binding.recyclerViewSearch.visibility = View.GONE
 
                 println("✅ Fragment showing ${state.notes.size} notes")
                 binding.noteListProgressBar.visibility = View.GONE
@@ -321,7 +335,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
-                    btnLockIndicator.setOnClickListener { viewModel.lockNotebook() }
+
                 } else btnLockIndicator.visibility = View.GONE
 
                 binding.createNote.visibility = View.VISIBLE
@@ -336,6 +350,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.createNote.visibility = View.GONE
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
+                binding.recyclerViewSearch.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
             }
@@ -348,6 +363,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.createNote.visibility = View.GONE
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
+                binding.recyclerViewSearch.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
                 binding.emptyList.text = state.message
             }
@@ -360,16 +376,61 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.createNote.visibility = View.GONE
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
+                binding.recyclerViewSearch.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
             }
 
-            is NoteListState.SearchResults -> {}
+            is NoteListState.SearchResults -> {
+                binding.noteListProgressBar.visibility = View.GONE
+
+                if (!state.foundNotes.isNotEmpty()) {
+                    binding.emptyList.visibility = View.VISIBLE
+                    binding.emptyList.text = "Не найдено"
+                } else binding.emptyList.visibility = View.GONE
+
+                binding.notebookProtected.visibility = View.GONE
+                binding.createNote.visibility = View.GONE
+                binding.recyclerViewList.visibility = View.GONE
+                binding.recyclerViewPlanner.visibility = View.GONE
+
+                binding.recyclerViewSearch.visibility = View.VISIBLE
+                noteSearchAdapter.submitList(state.foundNotes)
+
+                btnLockIndicator.visibility = View.VISIBLE
+            }
         }
+    }
+
+    private fun renderEvent(event: NoteListNavigationEvent) {
+        when (event) {
+            is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
+
+            is NoteListNavigationEvent.NavigateToNote -> {
+                navigateToNote = true
+                navigateToNoteEdit(event.noteId)
+            }
+
+            is NoteListNavigationEvent.NavigateToNoteFound -> {
+                navigateToNote = true
+                navigateToNoteFound(event.noteId, event.contentPosition)
+            }
+
+            is NoteListNavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
+
+            NoteListNavigationEvent.NavigateUp -> findNavController().navigateUp()
+
+            is NoteListNavigationEvent.ShowBiometric ->
+                viewModel.unlockNotebook(requireActivity(), event.message, event.toCreate)
+
+            NoteListNavigationEvent.Idle -> {}
+
+        }
+        viewModel.onNavigated()
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadNotes()
+        //viewModel.loadNotes()
     }
 
     override fun onPause() {

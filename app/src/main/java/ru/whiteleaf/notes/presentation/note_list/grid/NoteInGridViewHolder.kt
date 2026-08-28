@@ -1,4 +1,4 @@
-package ru.whiteleaf.notes.presentation.note_list
+package ru.whiteleaf.notes.presentation.note_list.grid
 
 import android.util.TypedValue
 import android.view.View

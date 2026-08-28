@@ -9,4 +9,6 @@ sealed class NoteListNavigationEvent {
     data class ReopenNotebook(val path: String) : NoteListNavigationEvent()
     data class ExportLink(val uri: Uri?) : NoteListNavigationEvent()
     data class ShowBiometric(val message: String, val toCreate: Boolean) : NoteListNavigationEvent()
+    data class NavigateToNoteFound(val noteId: String, val contentPosition: Int) :
+        NoteListNavigationEvent()
 }

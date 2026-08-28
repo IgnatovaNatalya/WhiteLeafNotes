@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.model.Notebook
+import ru.whiteleaf.notes.domain.model.printDebug
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
@@ -71,13 +72,13 @@ class NoteListViewModel(
 
     private var notebooksList: List<Notebook> = emptyList()
 
-
     val exportPath =
         "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
     init {
         loadViewMode()
-        loadNotes()
+        //loadNotes()
+        findNotes("Зопоп")
         saveLastOpenedNotebook()
         loadNotebooks()
     }
@@ -125,9 +126,11 @@ class NoteListViewModel(
                     notebookPath,
                     query,
                     notebooksList.filter { it.path == notebookPath })
+                println("DEBUG: NoteListM:  findNotes: ${searchResults.size} notes found")
+                searchResults.forEach { note -> note.printDebug() }
 
                 _noteListState.postValue(
-                    NoteListState.SearchResults("Зопоп", searchResults)
+                    NoteListState.SearchResults(query, searchResults)
                 )
 
             } catch (_: AuthenticationRequiredException) {
@@ -457,6 +460,14 @@ class NoteListViewModel(
 
     fun onNoteClicked(noteId: String) =
         _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(noteId))
+
+    fun onNoteFoundClicked(noteId: String, contentPosition: Int) =
+        _navigationEvent.postValue(
+            NoteListNavigationEvent.NavigateToNoteFound(
+                noteId,
+                contentPosition
+            )
+        )
 
     fun onNavigated() = _navigationEvent.postValue(NoteListNavigationEvent.Idle)
 

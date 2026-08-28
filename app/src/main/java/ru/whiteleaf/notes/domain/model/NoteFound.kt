@@ -10,3 +10,17 @@ data class NoteFound(
     val modifiedAt: Long,
     val notebookPath: String?
 )
+
+fun NoteFound.toNote(): Note {
+    return Note(
+        id = id,
+        title = title,
+        content = "",
+        modifiedAt = modifiedAt,
+        notebookPath = notebookPath
+    )
+}
+
+fun NoteFound.printDebug() {
+    println("DEBUG found note id=$id, title=$title, search preview=$contentSearchPreview")
+}

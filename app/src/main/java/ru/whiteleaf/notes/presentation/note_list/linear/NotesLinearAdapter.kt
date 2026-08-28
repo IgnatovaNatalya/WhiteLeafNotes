@@ -1,4 +1,4 @@
-package ru.whiteleaf.notes.presentation.note_list
+package ru.whiteleaf.notes.presentation.note_list.linear
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
