@@ -13,7 +13,7 @@ import ru.whiteleaf.notes.domain.model.Notebook
 class NotebookViewHolder(
     view: View,
     private val onNotebookClicked: (Notebook) -> Unit,
-    private val contextActionHandler: ContextNotebookActionHandler
+    private val contextActionHandler: ContextNotebookActionHandler?
 ) : RecyclerView.ViewHolder(view) {
     private val name: TextView = view.findViewById(R.id.notebook_name)
     private val noteCount: TextView = view.findViewById(R.id.note_count)
@@ -36,7 +36,7 @@ class NotebookViewHolder(
         }
 
         pinIcon.visibility = if (notebook.isPinned) View.VISIBLE else View.GONE
-        pinIcon.setOnClickListener { contextActionHandler.onUnpinNotebook(notebook) }
+        pinIcon.setOnClickListener { contextActionHandler?.onUnpinNotebook(notebook) }
 
         llNotebook.setOnClickListener { onNotebookClicked(notebook)  }
         icon.setOnClickListener { onNotebookClicked(notebook)  }
@@ -58,13 +58,13 @@ class NotebookViewHolder(
             items = ContextMenuHelper.getNotebookContextMenuItems(anchorView.context, notebook),
             onItemSelected = { itemId ->
                 when (itemId) {
-                    R.id.context_menu_rename -> contextActionHandler.onRenameNotebook(notebook)
-                    R.id.context_menu_pin -> contextActionHandler.onPinNotebook(notebook)
-                    R.id.context_menu_unpin -> contextActionHandler.onUnpinNotebook(notebook)
-                    R.id.context_menu_encrypt -> contextActionHandler.onEncryptNotebook(notebook)
-                    R.id.context_menu_decrypt -> contextActionHandler.onDecryptNotebook(notebook)
-                    R.id.context_menu_export -> contextActionHandler.onExportNotebook(notebook)
-                    R.id.context_menu_delete -> contextActionHandler.onDeleteNotebook(notebook)
+                    R.id.context_menu_rename -> contextActionHandler?.onRenameNotebook(notebook)
+                    R.id.context_menu_pin -> contextActionHandler?.onPinNotebook(notebook)
+                    R.id.context_menu_unpin -> contextActionHandler?.onUnpinNotebook(notebook)
+                    R.id.context_menu_encrypt -> contextActionHandler?.onEncryptNotebook(notebook)
+                    R.id.context_menu_decrypt -> contextActionHandler?.onDecryptNotebook(notebook)
+                    R.id.context_menu_export -> contextActionHandler?.onExportNotebook(notebook)
+                    R.id.context_menu_delete -> contextActionHandler?.onDeleteNotebook(notebook)
                 }
             }
         )

@@ -387,6 +387,7 @@ class NoteRepositoryImpl(
         query: String,
         notebooks: List<Notebook>
     ): List<NoteFound> = withContext(Dispatchers.IO) {
+        val previewLen = 50
         val lowerQuery = query.lowercase()
         val result = mutableListOf<NoteFound>()
 
@@ -418,11 +419,11 @@ class NoteRepositoryImpl(
                 if (title.lowercase().contains(lowerQuery) || id.lowercase().contains(lowerQuery)) {
                     result.add(
                         NoteFound(
+                            query = query,
                             id = id,
                             title = title,
                             foundedInTitle = true,
                             contentSearchPreview = null,
-                            contentPreviewOffset = null,
                             contentPosition = null,
                             modifiedAt = file.lastModified(),
                             notebookPath = path
@@ -431,7 +432,7 @@ class NoteRepositoryImpl(
                 }
 
                 // Поиск по содержимому (только если можно прочитать)
-                val canReadContent = !isProtected || (isProtected && isUnlocked)
+                val canReadContent = !isProtected || (isProtected && isUnlocked) || true ///
                 if (canReadContent) {
                     try {
                         val rawContent = noteDataSource.readNoteContent(file)
@@ -454,7 +455,7 @@ class NoteRepositoryImpl(
                         val fragmentMap =
                             mutableMapOf<String, Pair<Int, Int>>() // contentPart -> (startOffset, firstPosition)
                         for (pos in positions) {
-                            val (fragment, offset) = extractFragment(content, pos, query.length, 60)
+                            val (fragment, offset) = extractFragment(content, pos, query.length, previewLen)
                             // Если такой фрагмент уже есть, не добавляем дубль
                             if (!fragmentMap.containsKey(fragment)) {
                                 fragmentMap[fragment] = offset to pos
@@ -466,11 +467,12 @@ class NoteRepositoryImpl(
                             val (offset, firstPos) = pair
                             result.add(
                                 NoteFound(
+                                    query = query,
                                     id = id,
                                     title = title,
                                     foundedInTitle = false,
                                     contentSearchPreview = fragment,
-                                    contentPreviewOffset = offset,
+                                    //contentPreviewOffset = offset,
                                     contentPosition = firstPos,
                                     modifiedAt = file.lastModified(),
                                     notebookPath = path
@@ -481,6 +483,7 @@ class NoteRepositoryImpl(
                     } catch (e: AuthenticationRequiredException) {
                         // Ключ внезапно стал недоступен – пропускаем чтение содержимого
                         // (поиск по названию уже сделан)
+                        throw e //выбрасываем ошибку чтобы пользователю сказать
                     } catch (e: Exception) {
                         // Логируем, но не прерываем общий поиск
                         Log.w(

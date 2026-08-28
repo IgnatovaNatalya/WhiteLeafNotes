@@ -32,6 +32,7 @@ import ru.whiteleaf.notes.domain.use_case.encryption.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
+import ru.whiteleaf.notes.presentation.note_list.search.SearchListItem
 import java.io.IOException
 import java.security.InvalidKeyException
 
@@ -122,16 +123,26 @@ class NoteListViewModel(
             _noteListState.postValue(NoteListState.Loading)
 
             try {
-                val searchResults = findNotesUseCase(
+                val foundNotes = findNotesUseCase(
                     notebookPath,
                     query,
                     notebooksList.filter { it.path == notebookPath })
-                println("DEBUG: NoteListM:  findNotes: ${searchResults.size} notes found")
-                searchResults.forEach { note -> note.printDebug() }
 
-                _noteListState.postValue(
-                    NoteListState.SearchResults(query, searchResults)
-                )
+                println("DEBUG: NoteListM: findNotes: ${foundNotes.size} notes found")
+                foundNotes.forEach { note -> note.printDebug() }
+
+                val items = mutableListOf<SearchListItem>()
+
+                foundNotes.forEach { foundNote ->
+                    if (foundNote.foundedInTitle) items.add(
+                        SearchListItem.SearchListNoteTitle(foundNote)
+                    )
+                    else items.add(
+                        SearchListItem.SearchListNoteContent(foundNote)
+                    )
+                }
+
+                _noteListState.postValue(NoteListState.SearchResults(query, items))
 
             } catch (_: AuthenticationRequiredException) {
                 _noteListState.postValue(NoteListState.Blocked)

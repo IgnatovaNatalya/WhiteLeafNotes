@@ -11,9 +11,9 @@
 
     <TextView
         android:id="@+id/note_search_preview"
-        style="@style/StartScreenItemTitle"
+        style="@style/DrawerItemStyle"
         android:layout_width="match_parent"
-        android:layout_height="22dp"
+        android:layout_height="19dp"
         android:layout_marginTop="-2dp"
         android:ellipsize="end"
         android:maxLines="1"
@@ -23,7 +23,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="16dp"
+        android:layout_height="14dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -31,7 +31,7 @@
             android:id="@+id/note_title"
             style="@style/StartScreenItemNotebookCount"
             android:layout_width="wrap_content"
-            android:layout_height="16dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:textColor="?android:attr/textColorSecondary"
             tools:text="Название заметки" />
@@ -40,8 +40,8 @@
             android:id="@+id/note_date"
             style="@style/StartScreenItemNotebookCount"
             android:layout_width="wrap_content"
-            android:layout_height="16dp"
-            android:layout_marginStart="8dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
             android:gravity="center_vertical"
             android:textColor="?android:attr/textColorSecondary"
             tools:text="18.07.2026" />

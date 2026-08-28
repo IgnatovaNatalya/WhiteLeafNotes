@@ -14,7 +14,7 @@ import ru.whiteleaf.notes.domain.model.Note
 class NoteInListViewHolder(
     private val binding: ItemNoteInListBinding,
     private val onNoteClicked: (Note) -> Unit,
-    private val noteActionHandler: ContextNoteActionHandler
+    private val noteActionHandler: ContextNoteActionHandler?
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(note: Note) {
@@ -63,11 +63,11 @@ class NoteInListViewHolder(
             items = ContextMenuHelper.getNoteContextMenuItems(anchorView.context),
             onItemSelected = { itemId ->
                 when (itemId) {
-                    R.id.context_menu_delete -> noteActionHandler.onDeleteNote(note)
-                    R.id.context_menu_move -> noteActionHandler.onMoveNote(note)
-                    R.id.context_menu_change_date -> noteActionHandler.onChangeNoteDate(note)
-                    R.id.context_menu_share_note -> noteActionHandler.onShareNote(note)
-                    R.id.context_menu_rename -> noteActionHandler.onRenameNote(note)
+                    R.id.context_menu_delete -> noteActionHandler?.onDeleteNote(note)
+                    R.id.context_menu_move -> noteActionHandler?.onMoveNote(note)
+                    R.id.context_menu_change_date -> noteActionHandler?.onChangeNoteDate(note)
+                    R.id.context_menu_share_note -> noteActionHandler?.onShareNote(note)
+                    R.id.context_menu_rename -> noteActionHandler?.onRenameNote(note)
                 }
             }
         )

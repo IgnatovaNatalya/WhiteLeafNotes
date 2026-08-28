@@ -141,11 +141,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun setupSearchRecyclerView() {
         noteSearchAdapter = NoteSearchAdapter(
             onFoundNoteClicked = { noteFound ->
-                viewModel.onNoteFoundClicked(
-                    noteFound.id,
-                    noteFound.contentPosition ?: 0
-                )
+                viewModel.onNoteFoundClicked(noteFound.id, noteFound.contentPosition ?: 0)
             },
+            onNoteClicked = { note -> viewModel.onNoteClicked(note.id) },
+            onFoundNotebookClicked = {},
         )
 
         binding.recyclerViewSearch.adapter = noteSearchAdapter
