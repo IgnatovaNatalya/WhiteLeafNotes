@@ -72,11 +72,14 @@ class NoteListViewModel(
     private val _isPlannerView = MutableLiveData(false)
 
     private var notebooksList: List<Notebook> = emptyList()
+    private var isEncrypted = false
 
     val exportPath =
         "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
     init {
+        isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
+
         loadViewMode()
         //loadNotes()
         findNotes("Зопоп")
@@ -85,7 +88,8 @@ class NoteListViewModel(
     }
 
     fun getEncryptionStatus(): Boolean {
-        return isNotebookProtectedUseCase(notebookPath ?: "")
+        return isEncrypted
+        //return isNotebookProtectedUseCase(notebookPath ?: "")
     }
 
     private fun loadNotebooks() {
@@ -145,7 +149,10 @@ class NoteListViewModel(
                 _noteListState.postValue(NoteListState.SearchResults(query, items))
 
             } catch (_: AuthenticationRequiredException) {
-                _noteListState.postValue(NoteListState.Blocked)
+                //_noteListState.postValue(NoteListState.Blocked)
+                _navigationEvent.postValue(
+                    NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToSearch(query))
+                )
             } catch (e: IOException) {
                 _noteListState.postValue(NoteListState.Error("Ошибка поиска заметок: ${e.message}"))
             } catch (e: Exception) {
@@ -167,16 +174,13 @@ class NoteListViewModel(
             try {
                 if (notebookPath != null) {
 
-                    isProtected = isNotebookProtectedUseCase(notebookPath)
+                    isProtected = isEncrypted // isNotebookProtectedUseCase(notebookPath)
                     val isUnlocked = isNotebookUnlockedUseCase(notebookPath)
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
                         _navigationEvent.postValue(
-                            NoteListNavigationEvent.ShowBiometric(
-                                "Для просмотра",
-                                false
-                            )
+                            NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToLoad )
                         )
                         return@launch
                     }
@@ -195,7 +199,7 @@ class NoteListViewModel(
                 //notesList.forEach { note ->  println("DEBUG: NoteListVM: note:${note.printDebugIdTitlePath()}")}
 
                 _noteListState.postValue(
-                    NoteListState.Success(isProtected, notesList.filter { it.isNotEmpty() })
+                    NoteListState.Success(notesList.filter { it.isNotEmpty() })
                 )
 
             } catch (_: AuthenticationRequiredException) {
@@ -219,19 +223,22 @@ class NoteListViewModel(
         }
     }
 
-    fun unlockNotebook(context: Context, reason: String, toCreate: Boolean) {
-        val isProtected =
-            if (notebookPath != null) isNotebookProtectedUseCase(notebookPath) else false
+    fun unlockNotebook(context: Context, target: UnlockTarget) {
+        val isProtected = isEncrypted
+        // if (notebookPath != null)  isNotebookProtectedUseCase(notebookPath) else false
 
         println("DEBUG: unlock notebook, notebookPath = $notebookPath, isProtected = $isProtected")
 
         if (notebookPath != null && isProtected)
             viewModelScope.launch {
-                val unlocked = unlockNotebookUseCase(notebookPath, context, reason = reason)
+                val unlocked = unlockNotebookUseCase(notebookPath, context, reason = target.toMessage())
                 if (unlocked) {
                     println("DEBUG: unlock notebook: success")
-                    if (toCreate) createNewNote()
-                    else loadNotes()
+                    when (target) {
+                        UnlockTarget.ToCreate -> createNewNote()
+                        UnlockTarget.ToLoad -> loadNotes()
+                        is UnlockTarget.ToSearch -> findNotes(target.query)
+                    }
                 } else {
                     _noteListState.postValue(NoteListState.Blocked)
                 }
@@ -248,7 +255,8 @@ class NoteListViewModel(
     fun encryptNotebook(context: Context) {
         if (notebookPath != null) viewModelScope.launch {
             try {
-                if (isNotebookProtectedUseCase(notebookPath)) {
+                //if (isNotebookProtectedUseCase(notebookPath)) {
+                if (isEncrypted) {
                     _noteListState.value = NoteListState.Error("Записная книжка уже защищена")
                     return@launch
                 }
@@ -282,7 +290,8 @@ class NoteListViewModel(
     fun decryptNotebook(context: Context) {
         if (notebookPath != null) viewModelScope.launch {
             try {
-                if (!isNotebookProtectedUseCase(notebookPath)) {
+                //if (!isNotebookProtectedUseCase(notebookPath)) {
+                if (isEncrypted) {
                     _noteListState.value = NoteListState.Error("Защита не установлена")
                     return@launch
                 }
@@ -310,13 +319,10 @@ class NoteListViewModel(
             try {
                 val newNote = createNoteUseCase(notebookPath)
                 _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(newNote.id))
-            } catch (e: AuthenticationRequiredException) {
+            } catch (_: AuthenticationRequiredException) {
                 showMessage("Записная книжка заблокирована")
                 _navigationEvent.postValue(
-                    NoteListNavigationEvent.ShowBiometric(
-                        "Для создания",
-                        true
-                    )
+                    NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToCreate)
                 )
             } catch (e: Exception) {
                 showMessage("Ошибка создания заметки: ${e.message}")
@@ -395,13 +401,14 @@ class NoteListViewModel(
         if (notebookPath != null)
             viewModelScope.launch {
                 try {
-                    val unlocked = if (isNotebookProtectedUseCase(notebookPath)) {
-                        unlockNotebookUseCase(
-                            notebookPath,
-                            context,
-                            reason = "Для переименования"
-                        )
-                    } else true
+                    val unlocked =
+                        if (isEncrypted) { //if (isNotebookProtectedUseCase(notebookPath)) {
+                            unlockNotebookUseCase(
+                                notebookPath,
+                                context,
+                                reason = "Для переименования"
+                            )
+                        } else true
 
                     if (!unlocked) {
                         _message.postValue("Не удалось подтвердить личность")
@@ -444,7 +451,8 @@ class NoteListViewModel(
         if (notebookPath != null)
             viewModelScope.launch {
                 try {
-                    if (isNotebookProtectedUseCase(notebookPath)) {
+                    //if (isNotebookProtectedUseCase(notebookPath)) {
+                    if (isEncrypted) {
                         val unlocked =
                             unlockNotebookUseCase(
                                 notebookPath,
@@ -493,10 +501,10 @@ class NoteListViewModel(
         val state = _noteListState.value
 
         if (toNote || state !is NoteListState.Success) return
-        println("DEBUG: isEncrypted = ${state.isEncrypted} ")
+        println("DEBUG: isEncrypted = $isEncrypted ")
 
         if (notebookPath != null)
-            if (state.isEncrypted) {
+            if (isEncrypted) {
                 println("DEBUG: убираем признак разблокировки при выходе: $notebookPath")
                 lockNotebookUseCase(notebookPath)
             }

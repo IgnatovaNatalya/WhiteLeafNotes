@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -37,7 +38,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookPath = ""
-    private var isEncrypted = false
+    //private var isEncrypted = false
 
     private lateinit var noteLinearAdapter: NotesLinearAdapter
     private lateinit var plannerAdapter: NotesGridAdapter
@@ -76,13 +77,18 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         actionBar?.title = notebookPath
         if (notebookPath != "") actionBar?.subtitle = "Записная книжка"
 
+
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
+
+        val isEncrypted = viewModel.getEncryptionStatus()
+
+        btnLockIndicator.visibility = if (isEncrypted) View.VISIBLE else View.GONE
 
         isPlannerView = viewModel.getViewMode()
         println("DEBUG: Fragment onViewCreated viewMode is planner = $isPlannerView")
 
-        toggleSecurePreview(requireActivity(), viewModel.getEncryptionStatus())
+        toggleSecurePreview(requireActivity(), isEncrypted)
     }
 
     private fun setupObservers() {
@@ -163,7 +169,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 anchorView = optionsButton,
                 items = ContextMenuHelper.getOptionsMenuItemsNoteList(
                     optionsButton.context,
-                    isProtected = isEncrypted,///
+                    isProtected = viewModel.getEncryptionStatus(),
                     isPlannerView = isPlannerView
                 ),
                 onItemSelected = { itemId ->
@@ -197,7 +203,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         }
 
         binding.unlockButton.setOnClickListener {
-            viewModel.unlockNotebook(requireActivity(), "Для просмотра", false)
+            viewModel.unlockNotebook(requireActivity(), UnlockTarget.ToLoad)
         }
     }
 
@@ -330,19 +336,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                     if (state.notes.isNotEmpty()) View.GONE else View.VISIBLE
                 binding.notebookProtected.visibility = View.GONE
 
-                isEncrypted = state.isEncrypted
-                if (state.isEncrypted) {
+                if (btnLockIndicator.isVisible)
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
-                    btnLockIndicator.visibility = View.VISIBLE
-
-                } else btnLockIndicator.visibility = View.GONE
 
                 binding.createNote.visibility = View.VISIBLE
             }
 
             is NoteListState.Blocked -> {
                 println("⏳ Fragment showing Blocked")
-                isEncrypted = true
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.VISIBLE
@@ -363,7 +364,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
                 binding.recyclerViewSearch.visibility = View.GONE
-                btnLockIndicator.visibility = View.GONE
+//                btnLockIndicator.visibility = View.GONE
                 binding.emptyList.text = state.message
             }
 
@@ -376,7 +377,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
                 binding.recyclerViewSearch.visibility = View.GONE
-                btnLockIndicator.visibility = View.GONE
+//                btnLockIndicator.visibility = View.GONE
             }
 
             is NoteListState.SearchResults -> {
@@ -395,7 +396,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewSearch.visibility = View.VISIBLE
                 noteSearchAdapter.submitList(state.foundNotes)
 
-                btnLockIndicator.visibility = View.VISIBLE
+//                if (isEncrypted) { !!! если во время выполнения поиска ключ заблокировался
+                //                мы получим исключение и тогда нужно иконку поменять и показать биометрию
+//                    btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
+//                    btnLockIndicator.visibility = View.VISIBLE
+//                } else btnLockIndicator.visibility = View.GONE
+
             }
         }
     }
@@ -419,7 +425,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             NoteListNavigationEvent.NavigateUp -> findNavController().navigateUp()
 
             is NoteListNavigationEvent.ShowBiometric ->
-                viewModel.unlockNotebook(requireActivity(), event.message, event.toCreate)
+                viewModel.unlockNotebook(requireActivity(), event.unlockTarget)
 
             NoteListNavigationEvent.Idle -> {}
 

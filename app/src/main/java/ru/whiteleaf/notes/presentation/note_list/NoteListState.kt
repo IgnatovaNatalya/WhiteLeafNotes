@@ -5,8 +5,9 @@ import ru.whiteleaf.notes.presentation.search.SearchListItem
 
 sealed class NoteListState {
     object Loading : NoteListState()
-    data class Success(val isEncrypted: Boolean, val notes: List<Note>) : NoteListState()
+    data class Success(val notes: List<Note>) : NoteListState()
     data class Error(val message: String) : NoteListState()
     object Blocked : NoteListState()
-    data class SearchResults(val query: String, val foundNotes: List<SearchListItem>) : NoteListState()
+    data class SearchResults(val query: String, val foundNotes: List<SearchListItem>) :
+        NoteListState()
 }
