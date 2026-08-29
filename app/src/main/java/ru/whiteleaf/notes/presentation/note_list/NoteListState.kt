@@ -1,7 +1,7 @@
 package ru.whiteleaf.notes.presentation.note_list
 
 import ru.whiteleaf.notes.domain.model.Note
-import ru.whiteleaf.notes.presentation.note_list.search.SearchListItem
+import ru.whiteleaf.notes.presentation.search.SearchListItem
 
 sealed class NoteListState {
     object Loading : NoteListState()

@@ -1,9 +1,8 @@
-package ru.whiteleaf.notes.presentation.note_list.search
+package ru.whiteleaf.notes.presentation.search
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.databinding.ItemNoteInListBinding
 import ru.whiteleaf.notes.databinding.ItemNoteInSearchContentBinding
@@ -18,7 +17,7 @@ class NoteSearchAdapter(
     private val onNoteClicked: (Note) -> Unit,
     private val onFoundNoteClicked: (NoteFound) -> Unit,
     private val onFoundNotebookClicked: (Notebook) -> Unit,
-) : ListAdapter<SearchListItem, RecyclerView.ViewHolder>(SearchNotesDiffCallback()) {
+) : androidx.recyclerview.widget.ListAdapter<SearchListItem, RecyclerView.ViewHolder>(SearchNotesDiffCallback()) {
 
     companion object {
         private const val TYPE_NOTE_TITLE = 0

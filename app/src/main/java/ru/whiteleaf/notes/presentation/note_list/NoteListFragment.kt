@@ -29,7 +29,7 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.note_list.grid.NotesGridAdapter
 import ru.whiteleaf.notes.presentation.note_list.linear.NotesLinearAdapter
-import ru.whiteleaf.notes.presentation.note_list.search.NoteSearchAdapter
+import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
