@@ -74,11 +74,13 @@ class NoteSearchAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
+            is SearchListItem.SearchListNoteTitle -> (holder as NoteInListViewHolder).bind(
+                item.noteFound.toNote(), item.noteFound.query
+            )
+
             is SearchListItem.SearchListNoteContent -> (holder as NoteContentInSearchViewHolder).bind(
                 item.noteFound
             )
-
-            is SearchListItem.SearchListNoteTitle -> (holder as NoteInListViewHolder).bind(item.noteFound.toNote())
             is SearchListItem.SearchNotebook -> (holder as NotebookViewHolder).bind(item.notebook)
         }
     }

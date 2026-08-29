@@ -14,14 +14,14 @@ class NoteContentInSearchViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(noteFound: NoteFound) {
-        val textPreview = noteFound.contentSearchPreview?.replace("\n", " ")?.trimStart()?.trim()
-        val prefix = noteFound.contentPosition?.let { if (it > 5) "..." else "" }
+        val clearText = noteFound.contentSearchPreview?.replace("\n", " ")?.trimStart()?.trim()
+        val contentPreview = noteFound.contentPosition?.let { if (it > 5) "..." else "" } + clearText
 
-        binding.noteSearchPreview.text = prefix + textPreview
+        binding.noteSearchPreview.text = contentPreview
 
         highlightMatches(
             textView = binding.noteSearchPreview,
-            text = prefix + textPreview,
+            text = contentPreview,
             query = noteFound.query,
             highlightColor = ContextCompat.getColor(binding.root.context, R.color.accent_blue),
             ignoreCase = true
