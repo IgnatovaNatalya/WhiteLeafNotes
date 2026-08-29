@@ -9,11 +9,14 @@ import android.text.style.AbsoluteSizeSpan
 import android.text.style.StyleSpan
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,12 +34,18 @@ import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.common.utils.ContextMenuHelper.dpToPx
 import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
 
 class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
     private lateinit var navController: NavController
     private lateinit var drawerLayout: DrawerLayout
+
+    private lateinit var startHeader: TextView
+    private lateinit var lockIndicatorButton: ImageButton
+    private lateinit var optionsButton: ImageButton
+    private lateinit var searchView: SearchView
 
     private lateinit var appBarConfiguration: AppBarConfiguration
 
@@ -57,25 +66,73 @@ class RootActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, 0, systemBars.right, 0)
             insets
         }
+
+        startHeader = binding.tvToolbarTitle
+        lockIndicatorButton = binding.btnLockIndicator
+        optionsButton = binding.btnOptionsMenu
+        searchView = binding.searchView
+
         setupToolbar()
+        setupSearchView()
         setupNavigation()
         setupObservers()
         setupNavigationListener()
     }
 
+    private fun setupSearchView() {
+
+        searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+
+                searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
+                val params = searchView.layoutParams as Toolbar.LayoutParams
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                params.rightMargin = 16.dpToPx(this)
+                searchView.layoutParams = params
+
+                binding.toolbar.navigationIcon = null
+
+                optionsButton.visibility = View.GONE
+                startHeader.visibility = View.GONE
+
+            } else {
+                searchView.background = null
+                val params = searchView.layoutParams as Toolbar.LayoutParams
+                params.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                params.rightMargin = 0
+                searchView.layoutParams = params
+
+                if (navController.currentDestination?.id == R.id.startFragment) {
+                    startHeader.visibility = View.VISIBLE
+                    binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+                } else {
+                    binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+                    optionsButton.visibility = View.VISIBLE
+                }
+            }
+        }
+
+        searchView.setOnSearchClickListener {
+
+        }
+
+    }
+
     private fun setupNavigationListener() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val startHeader = findViewById<TextView>(R.id.tv_toolbar_title)
-            val lockIndicatorButton = findViewById<ImageButton>(R.id.btn_lock_indicator)
-            val optionsButton = findViewById<ImageButton>(R.id.btn_options_menu)
-            val searchButton = findViewById<ImageButton>(R.id.btn_search)
+
+            searchView.post {
+                searchView.setQuery("", false)
+                searchView.clearFocus()
+                searchView.isIconified = true
+            }
 
             when (destination.id) {
                 R.id.startFragment -> {
                     startHeader.visibility = View.VISIBLE
                     lockIndicatorButton.visibility = View.GONE
                     optionsButton.visibility = View.GONE
-                    searchButton.visibility = View.VISIBLE
+                    searchView.visibility = View.VISIBLE
                     supportActionBar?.title = ""
                     supportActionBar?.subtitle = null
                 }
@@ -84,14 +141,14 @@ class RootActivity : AppCompatActivity() {
                     startHeader.visibility = View.GONE
                     lockIndicatorButton.visibility = View.VISIBLE
                     optionsButton.visibility = View.VISIBLE
-                    searchButton.visibility = View.GONE
+                    searchView.visibility = View.VISIBLE
                 }
 
                 R.id.notebooksFragment -> {
                     startHeader.visibility = View.GONE
                     lockIndicatorButton.visibility = View.GONE
                     optionsButton.visibility = View.GONE
-                    searchButton.visibility = View.VISIBLE
+                    searchView.visibility = View.GONE
                     supportActionBar?.subtitle = null
                 }
 
@@ -99,7 +156,7 @@ class RootActivity : AppCompatActivity() {
                     startHeader.visibility = View.GONE
                     lockIndicatorButton.visibility = View.GONE
                     optionsButton.visibility = View.GONE
-                    searchButton.visibility = View.GONE
+                    searchView.visibility = View.GONE
                     supportActionBar?.subtitle = null
                 }
 
@@ -107,7 +164,7 @@ class RootActivity : AppCompatActivity() {
                     startHeader.visibility = View.GONE
                     lockIndicatorButton.visibility = View.VISIBLE
                     optionsButton.visibility = View.VISIBLE
-                    searchButton.visibility = View.GONE
+                    searchView.visibility = View.VISIBLE
                     supportActionBar?.subtitle = null
                 }
             }

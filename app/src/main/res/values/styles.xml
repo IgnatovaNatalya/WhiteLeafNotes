@@ -4,7 +4,7 @@
     <!-- TOOLBAR-->
 
     <style name="StartScreenTitleStyle">
-        <item name="android:textSize">22sp</item>
+        <item name="android:textSize">21sp</item>
         <item name="fontFamily">@font/comfortaa_bold</item>
         <item name="textAllCaps">false</item>
         <item name="lineHeight">30sp</item>

@@ -32,36 +32,54 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:gravity="center"
-                android:text="@string/start_title"
-                android:paddingBottom="8dp"
                 android:width="200dp"
-                android:textColor="@color/medium_blue" />
+                android:gravity="center"
+                android:paddingBottom="8dp"
+                android:text="@string/start_title"
+                android:textColor="@color/medium_blue"
+                android:visibility="gone" />
+
 
             <ImageButton
                 android:id="@+id/btn_options_menu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
+                android:layout_gravity="end|top"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_options"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:tint="?attr/android:textColorPrimary" />
 
-            <ImageButton
+            <!--ImageButton
                 android:id="@+id/btn_search"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
+                android:layout_gravity="end|top"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_search"
-                app:tint="?attr/android:textColorPrimary" />
+                app:tint="?attr/android:textColorPrimary" /-->
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center"
+                android:background="?attr/selectableItemBackground"
+                android:iconifiedByDefault="false"
+                android:saveEnabled="false"
+                android:theme="@style/NoteEditText"
+                app:closeIcon="@drawable/ic_clear"
+                app:contentInsetStartWithNavigation="0dp"
+                app:hideNavigationIcon="true"
+                app:queryBackground="@null"
+                app:queryHint="@string/search"
+                app:searchIcon="@drawable/ic_find" />
 
             <ImageButton
                 android:id="@+id/btn_lock_indicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
+                android:layout_gravity="end|top"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_ind_unlocked"
