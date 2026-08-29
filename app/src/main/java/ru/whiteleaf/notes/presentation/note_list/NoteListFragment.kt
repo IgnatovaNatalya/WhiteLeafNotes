@@ -31,9 +31,11 @@ import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.note_list.grid.NotesGridAdapter
 import ru.whiteleaf.notes.presentation.note_list.linear.NotesLinearAdapter
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
+import ru.whiteleaf.notes.presentation.search.SearchableFragment
 
 
-class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler {
+class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler,
+    SearchableFragment {
 
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
@@ -280,6 +282,16 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
     }
 
+    override fun onSearchQueryChanged(query: String) {
+        println("DEBUG: NoteListVM: onSearchQueryChanged: query=$query")
+//        viewModel.findNotes(query)
+    }
+
+    override fun onSearchQuerySubmitted(query: String) {
+        println("DEBUG: NoteListVM: onSearchQuerySubmitted: query=$query")
+        viewModel.findNotes(query)
+    }
+
     private fun shareExportFile(uri: Uri?) {
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -364,7 +376,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
                 binding.recyclerViewSearch.visibility = View.GONE
-//                btnLockIndicator.visibility = View.GONE
                 binding.emptyList.text = state.message
             }
 
@@ -377,7 +388,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewList.visibility = View.GONE
                 binding.recyclerViewPlanner.visibility = View.GONE
                 binding.recyclerViewSearch.visibility = View.GONE
-//                btnLockIndicator.visibility = View.GONE
             }
 
             is NoteListState.SearchResults -> {
@@ -395,12 +405,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
                 binding.recyclerViewSearch.visibility = View.VISIBLE
                 noteSearchAdapter.submitList(state.foundNotes)
-
-//                if (isEncrypted) { !!! если во время выполнения поиска ключ заблокировался
-                //                мы получим исключение и тогда нужно иконку поменять и показать биометрию
-//                    btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
-//                    btnLockIndicator.visibility = View.VISIBLE
-//                } else btnLockIndicator.visibility = View.GONE
 
             }
         }
@@ -435,7 +439,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onResume() {
         super.onResume()
-        //viewModel.loadNotes()
+        viewModel.loadNotes()
     }
 
     override fun onPause() {

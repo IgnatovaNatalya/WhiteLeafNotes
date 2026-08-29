@@ -36,6 +36,7 @@ import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper.dpToPx
 import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
+import ru.whiteleaf.notes.presentation.search.SearchableFragment
 
 class RootActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRootBinding
@@ -83,7 +84,6 @@ class RootActivity : AppCompatActivity() {
 
         searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-
                 searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
                 val params = searchView.layoutParams as Toolbar.LayoutParams
                 params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -112,10 +112,29 @@ class RootActivity : AppCompatActivity() {
             }
         }
 
-        searchView.setOnSearchClickListener {
+        searchView.setOnSearchClickListener { }
 
-        }
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String?): Boolean {
+                getCurrentSearchableFragment()?.onSearchQueryChanged(newText.orEmpty())
+                return true
+            }
 
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                getCurrentSearchableFragment()?.onSearchQuerySubmitted(query.orEmpty())
+                return true
+            }
+        })
+
+    }
+
+    fun getCurrentSearchableFragment(): SearchableFragment? {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+
+        val currentFragment = navHostFragment.childFragmentManager.primaryNavigationFragment
+
+        return currentFragment as? SearchableFragment
     }
 
     private fun setupNavigationListener() {

@@ -81,16 +81,12 @@ class NoteListViewModel(
         isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
 
         loadViewMode()
-        //loadNotes()
-        findNotes("Зопоп")
+        loadNotes()
         saveLastOpenedNotebook()
         loadNotebooks()
     }
 
-    fun getEncryptionStatus(): Boolean {
-        return isEncrypted
-        //return isNotebookProtectedUseCase(notebookPath ?: "")
-    }
+    fun getEncryptionStatus(): Boolean = isEncrypted
 
     private fun loadNotebooks() {
         viewModelScope.launch {
@@ -149,7 +145,6 @@ class NoteListViewModel(
                 _noteListState.postValue(NoteListState.SearchResults(query, items))
 
             } catch (_: AuthenticationRequiredException) {
-                //_noteListState.postValue(NoteListState.Blocked)
                 _navigationEvent.postValue(
                     NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToSearch(query))
                 )
@@ -174,13 +169,13 @@ class NoteListViewModel(
             try {
                 if (notebookPath != null) {
 
-                    isProtected = isEncrypted // isNotebookProtectedUseCase(notebookPath)
+                    isProtected = isEncrypted
                     val isUnlocked = isNotebookUnlockedUseCase(notebookPath)
 
                     if (isProtected && !isUnlocked) {
                         _noteListState.postValue(NoteListState.Blocked)
                         _navigationEvent.postValue(
-                            NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToLoad )
+                            NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToLoad)
                         )
                         return@launch
                     }
@@ -225,13 +220,13 @@ class NoteListViewModel(
 
     fun unlockNotebook(context: Context, target: UnlockTarget) {
         val isProtected = isEncrypted
-        // if (notebookPath != null)  isNotebookProtectedUseCase(notebookPath) else false
 
         println("DEBUG: unlock notebook, notebookPath = $notebookPath, isProtected = $isProtected")
 
         if (notebookPath != null && isProtected)
             viewModelScope.launch {
-                val unlocked = unlockNotebookUseCase(notebookPath, context, reason = target.toMessage())
+                val unlocked =
+                    unlockNotebookUseCase(notebookPath, context, reason = target.toMessage())
                 if (unlocked) {
                     println("DEBUG: unlock notebook: success")
                     when (target) {
@@ -255,7 +250,6 @@ class NoteListViewModel(
     fun encryptNotebook(context: Context) {
         if (notebookPath != null) viewModelScope.launch {
             try {
-                //if (isNotebookProtectedUseCase(notebookPath)) {
                 if (isEncrypted) {
                     _noteListState.value = NoteListState.Error("Записная книжка уже защищена")
                     return@launch
@@ -290,7 +284,7 @@ class NoteListViewModel(
     fun decryptNotebook(context: Context) {
         if (notebookPath != null) viewModelScope.launch {
             try {
-                //if (!isNotebookProtectedUseCase(notebookPath)) {
+
                 if (isEncrypted) {
                     _noteListState.value = NoteListState.Error("Защита не установлена")
                     return@launch
@@ -402,7 +396,7 @@ class NoteListViewModel(
             viewModelScope.launch {
                 try {
                     val unlocked =
-                        if (isEncrypted) { //if (isNotebookProtectedUseCase(notebookPath)) {
+                        if (isEncrypted) {
                             unlockNotebookUseCase(
                                 notebookPath,
                                 context,
@@ -451,7 +445,6 @@ class NoteListViewModel(
         if (notebookPath != null)
             viewModelScope.launch {
                 try {
-                    //if (isNotebookProtectedUseCase(notebookPath)) {
                     if (isEncrypted) {
                         val unlocked =
                             unlockNotebookUseCase(
