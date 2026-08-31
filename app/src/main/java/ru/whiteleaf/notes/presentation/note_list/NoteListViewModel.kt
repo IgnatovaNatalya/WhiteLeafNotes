@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
@@ -77,6 +79,8 @@ class NoteListViewModel(
     val exportPath =
         "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
+    private var searchDebounceJob: Job? = null
+
     init {
         isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
 
@@ -117,7 +121,21 @@ class NoteListViewModel(
         return _isPlannerView.value ?: false
     }
 
-    fun findNotes(query: String) {
+    fun onSearchQueryChanged(query: String) {
+        searchDebounceJob?.cancel()
+        searchDebounceJob = viewModelScope.launch {
+            delay(500)
+            findNotes(query)
+        }
+    }
+
+    fun onSearchQuerySubmitted(query: String) {
+        searchDebounceJob?.cancel()
+
+        findNotes(query)
+    }
+
+    private fun findNotes(query: String) {
         println("DEBUG: NoteListVM: Поиск заметок, query=$query")
         viewModelScope.launch {
             _noteListState.postValue(NoteListState.Loading)
