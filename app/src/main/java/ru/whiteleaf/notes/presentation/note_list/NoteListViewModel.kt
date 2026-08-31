@@ -65,9 +65,6 @@ class NoteListViewModel(
     private val _noteListState = MutableLiveData<NoteListState>()
     val noteListState: LiveData<NoteListState> = _noteListState
 
-    private val _message = MutableLiveData<String?>()
-    val message: LiveData<String?> = _message
-
     private val _navigationEvent = MutableLiveData<NoteListNavigationEvent>()
     val navigationEvent: LiveData<NoteListNavigationEvent> = _navigationEvent
 
@@ -80,6 +77,8 @@ class NoteListViewModel(
         "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
 
     private var searchDebounceJob: Job? = null
+    var searchQuery: String? = null
+
 
     init {
         isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
@@ -88,6 +87,14 @@ class NoteListViewModel(
         loadNotes()
         saveLastOpenedNotebook()
         loadNotebooks()
+    }
+
+    fun resumeScreen() {
+        when (_noteListState.value) {
+            is NoteListState.Success -> loadNotes()
+            is NoteListState.SearchResults -> if (searchQuery != null) findNotes() else loadNotes()
+            else -> {}
+        }
     }
 
     fun getEncryptionStatus(): Boolean = isEncrypted
@@ -122,21 +129,25 @@ class NoteListViewModel(
     }
 
     fun onSearchQueryChanged(query: String) {
+        searchQuery = query
         searchDebounceJob?.cancel()
         searchDebounceJob = viewModelScope.launch {
             delay(500)
-            findNotes(query)
+            findNotes()
         }
     }
 
     fun onSearchQuerySubmitted(query: String) {
         searchDebounceJob?.cancel()
-
-        findNotes(query)
+        searchQuery = query
+        findNotes()
     }
 
-    private fun findNotes(query: String) {
-        println("DEBUG: NoteListVM: Поиск заметок, query=$query")
+    private fun findNotes() {
+        val query = searchQuery ?: return
+
+        println("DEBUG: NoteListVM: Поиск заметок, query=$query") //todo сделать еще постранично
+
         viewModelScope.launch {
             _noteListState.postValue(NoteListState.Loading)
 
@@ -155,17 +166,11 @@ class NoteListViewModel(
                     if (foundNote.foundedInTitle) items.add(
                         SearchListItem.SearchListNoteTitle(foundNote)
                     )
-                    else items.add(
-                        SearchListItem.SearchListNoteContent(foundNote)
-                    )
+                    else items.add(SearchListItem.SearchListNoteContent(foundNote))
                 }
-
                 _noteListState.postValue(NoteListState.SearchResults(query, items))
-
             } catch (_: AuthenticationRequiredException) {
-                _navigationEvent.postValue(
-                    NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToSearch(query))
-                )
+                _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToSearch))
             } catch (e: IOException) {
                 _noteListState.postValue(NoteListState.Error("Ошибка поиска заметок: ${e.message}"))
             } catch (e: Exception) {
@@ -205,7 +210,7 @@ class NoteListViewModel(
                 notesList.forEach { note ->
                     if (note.isEmpty()) {
                         deleteNoteUseCase(note)
-                        _message.postValue("Пустая заметка удалена")
+                        showMessage("Пустая заметка удалена")
                     }
                 }
 
@@ -250,7 +255,7 @@ class NoteListViewModel(
                     when (target) {
                         UnlockTarget.ToCreate -> createNewNote()
                         UnlockTarget.ToLoad -> loadNotes()
-                        is UnlockTarget.ToSearch -> findNotes(target.query)
+                        is UnlockTarget.ToSearch -> findNotes()
                     }
                 } else {
                     _noteListState.postValue(NoteListState.Blocked)
@@ -283,8 +288,8 @@ class NoteListViewModel(
                     createKeyForNotebookUseCase(notebookPath)
                     encryptNotebookUseCase(notebookPath)
                     loadNotes()
-                    _message.postValue("Записная книжка защищена")
-                } else _message.postValue("Отмена установки защиты")
+                    showMessage("Записная книжка защищена")
+                } else showMessage("Отмена установки защиты")
 
             } catch (e: AuthenticationRequiredException) {
                 _noteListState.value =
@@ -317,14 +322,12 @@ class NoteListViewModel(
                 decryptNotebookUseCase(notebookPath)
                 deleteKeyForNotebookUseCase(notebookPath)
                 loadNotes()
-                _message.value = "Защита записной книжки снята"
+                showMessage("Защита записной книжки снята")
             } catch (e: Exception) {
                 _noteListState.value = NoteListState.Error("Ошибка расшифровки: ${e.message}")
             }
         }
     }
-
-    private fun showMessage(msg: String) = _message.postValue(msg)
 
     fun createNewNote() {
         viewModelScope.launch {
@@ -402,9 +405,9 @@ class NoteListViewModel(
             try {
                 updateNoteDateUseCase(note, newDate)
                 loadNotes()
-                _message.postValue("Дата заметки изменена")
+                showMessage("Дата заметки изменена")
             } catch (e: Exception) {
-                _message.postValue("Ошибка обновления даты: ${e.message}")
+                showMessage("Ошибка обновления даты: ${e.message}")
             }
         }
     }
@@ -423,7 +426,7 @@ class NoteListViewModel(
                         } else true
 
                     if (!unlocked) {
-                        _message.postValue("Не удалось подтвердить личность")
+                        showMessage("Не удалось подтвердить личность")
                         return@launch
                     }
 
@@ -437,7 +440,7 @@ class NoteListViewModel(
                         )
                     } else showMessage("Ошибка переименования")
                 } catch (e: AuthenticationRequiredException) {
-                    _message.postValue("Записная книжка заблокирована: ${e.message}")
+                    showMessage("Записная книжка заблокирована: ${e.message}")
                 } catch (e: Exception) {
                     showMessage("Ошибка переименования: ${e.message}")
                 }
@@ -452,9 +455,9 @@ class NoteListViewModel(
                 if (shareFile)
                     _navigationEvent.postValue(NoteListNavigationEvent.ExportLink(result.getOrNull()))
                 else
-                    _message.postValue("Архив успешно сохранен")
+                    showMessage("Архив успешно сохранен")
             } else {
-                _message.postValue("Отмена разблокировки")
+                showMessage("Отмена разблокировки")
             }
         }
     }
@@ -472,7 +475,7 @@ class NoteListViewModel(
                             )
 
                         if (!unlocked) {
-                            _message.postValue("Не удалось подтвердить личность")
+                            showMessage("Не удалось подтвердить личность")
                             return@launch
                         }
                     }
@@ -499,9 +502,13 @@ class NoteListViewModel(
             )
         )
 
-    fun onNavigated() = _navigationEvent.postValue(NoteListNavigationEvent.Idle)
 
-    fun clearMessage() = _message.postValue(null)
+    private fun showMessage(msg: String) =
+        _navigationEvent.postValue(NoteListNavigationEvent.ShowMessage(msg))
+
+    fun clearEvent() {
+        _navigationEvent.postValue(NoteListNavigationEvent.Idle)
+    }
 
     private fun saveLastOpenedNotebook() {
         notebookPath?.let { preferencesInteractor.saveLastOpenedNotebook(notebookPath) }
@@ -525,4 +532,6 @@ class NoteListViewModel(
         super.onCleared()
         onNotebookExited(false)
     }
+
+
 }

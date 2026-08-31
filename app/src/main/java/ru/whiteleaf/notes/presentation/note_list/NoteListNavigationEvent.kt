@@ -12,13 +12,14 @@ sealed class NoteListNavigationEvent {
     data class ReopenNotebook(val path: String) : NoteListNavigationEvent()
     data class ExportLink(val uri: Uri?) : NoteListNavigationEvent()
     data class ShowBiometric(val unlockTarget: UnlockTarget) : NoteListNavigationEvent()
+    data class ShowMessage(val msg:String) : NoteListNavigationEvent()
     data class NavigateToNoteFound(val noteId: String, val contentPosition: Int) :
         NoteListNavigationEvent()
 }
 
 sealed class UnlockTarget {
     object ToCreate : UnlockTarget()
-    data class ToSearch(val query: String) : UnlockTarget()
+    object ToSearch : UnlockTarget()
     object ToLoad : UnlockTarget()
 }
 

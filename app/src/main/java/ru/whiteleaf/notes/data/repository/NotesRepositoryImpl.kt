@@ -432,7 +432,7 @@ class NoteRepositoryImpl(
                 }
 
                 // Поиск по содержимому (только если можно прочитать)
-                val canReadContent = !isProtected || (isProtected && isUnlocked) // убрал || true
+                val canReadContent = !isProtected || (isProtected && isUnlocked)
                 if (canReadContent) {
                     try {
                         val rawContent = noteDataSource.readNoteContent(file)

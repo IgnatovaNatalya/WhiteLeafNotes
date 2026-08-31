@@ -94,13 +94,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun setupObservers() {
-
-        viewModel.message.observe(viewLifecycleOwner) { message ->
-            message?.let {
-                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-                viewModel.clearMessage()
-            }
-        }
         viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> renderEvent(event) }
 
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
@@ -431,15 +424,17 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             is NoteListNavigationEvent.ShowBiometric ->
                 viewModel.unlockNotebook(requireActivity(), event.unlockTarget)
 
-            NoteListNavigationEvent.Idle -> {}
+            is NoteListNavigationEvent.ShowMessage ->
+                Toast.makeText(requireContext(), event.msg, Toast.LENGTH_SHORT).show()
 
+            NoteListNavigationEvent.Idle -> {}
         }
-        viewModel.onNavigated()
+        viewModel.clearEvent()
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadNotes()
+        viewModel.resumeScreen()
     }
 
     override fun onPause() {
