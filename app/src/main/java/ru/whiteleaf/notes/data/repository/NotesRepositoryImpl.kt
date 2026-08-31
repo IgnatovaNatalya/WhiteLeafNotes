@@ -432,7 +432,7 @@ class NoteRepositoryImpl(
                 }
 
                 // Поиск по содержимому (только если можно прочитать)
-                val canReadContent = !isProtected || (isProtected && isUnlocked) || true ///
+                val canReadContent = !isProtected || (isProtected && isUnlocked) // убрал || true
                 if (canReadContent) {
                     try {
                         val rawContent = noteDataSource.readNoteContent(file)
@@ -442,8 +442,8 @@ class NoteRepositoryImpl(
                             rawContent
                         }
 
-                        // Находим все позиции вхождения (регистронезависимо)
                         val lowerContent = content.lowercase()
+                        // 1. Собираем все позиции вхождения
                         val positions = mutableListOf<Int>()
                         var start = lowerContent.indexOf(lowerQuery)
                         while (start != -1) {
@@ -451,45 +451,43 @@ class NoteRepositoryImpl(
                             start = lowerContent.indexOf(lowerQuery, start + 1)
                         }
 
-                        // Для каждой позиции строим фрагмент и группируем по содержанию
-                        val fragmentMap =
-                            mutableMapOf<String, Pair<Int, Int>>() // contentPart -> (startOffset, firstPosition)
-                        for (pos in positions) {
-                            val (fragment, offset) = extractFragment(content, pos, query.length, previewLen)
-                            // Если такой фрагмент уже есть, не добавляем дубль
-                            if (!fragmentMap.containsKey(fragment)) {
-                                fragmentMap[fragment] = offset to pos
+                        if (positions.isNotEmpty()) {
+                            // 2. Группируем позиции в кластеры (окна)
+                            val clusterStarts = mutableListOf<Int>()
+                            var clusterStart = positions.first()
+                            clusterStarts.add(clusterStart)
+
+                            for (pos in positions.drop(1)) {
+                                // Если расстояние от начала текущего кластера превышает previewLen,
+                                // то начинаем новый кластер
+                                if (pos - clusterStart > previewLen) {
+                                    clusterStart = pos
+                                    clusterStarts.add(clusterStart)
+                                }
+                                // иначе позиция принадлежит текущему кластеру – ничего не делаем
+                            }
+
+                            // 3. Для каждого кластера добавляем один результат (по первой позиции)
+                            for (pos in clusterStarts) {
+                                val (fragment, offset) = extractFragment(content, pos, query.length, previewLen)
+                                result.add(
+                                    NoteFound(
+                                        query = query,
+                                        id = id,
+                                        title = title,
+                                        foundedInTitle = false,
+                                        contentSearchPreview = fragment,
+                                        contentPosition = pos,          // можно передать pos или offset
+                                        modifiedAt = file.lastModified(),
+                                        notebookPath = path
+                                    )
+                                )
                             }
                         }
-
-                        // Добавляем результаты
-                        for ((fragment, pair) in fragmentMap) {
-                            val (offset, firstPos) = pair
-                            result.add(
-                                NoteFound(
-                                    query = query,
-                                    id = id,
-                                    title = title,
-                                    foundedInTitle = false,
-                                    contentSearchPreview = fragment,
-                                    //contentPreviewOffset = offset,
-                                    contentPosition = firstPos,
-                                    modifiedAt = file.lastModified(),
-                                    notebookPath = path
-                                )
-                            )
-                        }
-
                     } catch (e: AuthenticationRequiredException) {
-                        // Ключ внезапно стал недоступен – пропускаем чтение содержимого
-                        // (поиск по названию уже сделан)
-                        throw e //выбрасываем ошибку чтобы пользователю сказать
+                        throw e
                     } catch (e: Exception) {
-                        // Логируем, но не прерываем общий поиск
-                        Log.w(
-                            "NoteRepository",
-                            "Failed to read content for ${file.name}: ${e.message}"
-                        )
+                        Log.w("NoteRepository", "Failed to read content for ${file.name}: ${e.message}")
                     }
                 }
             }
