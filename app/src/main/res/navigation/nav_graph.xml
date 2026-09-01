@@ -84,6 +84,12 @@
             android:defaultValue="0"
             app:argType="integer" />
 
+        <argument
+            android:name="searchQuery"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
         <deepLink
             android:id="@+id/deepLink"
             app:uri="whiteleafnotes://notes/{noteId}" />

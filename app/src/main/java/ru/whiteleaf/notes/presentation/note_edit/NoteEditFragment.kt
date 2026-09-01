@@ -46,6 +46,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var wasInterrupted = false
 
     private var lastCursorPosition = -1 //-1 если не была открыта клавиатура и не вводился текст
+    private var searchQuery: String? = null
 
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
@@ -79,6 +80,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
+
+        lastCursorPosition = args.contentPosition
+        searchQuery = args.searchQuery
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -283,9 +287,16 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                         titleEditText.requestFocus()
                         contentEditText.requestFocus()
                         showKeyboard(contentEditText)
-                        if (contentEditText.text.length >= lastCursorPosition) contentEditText.setSelection(
-                            lastCursorPosition
-                        ) else contentEditText.setSelection(contentEditText.text.length)
+
+                        val len = if (searchQuery != null) searchQuery!!.length else 0
+                        searchQuery = null
+
+                        if (contentEditText.text.length >= lastCursorPosition) {
+                            contentEditText.setSelection(
+                                lastCursorPosition,
+                                lastCursorPosition + len
+                            )
+                        } else contentEditText.setSelection(contentEditText.text.length)
                         //lastCursorPosition = -1
                     }
                 }
@@ -343,7 +354,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
             }
 
             is NoteEditNavigationEvent.ShareFile ->
-                ShareHelper.shareFile( requireContext(), event.uri)
+                ShareHelper.shareFile(requireContext(), event.uri)
 
             is NoteEditNavigationEvent.ShowMessage -> {
                 renderMessage(event.message)

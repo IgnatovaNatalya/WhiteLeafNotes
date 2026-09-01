@@ -13,7 +13,7 @@ sealed class NoteListNavigationEvent {
     data class ExportLink(val uri: Uri?) : NoteListNavigationEvent()
     data class ShowBiometric(val unlockTarget: UnlockTarget) : NoteListNavigationEvent()
     data class ShowMessage(val msg:String) : NoteListNavigationEvent()
-    data class NavigateToNoteFound(val noteId: String, val contentPosition: Int) :
+    data class NavigateToNoteFound(val noteId: String, val contentPosition: Int, val query: String?) :
         NoteListNavigationEvent()
 }
 

@@ -498,7 +498,7 @@ class NoteListViewModel(
         _navigationEvent.postValue(
             NoteListNavigationEvent.NavigateToNoteFound(
                 noteId,
-                contentPosition
+                contentPosition, searchQuery
             )
         )
 

@@ -302,11 +302,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         findNavController().navigate(action)
     }
 
-    private fun navigateToNoteFound(noteId: String, contentPosition: Int) {
+    private fun navigateToNoteFound(noteId: String, contentPosition: Int, query: String?) {
         val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
             noteId = noteId,
             notebookPath = args.notebookPath,
-            contentPosition = contentPosition
+            contentPosition = contentPosition,
+            searchQuery = query
         )
         findNavController().navigate(action)
     }
@@ -415,7 +416,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
             is NoteListNavigationEvent.NavigateToNoteFound -> {
                 navigateToNote = true
-                navigateToNoteFound(event.noteId, event.contentPosition)
+                navigateToNoteFound(event.noteId, event.contentPosition, event.query)
             }
 
             is NoteListNavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
