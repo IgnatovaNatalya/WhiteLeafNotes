@@ -30,6 +30,7 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.note_list.grid.NotesGridAdapter
 import ru.whiteleaf.notes.presentation.note_list.linear.NotesLinearAdapter
+import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 
@@ -40,7 +41,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookPath = ""
-    //private var isEncrypted = false
 
     private lateinit var noteLinearAdapter: NotesLinearAdapter
     private lateinit var plannerAdapter: NotesGridAdapter
@@ -399,6 +399,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.recyclerViewSearch.visibility = View.VISIBLE
                 noteSearchAdapter.submitList(state.foundNotes)
 
+                (requireActivity() as RootActivity).toggleSearchView(true, state.query)
             }
         }
     }

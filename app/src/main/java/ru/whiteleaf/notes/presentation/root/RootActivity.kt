@@ -82,37 +82,9 @@ class RootActivity : AppCompatActivity() {
 
     private fun setupSearchView() {
 
-        searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
-                val params = searchView.layoutParams as Toolbar.LayoutParams
-                params.width = ViewGroup.LayoutParams.MATCH_PARENT
-                params.rightMargin = 16.dpToPx(this)
-                searchView.layoutParams = params
-
-                binding.toolbar.navigationIcon = null
-
-                optionsButton.visibility = View.GONE
-                startHeader.visibility = View.GONE
-
-            } else {
-                searchView.background = null
-                val params = searchView.layoutParams as Toolbar.LayoutParams
-                params.width = ViewGroup.LayoutParams.WRAP_CONTENT
-                params.rightMargin = 0
-                searchView.layoutParams = params
-
-                if (navController.currentDestination?.id == R.id.startFragment) {
-                    startHeader.visibility = View.VISIBLE
-                    binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
-                } else {
-                    binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
-                    optionsButton.visibility = View.VISIBLE
-                }
-            }
-        }
-
-        searchView.setOnSearchClickListener { }
+        searchView.setOnQueryTextFocusChangeListener { _, hasFocus -> toggleSearchView(hasFocus) }
+        //searchView.setOnSearchClickListener { toggleSearchView(true) }
+        //searchView.setOnCloseListener {  toggleSearchView(false) ; true}
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
@@ -125,7 +97,40 @@ class RootActivity : AppCompatActivity() {
                 return true
             }
         })
+    }
 
+    fun toggleSearchView(focus: Boolean, query: String? = null) {
+        if (focus) {
+            searchView.isIconified = false
+            searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
+            val params = searchView.layoutParams as Toolbar.LayoutParams
+            params.width = ViewGroup.LayoutParams.MATCH_PARENT
+            params.rightMargin = 16.dpToPx(this)
+            searchView.layoutParams = params
+
+            if (query != null) searchView.setQuery(query, false)
+
+            binding.toolbar.navigationIcon = null
+
+            optionsButton.visibility = View.GONE
+            startHeader.visibility = View.GONE
+
+        } else {
+            searchView.isIconified = true
+            searchView.background = null
+            val params = searchView.layoutParams as Toolbar.LayoutParams
+            params.width = ViewGroup.LayoutParams.WRAP_CONTENT
+            params.rightMargin = 0
+            searchView.layoutParams = params
+
+            if (navController.currentDestination?.id == R.id.startFragment) {
+                startHeader.visibility = View.VISIBLE
+                binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+            } else {
+                binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+                optionsButton.visibility = View.VISIBLE
+            }
+        }
     }
 
     fun getCurrentSearchableFragment(): SearchableFragment? {
