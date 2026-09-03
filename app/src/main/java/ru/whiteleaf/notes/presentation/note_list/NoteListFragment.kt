@@ -276,12 +276,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     override fun onSearchQueryChanged(query: String) {
-        println("DEBUG: NoteListVM: onSearchQueryChanged: query=$query")
+        println("DEBUG: NoteList Fragment: onSearchQueryChanged: query=$query")
         if (query.length>=3) viewModel.onSearchQueryChanged(query)
     }
 
     override fun onSearchQuerySubmitted(query: String) {
-        println("DEBUG: NoteListVM: onSearchQuerySubmitted: query=$query")
+        println("DEBUG: NoteList Fragment: onSearchQuerySubmitted: query=$query")
         if (query.length>=3) viewModel.onSearchQuerySubmitted(query)
     }
 

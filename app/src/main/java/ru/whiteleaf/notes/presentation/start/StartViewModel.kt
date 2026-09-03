@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
@@ -20,6 +22,7 @@ import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.data.model.RecentNote
+import ru.whiteleaf.notes.domain.model.printDebug
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
@@ -31,7 +34,11 @@ import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.PinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
+import ru.whiteleaf.notes.presentation.search.SearchListItem
+import java.io.IOException
+import java.security.InvalidKeyException
 import kotlin.collections.forEach
 
 const val MAX_ITEMS = 3
@@ -57,9 +64,10 @@ class StartViewModel(
     private val encryptNotebookUseCase: EncryptNotebookUseCase,
     private val decryptNotebookUseCase: DecryptNotebookUseCase,
     private val pinNotebookUseCase: PinNotebookUseCase,
-    private val unpinNotebookUseCase: UnpinNotebookUseCase
+    private val unpinNotebookUseCase: UnpinNotebookUseCase,
+    private val findNotesUseCase: FindNotesUseCase,
 
-) : ViewModel() {
+    ) : ViewModel() {
 
     private val _navigationEvent = MutableLiveData<StartNavigationEvent>()
     val navigationEvent: LiveData<StartNavigationEvent> = _navigationEvent
@@ -71,8 +79,8 @@ class StartViewModel(
     private var notebookList: List<Notebook> = emptyList()
     private var rootNoteList: List<Note> = emptyList()
 
-    private val _message = MutableLiveData<String?>()
-    val message: LiveData<String?> = _message
+//    private val _message = MutableLiveData<String?>()
+//    val message: LiveData<String?> = _message
 
     private var visibleRecentCount = MAX_ITEMS
     private var visibleNotebooksCount = MAX_ITEMS
@@ -80,6 +88,9 @@ class StartViewModel(
 
     val exportPath =
         "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).name} / $DEFAULT_DIR"
+
+    private var searchDebounceJob: Job? = null
+    var searchQuery: String? = null
 
     init {
         loadData()
@@ -100,7 +111,7 @@ class StartViewModel(
                 rootNotes.forEach { note ->
                     if (note.isEmpty()) {
                         deleteNoteUseCase(note)
-                        _message.postValue("Пустая заметка удалена")
+                        postMessage("Пустая заметка удалена")
                     }
                 }
 
@@ -112,9 +123,73 @@ class StartViewModel(
                 buildStartItems()
 
             } catch (e: Exception) {
-                _message.value = "Ошибка загрузки данных: ${e.message}"
+                postMessage("Ошибка загрузки данных: ${e.message}")
             }
         }
+    }
+
+    private fun findNotes() {
+        val query = searchQuery ?: return
+
+        println("DEBUG: NoteListVM: Поиск заметок, query=$query") //todo сделать еще постранично
+
+        viewModelScope.launch {
+            _startScreenState.postValue(StartScreenState.Loading)
+
+            try {
+                val items = mutableListOf<SearchListItem>()
+
+                val foundNotebooks =
+                    notebookList.filter { it.path.lowercase().contains(query) }.also { list ->
+                        list.forEach { items.add(SearchListItem.SearchNotebook(it, query)) }
+                    }
+
+                println("DEBUG: StartVM: findNotebooks: ${foundNotebooks.size} notebooks found")
+
+                val foundNotes = findNotesUseCase(
+                    null, query,
+                    notebookList
+                )
+
+                println("DEBUG: StartVM: findNotes: ${foundNotes.size} notes found")
+                foundNotes.forEach { note -> note.printDebug() }
+
+                foundNotes.forEach { foundNote ->
+                    if (foundNote.foundedInTitle) items.add(
+                        SearchListItem.SearchListNoteTitle(foundNote)
+                    )
+                    else items.add(SearchListItem.SearchListNoteContent(foundNote))
+                }
+                _startScreenState.postValue(StartScreenState.SearchResults(query, items))
+            } catch (_: AuthenticationRequiredException) {
+                //поймали зашифрованную но ничего не делаем
+            } catch (e: IOException) {
+                _navigationEvent.postValue(StartNavigationEvent.ShowMessage("Ошибка поиска заметок: ${e.message}"))
+            } catch (e: Exception) {
+                if (e.cause is InvalidKeyException) {
+                    //тоже ничего не делаем
+                    println("DEBUG: Start VM: InvalidKeyException ${e.message}")
+                } else
+                    _navigationEvent.postValue(
+                        StartNavigationEvent.ShowMessage(e.message ?: "Ошибка поиска")
+                    )
+            }
+        }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        searchQuery = query
+        searchDebounceJob?.cancel()
+        searchDebounceJob = viewModelScope.launch {
+            delay(500)
+            findNotes()
+        }
+    }
+
+    fun onSearchQuerySubmitted(query: String) {
+        searchDebounceJob?.cancel()
+        searchQuery = query
+        findNotes()
     }
 
     fun buildStartItems() {
@@ -215,7 +290,7 @@ class StartViewModel(
                 _navigationEvent.postValue(StartNavigationEvent.NavigateToCreatedNote(newNote))
                 //_message.postValue("Заметка создана")
             } catch (e: Exception) {
-                _message.postValue("Ошибка создания заметки: ${e.message}")
+                postMessage("Ошибка создания заметки: ${e.message}")
             }
         }
     }
@@ -231,7 +306,7 @@ class StartViewModel(
                 )
 
             } catch (e: Exception) {
-                _message.postValue("Ошибка создания записной книжки: ${e.message}")
+                postMessage("Ошибка создания записной книжки: ${e.message}")
             }
         }
     }
@@ -242,10 +317,10 @@ class StartViewModel(
                 if (newTitle != note.title) {
                     renameNoteUseCase(note, newTitle)
                     loadData()
-                    _message.postValue("Название заметки изменено")
+                    postMessage("Название заметки изменено")
                 }
             } catch (e: Exception) {
-                _message.postValue("Ошибка переименования: ${e.message}")
+                postMessage("Ошибка переименования: ${e.message}")
             }
         }
     }
@@ -255,9 +330,9 @@ class StartViewModel(
             try {
                 updateNoteDateUseCase(note, newDate)
                 loadData()
-                _message.postValue("Дата заметки обновлена")
+                postMessage("Дата заметки обновлена")
             } catch (e: Exception) {
-                _message.postValue("Ошибка обновления даты: ${e.message}")
+                postMessage("Ошибка обновления даты: ${e.message}")
             }
         }
     }
@@ -274,19 +349,19 @@ class StartViewModel(
                 } else true
 
                 if (!unlocked) {
-                    _message.postValue("Не удалось подтвердить личность")
+                    postMessage("Не удалось подтвердить личность")
                     return@launch
                 }
 
                 if (newName != notebook.path) {
                     renameNotebookUseCase(notebook.path, newName)
                     loadData()
-                    _message.postValue("Название записной книжки изменено")
+                    postMessage("Название записной книжки изменено")
                 }
             } catch (e: AuthenticationRequiredException) {
-                _message.postValue("Записная книжка заблокирована: ${e.message}")
+                postMessage("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
-                _message.postValue("Ошибка переименования: ${e.message}")
+                postMessage("Ошибка переименования: ${e.message}")
             }
         }
     }
@@ -306,10 +381,10 @@ class StartViewModel(
                     loadData()
                 }
             } catch (e: AuthenticationRequiredException) {
-                _message.postValue("Ошибка разблокировки")
+                postMessage("Ошибка разблокировки")
                 println("DEBUG: StartVM: moveNote: AuthenticationRequiredException ${e.message}")
             } catch (e: Exception) {
-                _message.postValue("Ошибка перемещения заметки: ${e.message}")
+                postMessage("Ошибка перемещения заметки: ${e.message}")
             }
         }
     }
@@ -320,7 +395,7 @@ class StartViewModel(
                 deleteNoteUseCase(note)
                 loadData()
             } catch (e: Exception) {
-                _message.postValue("Ошибка удаления заметки: ${e.message}")
+                postMessage("Ошибка удаления заметки: ${e.message}")
             }
         }
     }
@@ -329,7 +404,7 @@ class StartViewModel(
         viewModelScope.launch {
             try {
                 if (isNotebookProtectedUseCase(notebook.path)) {
-                    _message.postValue("Записная книжка уже защищищена")
+                    postMessage("Записная книжка уже защищищена")
                     return@launch
                 }
                 val locked = unlockNotebookUseCase(
@@ -342,14 +417,14 @@ class StartViewModel(
                     createKeyForNotebookUseCase(notebook.path)
                     encryptNotebookUseCase(notebook.path)
                     loadData()
-                    _message.postValue("Записная книжка защищена")
-                } else _message.postValue("Отмена установки защиты")
+                    postMessage("Записная книжка защищена")
+                } else postMessage("Отмена установки защиты")
 
             } catch (e: AuthenticationRequiredException) {
-                _message.postValue("Не удалось зашифровать записную книжку: ${e.message}")
+                postMessage("Не удалось зашифровать записную книжку: ${e.message}")
                 println("DEBUG: StartVM fail encrypt notebook: ${e.message}")
             } catch (e: Exception) {
-                _message.postValue("Ошибка шифрования: ${e.message}")
+                postMessage("Ошибка шифрования: ${e.message}")
                 println("DEBUG: StartVM: Ошибка шифрования: ${e.message}")
             }
         }
@@ -359,21 +434,21 @@ class StartViewModel(
         viewModelScope.launch {
             try {
                 if (!isNotebookProtectedUseCase(notebook.path)) {
-                    _message.postValue("Защита не установлена")
+                    postMessage("Защита не установлена")
                     return@launch
                 }
                 val unlocked =
                     unlockNotebookUseCase(notebook.path, context, reason = "Для снятия защиты")
                 if (!unlocked) {
-                    _message.postValue("Не удалось подтвердить личность")
+                    postMessage("Не удалось подтвердить личность")
                     return@launch
                 }
                 decryptNotebookUseCase(notebook.path)
                 deleteKeyForNotebookUseCase(notebook.path)
                 loadData()
-                _message.value = "Защита записной книжки снята"
+                postMessage("Защита записной книжки снята")
             } catch (e: Exception) {
-                _message.postValue("Ошибка расшифровки: ${e.message}")
+                postMessage("Ошибка расшифровки: ${e.message}")
             }
         }
     }
@@ -388,11 +463,11 @@ class StartViewModel(
             val result = exportNotebookUseCase(context, notebookPath, password)
 
             if (result.isSuccess) {
-                _message.postValue("Архив успешно создан")
+                postMessage("Архив успешно создан")
                 if (shareFile)
                     _navigationEvent.postValue(StartNavigationEvent.ShareUri(result.getOrNull()))
             } else {
-                _message.postValue("Отмена экспорта")
+                postMessage("Отмена экспорта")
             }
         }
     }
@@ -409,16 +484,16 @@ class StartViewModel(
                 if (unlocked) {
                     deleteNotebookUseCase(notebook.path)
                     loadData()
-                    _message.postValue("Записная книжка удалена")
+                    postMessage("Записная книжка удалена")
                 } else {
-                    _message.postValue("Не удалось подтвердить личность")
+                    postMessage("Не удалось подтвердить личность")
                     return@launch
                 }
 
             } catch (e: AuthenticationRequiredException) {
-                _message.postValue("Записная книжка заблокирована: ${e.message}")
+                postMessage("Записная книжка заблокирована: ${e.message}")
             } catch (e: Exception) {
-                _message.postValue("Ошибка удаления записной книжки: ${e.message}")
+                postMessage("Ошибка удаления записной книжки: ${e.message}")
             }
         }
     }
@@ -433,8 +508,16 @@ class StartViewModel(
         loadData()
     }
 
-    fun onNavigated() = _navigationEvent.postValue(StartNavigationEvent.Idle)
 
-    fun clearMessage() = _message.postValue(null)
+    private fun postMessage(msg: String) =
+        _navigationEvent.postValue(StartNavigationEvent.ShowMessage(msg))
+
+    fun clearEvent() {
+        _navigationEvent.postValue(StartNavigationEvent.Idle)
+    }
+
+//    fun onNavigated() = _navigationEvent.postValue(StartNavigationEvent.Idle)
+//
+//    fun clearMessage() = _message.postValue(null)
 
 }

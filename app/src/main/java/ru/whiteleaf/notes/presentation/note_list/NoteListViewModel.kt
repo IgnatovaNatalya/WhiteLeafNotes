@@ -210,7 +210,7 @@ class NoteListViewModel(
                 notesList.forEach { note ->
                     if (note.isEmpty()) {
                         deleteNoteUseCase(note)
-                        showMessage("Пустая заметка удалена")
+                        postMessage("Пустая заметка удалена")
                     }
                 }
 
@@ -288,8 +288,8 @@ class NoteListViewModel(
                     createKeyForNotebookUseCase(notebookPath)
                     encryptNotebookUseCase(notebookPath)
                     loadNotes()
-                    showMessage("Записная книжка защищена")
-                } else showMessage("Отмена установки защиты")
+                    postMessage("Записная книжка защищена")
+                } else postMessage("Отмена установки защиты")
 
             } catch (e: AuthenticationRequiredException) {
                 _noteListState.value =
@@ -322,7 +322,7 @@ class NoteListViewModel(
                 decryptNotebookUseCase(notebookPath)
                 deleteKeyForNotebookUseCase(notebookPath)
                 loadNotes()
-                showMessage("Защита записной книжки снята")
+                postMessage("Защита записной книжки снята")
             } catch (e: Exception) {
                 _noteListState.value = NoteListState.Error("Ошибка расшифровки: ${e.message}")
             }
@@ -335,12 +335,12 @@ class NoteListViewModel(
                 val newNote = createNoteUseCase(notebookPath)
                 _navigationEvent.postValue(NoteListNavigationEvent.NavigateToNote(newNote.id))
             } catch (_: AuthenticationRequiredException) {
-                showMessage("Записная книжка заблокирована")
+                postMessage("Записная книжка заблокирована")
                 _navigationEvent.postValue(
                     NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToCreate)
                 )
             } catch (e: Exception) {
-                showMessage("Ошибка создания заметки: ${e.message}")
+                postMessage("Ошибка создания заметки: ${e.message}")
             }
         }
     }
@@ -351,7 +351,7 @@ class NoteListViewModel(
                 deleteNoteUseCase(note)
                 loadNotes()
             } catch (e: Exception) {
-                showMessage("Ошибка удаления заметки: ${e.message}")
+                postMessage("Ошибка удаления заметки: ${e.message}")
             }
         }
     }
@@ -374,14 +374,14 @@ class NoteListViewModel(
                     loadNotes()
                 } else {
                     _noteListState.postValue(NoteListState.Blocked)
-                    showMessage("Отмена перемещения")
+                    postMessage("Отмена перемещения")
                 }
             } catch (e: AuthenticationRequiredException) {
                 _noteListState.postValue(NoteListState.Blocked)
-                showMessage("Ошибка разблокировки ${e.message}")
+                postMessage("Ошибка разблокировки ${e.message}")
                 println("DEBUG: NoteListVM: moveNote: AuthenticationRequiredException ${e.message}")
             } catch (e: Exception) {
-                showMessage("Ошибка перемещения заметки: ${e.message}")
+                postMessage("Ошибка перемещения заметки: ${e.message}")
             }
         }
     }
@@ -392,10 +392,10 @@ class NoteListViewModel(
                 if (newTitle != note.title) {
                     renameNoteUseCase(note, newTitle)
                     loadNotes()
-                    showMessage("Название заметки изменено")
+                    postMessage("Название заметки изменено")
                 }
             } catch (e: Exception) {
-                showMessage("Ошибка переименования: ${e.message}")
+                postMessage("Ошибка переименования: ${e.message}")
             }
         }
     }
@@ -405,9 +405,9 @@ class NoteListViewModel(
             try {
                 updateNoteDateUseCase(note, newDate)
                 loadNotes()
-                showMessage("Дата заметки изменена")
+                postMessage("Дата заметки изменена")
             } catch (e: Exception) {
-                showMessage("Ошибка обновления даты: ${e.message}")
+                postMessage("Ошибка обновления даты: ${e.message}")
             }
         }
     }
@@ -426,23 +426,23 @@ class NoteListViewModel(
                         } else true
 
                     if (!unlocked) {
-                        showMessage("Не удалось подтвердить личность")
+                        postMessage("Не удалось подтвердить личность")
                         return@launch
                     }
 
                     if (newName != notebookPath) {
                         renameNotebookUseCase(notebookPath, newName)
-                        showMessage("Название записной книжки изменено")
+                        postMessage("Название записной книжки изменено")
                         _navigationEvent.postValue(
                             NoteListNavigationEvent.ReopenNotebook(
                                 newName
                             )
                         )
-                    } else showMessage("Ошибка переименования")
+                    } else postMessage("Ошибка переименования")
                 } catch (e: AuthenticationRequiredException) {
-                    showMessage("Записная книжка заблокирована: ${e.message}")
+                    postMessage("Записная книжка заблокирована: ${e.message}")
                 } catch (e: Exception) {
-                    showMessage("Ошибка переименования: ${e.message}")
+                    postMessage("Ошибка переименования: ${e.message}")
                 }
             }
     }
@@ -455,9 +455,9 @@ class NoteListViewModel(
                 if (shareFile)
                     _navigationEvent.postValue(NoteListNavigationEvent.ExportLink(result.getOrNull()))
                 else
-                    showMessage("Архив успешно сохранен")
+                    postMessage("Архив успешно сохранен")
             } else {
-                showMessage("Отмена разблокировки")
+                postMessage("Отмена разблокировки")
             }
         }
     }
@@ -475,7 +475,7 @@ class NoteListViewModel(
                             )
 
                         if (!unlocked) {
-                            showMessage("Не удалось подтвердить личность")
+                            postMessage("Не удалось подтвердить личность")
                             return@launch
                         }
                     }
@@ -483,10 +483,10 @@ class NoteListViewModel(
                     deleteNotebookUseCase(notebookPath)
 
                     _navigationEvent.postValue(NoteListNavigationEvent.NavigateUp)
-                    showMessage("Записная книжка удалена")
+                    postMessage("Записная книжка удалена")
 
                 } catch (e: Exception) {
-                    showMessage("Ошибка удаления записной книжки: ${e.message}")
+                    postMessage("Ошибка удаления записной книжки: ${e.message}")
                 }
             }
     }
@@ -503,7 +503,7 @@ class NoteListViewModel(
         )
 
 
-    private fun showMessage(msg: String) =
+    private fun postMessage(msg: String) =
         _navigationEvent.postValue(NoteListNavigationEvent.ShowMessage(msg))
 
     fun clearEvent() {

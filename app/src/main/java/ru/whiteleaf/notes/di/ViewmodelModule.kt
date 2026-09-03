@@ -35,6 +35,7 @@ val viewmodelModule = module {
             decryptNotebookUseCase = get(),
             pinNotebookUseCase = get(),
             unpinNotebookUseCase = get(),
+            findNotesUseCase = get(),
         )
     }
 

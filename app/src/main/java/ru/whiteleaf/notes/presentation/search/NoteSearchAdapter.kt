@@ -58,7 +58,7 @@ class NoteSearchAdapter(
             TYPE_NOTEBOOK -> {
                 NotebookViewHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(ru.whiteleaf.notes.R.layout.item_start_notebook, parent, false),
+                        .inflate(ru.whiteleaf.notes.R.layout.item_search_notebook, parent, false),
                     onFoundNotebookClicked,
                     null
                 )
@@ -80,7 +80,7 @@ class NoteSearchAdapter(
             is SearchListItem.SearchListNoteContent -> (holder as NoteContentInSearchViewHolder).bind(
                 item.noteFound
             )
-            is SearchListItem.SearchNotebook -> (holder as NotebookViewHolder).bind(item.notebook)
+            is SearchListItem.SearchNotebook -> (holder as NotebookViewHolder).bind(item.notebook, item.query)
         }
     }
 

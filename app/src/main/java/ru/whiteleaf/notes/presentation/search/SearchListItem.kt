@@ -6,5 +6,5 @@ import ru.whiteleaf.notes.domain.model.Notebook
 sealed class SearchListItem {
     data class SearchListNoteTitle(val noteFound: NoteFound) : SearchListItem()
     data class SearchListNoteContent(val noteFound: NoteFound) : SearchListItem()
-    data class SearchNotebook(val notebook: Notebook) : SearchListItem()
+    data class SearchNotebook(val notebook: Notebook, val query: String) : SearchListItem()
 }

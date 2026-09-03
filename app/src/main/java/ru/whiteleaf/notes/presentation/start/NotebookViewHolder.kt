@@ -4,10 +4,12 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.interfaces.ContextNotebookActionHandler
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
+import ru.whiteleaf.notes.common.utils.highlightMatches
 import ru.whiteleaf.notes.domain.model.Notebook
 
 class NotebookViewHolder(
@@ -19,9 +21,9 @@ class NotebookViewHolder(
     private val noteCount: TextView = view.findViewById(R.id.note_count)
     private val icon: ImageView = view.findViewById(R.id.notebook_icon)
     private val llNotebook: LinearLayout = view.findViewById(R.id.ll_notebook)
-    private val pinIcon : ImageView = view.findViewById(R.id.pin_icon)
+    private val pinIcon: ImageView = view.findViewById(R.id.pin_icon)
 
-    fun bind(notebook: Notebook) {
+    fun bind(notebook: Notebook, query: String? = null) {
         name.text = notebook.path
         noteCount.text = itemView.resources.getQuantityString(
             R.plurals.notes_count,
@@ -38,8 +40,8 @@ class NotebookViewHolder(
         pinIcon.visibility = if (notebook.isPinned) View.VISIBLE else View.GONE
         pinIcon.setOnClickListener { contextActionHandler?.onUnpinNotebook(notebook) }
 
-        llNotebook.setOnClickListener { onNotebookClicked(notebook)  }
-        icon.setOnClickListener { onNotebookClicked(notebook)  }
+        llNotebook.setOnClickListener { onNotebookClicked(notebook) }
+        icon.setOnClickListener { onNotebookClicked(notebook) }
 
         llNotebook.setOnLongClickListener {
             showContextMenu(itemView, notebook)
@@ -49,6 +51,19 @@ class NotebookViewHolder(
             showContextMenu(itemView, notebook)
             true
         }
+
+        if (query != null) {
+            val color = ContextCompat.getColor(itemView.context, R.color.accent_blue)
+
+            highlightMatches(
+                textView = name,
+                text = notebook.path,
+                query = query,
+                highlightColor = color,
+                ignoreCase = true
+            )
+        }
+
     }
 
     private fun showContextMenu(anchorView: View, notebook: Notebook) {

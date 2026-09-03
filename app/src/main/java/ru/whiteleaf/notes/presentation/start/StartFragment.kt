@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
@@ -20,9 +21,14 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.data.model.RecentNote
+import ru.whiteleaf.notes.domain.model.NoteFound
+import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
+import ru.whiteleaf.notes.presentation.root.RootActivity
+import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
+import ru.whiteleaf.notes.presentation.search.SearchableFragment
 
 class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteActionHandler,
-    ContextNotebookActionHandler {
+    ContextNotebookActionHandler, SearchableFragment {
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -32,6 +38,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     private val viewModel: StartViewModel by viewModel()
+    private lateinit var noteSearchAdapter: NoteSearchAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -39,7 +46,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         toggleSecurePreview(requireActivity(), false) //на стартовом экране всегда не зашифровано
 
         setupFab()
-        setupRecyclerView()
+        setupStartRecyclerView()
+        setupSearchRecyclerView()
         setupObservers()
     }
 
@@ -47,7 +55,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         binding.startCreateNote.setOnClickListener { viewModel.createNewNote() }
     }
 
-    private fun setupRecyclerView() {
+    private fun setupStartRecyclerView() {
         val adapter = StartAdapter(
             onRecentNoteClicked = { recentNote -> navigateToRecentNote(recentNote) },
             onShowMoreRecent = { viewModel.showMoreRecent() },
@@ -73,6 +81,25 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         binding.startRecyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 
+    private fun setupSearchRecyclerView() {
+        noteSearchAdapter = NoteSearchAdapter(
+            onFoundNoteClicked = { noteFound ->
+                navigateToNoteFound(noteFound)
+            },
+            onNoteClicked = { note -> navigateToNote(note) },
+
+            onFoundNotebookClicked = { notebook -> navigateToNotebook(notebook) },
+        )
+
+        binding.recyclerViewSearch.adapter = noteSearchAdapter
+        binding.recyclerViewSearch.layoutManager = LinearLayoutManager(requireContext())
+
+        binding.recyclerViewSearch.addItemDecoration(
+            DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+        )
+    }
+
+
     private fun setupObservers() {
         viewModel.startScreenState.observe(viewLifecycleOwner) { state ->
             renderState(state)
@@ -81,13 +108,16 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         viewModel.navigationEvent.observe(viewLifecycleOwner) { event ->
             renderEvent(event)
         }
+    }
 
-        viewModel.message.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
-                viewModel.clearMessage()
-            }
-        }
+    override fun onSearchQueryChanged(query: String) {
+        println("DEBUG: NoteList Fragment: onSearchQueryChanged: query=$query")
+        if (query.length >= 3) viewModel.onSearchQueryChanged(query)
+    }
+
+    override fun onSearchQuerySubmitted(query: String) {
+        println("DEBUG: NoteList Fragment: onSearchQuerySubmitted: query=$query")
+        if (query.length >= 3) viewModel.onSearchQuerySubmitted(query)
     }
 
     private fun renderEvent(event: StartNavigationEvent) {
@@ -103,7 +133,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                         notebookPath = null
                     )
                     findNavController().navigate(action)
-                    viewModel.onNavigated()
+                    viewModel.clearEvent()
                 }
 
             }
@@ -111,8 +141,13 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             is StartNavigationEvent.ShareUri -> {
                 event.uri.let {
                     ShareHelper.shareFile(requireContext(), it, "Поделиться архивом ZIP")
-                    viewModel.onNavigated()
+                    viewModel.clearEvent()
                 }
+            }
+
+            is StartNavigationEvent.ShowMessage -> {
+                Toast.makeText(requireContext(), event.msg, Toast.LENGTH_SHORT).show()
+                viewModel.clearEvent()
             }
         }
     }
@@ -122,12 +157,26 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             StartScreenState.Loading -> {
                 binding.startProgressBar.visibility = View.VISIBLE
                 binding.startRecyclerView.visibility = View.GONE
+                binding.recyclerViewSearch.visibility = View.GONE
+                binding.startCreateNote.visibility = View.GONE
             }
 
             is StartScreenState.Success -> {
                 binding.startProgressBar.visibility = View.GONE
                 binding.startRecyclerView.visibility = View.VISIBLE
                 (binding.startRecyclerView.adapter as StartAdapter).submitList(state.startScreenItems)
+                binding.recyclerViewSearch.visibility = View.GONE
+                binding.startCreateNote.visibility = View.VISIBLE
+            }
+
+            is StartScreenState.SearchResults -> {
+                binding.startProgressBar.visibility = View.GONE
+                binding.startRecyclerView.visibility = View.GONE
+
+                binding.recyclerViewSearch.visibility = View.VISIBLE
+                noteSearchAdapter.submitList(state.foundItems)
+                (requireActivity() as RootActivity).toggleSearchView(true, state.query)
+                binding.startCreateNote.visibility = View.GONE
             }
         }
     }
@@ -154,6 +203,16 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
             noteId = note.id,
             notebookPath = null
+        )
+        findNavController().navigate(action)
+    }
+
+    fun navigateToNoteFound(noteFound: NoteFound) {
+        val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
+            noteId = noteFound.id,
+            notebookPath = noteFound.notebookPath,
+            contentPosition = noteFound.contentPosition ?: 0,
+            searchQuery = noteFound.query
         )
         findNavController().navigate(action)
     }

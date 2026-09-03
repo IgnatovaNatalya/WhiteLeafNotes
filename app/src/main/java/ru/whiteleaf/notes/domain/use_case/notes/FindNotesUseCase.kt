@@ -6,7 +6,7 @@ import ru.whiteleaf.notes.domain.repository.NotesRepository
 
 class FindNotesUseCase(private val repository: NotesRepository) {
     suspend operator fun invoke(
-    notebookPath: String?,
+    notebookPath: String? = null,
     query: String,
     notebooks: List<Notebook> = emptyList()
     ): List<NoteFound> {

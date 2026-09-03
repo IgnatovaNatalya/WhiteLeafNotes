@@ -50,7 +50,6 @@ class NoteInListViewHolder(
             )
             binding.noteInListTitle.setTextColor(typedValue.data)
 
-
             binding.noteInListDate.text = formatDateNoteList(note.modifiedAt)
         }
 

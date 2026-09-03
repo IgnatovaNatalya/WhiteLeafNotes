@@ -10,6 +10,7 @@ import android.text.style.StyleSpan
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import android.widget.TextView
@@ -52,6 +53,8 @@ class RootActivity : AppCompatActivity() {
 
     private val menuViewModel: DrawerMenuViewModel by viewModel()
 
+    private var searchCursorPosition = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initializeApp()
@@ -88,6 +91,7 @@ class RootActivity : AppCompatActivity() {
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
+                searchCursorPosition = getCursorSearchView()
                 getCurrentSearchableFragment()?.onSearchQueryChanged(newText.orEmpty())
                 return true
             }
@@ -99,9 +103,20 @@ class RootActivity : AppCompatActivity() {
         })
     }
 
+    private fun setCursorSearchView(pos: Int) {
+        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        editText.setSelection(pos)
+    }
+
+    private fun getCursorSearchView(): Int {
+        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        return editText.selectionStart
+    }
+
     fun toggleSearchView(focus: Boolean, query: String? = null) {
         if (focus) {
             searchView.isIconified = false
+            setCursorSearchView(searchCursorPosition)
             searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
             val params = searchView.layoutParams as Toolbar.LayoutParams
             params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -133,7 +148,7 @@ class RootActivity : AppCompatActivity() {
         }
     }
 
-    fun getCurrentSearchableFragment(): SearchableFragment? {
+    private fun getCurrentSearchableFragment(): SearchableFragment? {
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
 
