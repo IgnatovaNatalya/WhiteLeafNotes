@@ -285,6 +285,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         if (query.length>=3) viewModel.onSearchQuerySubmitted(query)
     }
 
+    override fun onSearchCleared() {
+        viewModel.loadNotes()
+    }
+
     private fun shareExportFile(uri: Uri?) {
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND

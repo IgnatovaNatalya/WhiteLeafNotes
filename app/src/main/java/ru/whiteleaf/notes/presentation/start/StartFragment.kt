@@ -112,12 +112,16 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onSearchQueryChanged(query: String) {
         println("DEBUG: NoteList Fragment: onSearchQueryChanged: query=$query")
-        if (query.length >= 3) viewModel.onSearchQueryChanged(query)
+        viewModel.onSearchQueryChanged(query)
     }
 
     override fun onSearchQuerySubmitted(query: String) {
         println("DEBUG: NoteList Fragment: onSearchQuerySubmitted: query=$query")
-        if (query.length >= 3) viewModel.onSearchQuerySubmitted(query)
+        viewModel.onSearchQuerySubmitted(query)
+    }
+
+    override fun onSearchCleared() {
+        viewModel.loadData()
     }
 
     private fun renderEvent(event: StartNavigationEvent) {

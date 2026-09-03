@@ -178,18 +178,27 @@ class StartViewModel(
     }
 
     fun onSearchQueryChanged(query: String) {
-        searchQuery = query
-        searchDebounceJob?.cancel()
-        searchDebounceJob = viewModelScope.launch {
-            delay(500)
-            findNotes()
+        if (query.length >= 3) {
+            searchQuery = query
+            searchDebounceJob?.cancel()
+            searchDebounceJob = viewModelScope.launch {
+                delay(500)
+                findNotes()
+            }
+        } else {
+            _startScreenState.postValue(StartScreenState.Loading)
         }
     }
 
     fun onSearchQuerySubmitted(query: String) {
-        searchDebounceJob?.cancel()
-        searchQuery = query
-        findNotes()
+
+        if (query.length >= 3) {
+            searchDebounceJob?.cancel()
+            searchQuery = query
+            findNotes()
+        } else {
+            _startScreenState.postValue(StartScreenState.Loading)
+        }
     }
 
     fun buildStartItems() {
