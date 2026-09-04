@@ -146,6 +146,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             },
             onNoteClicked = { note -> viewModel.onNoteClicked(note.id) },
             onFoundNotebookClicked = {},
+            modeGlobal = false,
         )
 
         binding.searchRecyclerView.adapter = noteSearchAdapter

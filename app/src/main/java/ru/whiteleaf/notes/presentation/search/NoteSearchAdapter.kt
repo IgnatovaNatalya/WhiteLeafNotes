@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.databinding.ItemNoteInListBinding
 import ru.whiteleaf.notes.databinding.ItemNoteInSearchContentBinding
+import ru.whiteleaf.notes.databinding.ItemNoteInSearchTitlePathBinding
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.NoteFound
 import ru.whiteleaf.notes.domain.model.Notebook
@@ -17,7 +18,10 @@ class NoteSearchAdapter(
     private val onNoteClicked: (Note) -> Unit,
     private val onFoundNoteClicked: (NoteFound) -> Unit,
     private val onFoundNotebookClicked: (Notebook) -> Unit,
-) : androidx.recyclerview.widget.ListAdapter<SearchListItem, RecyclerView.ViewHolder>(SearchNotesDiffCallback()) {
+    private val modeGlobal: Boolean
+) : androidx.recyclerview.widget.ListAdapter<SearchListItem, RecyclerView.ViewHolder>(
+    SearchNotesDiffCallback()
+) {
 
     companion object {
         private const val TYPE_NOTE_TITLE = 0
@@ -36,13 +40,18 @@ class NoteSearchAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             TYPE_NOTE_TITLE -> {
-                NoteInListViewHolder(
-                    ItemNoteInListBinding.inflate(
+                if (modeGlobal) NoteInSearchGlobalViewHolder(
+                    ItemNoteInSearchTitlePathBinding.inflate(
                         LayoutInflater.from(parent.context),
-                        parent,
-                        false
-                    ), onNoteClicked, null
-                )
+                        parent, false
+                    ),
+                    onFoundNoteClicked,
+                ) else
+                    NoteInListViewHolder(
+                        ItemNoteInListBinding.inflate(
+                            LayoutInflater.from(parent.context), parent, false
+                        ), onNoteClicked, null
+                    )
             }
 
             TYPE_NOTE_CONTENT -> {
@@ -73,14 +82,19 @@ class NoteSearchAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
-            is SearchListItem.SearchListNoteTitle -> (holder as NoteInListViewHolder).bind(
-                item.noteFound.toNote(), item.noteFound.query
-            )
+            is SearchListItem.SearchListNoteTitle -> if (modeGlobal)
+                (holder as NoteInSearchGlobalViewHolder).bind(item.noteFound)
+            else
+                (holder as NoteInListViewHolder).bind(item.noteFound.toNote(), item.noteFound.query)
 
             is SearchListItem.SearchListNoteContent -> (holder as NoteContentInSearchViewHolder).bind(
-                item.noteFound
+                item.noteFound, modeGlobal
             )
-            is SearchListItem.SearchNotebook -> (holder as NotebookViewHolder).bind(item.notebook, item.query)
+
+            is SearchListItem.SearchNotebook -> (holder as NotebookViewHolder).bind(
+                item.notebook,
+                item.query
+            )
         }
     }
 

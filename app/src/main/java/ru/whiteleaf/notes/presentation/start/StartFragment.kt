@@ -88,6 +88,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             onNoteClicked = { note -> navigateToNote(note) },
 
             onFoundNotebookClicked = { notebook -> navigateToNotebook(notebook) },
+
+            modeGlobal = true
         )
 
         binding.searchRecyclerView.adapter = noteSearchAdapter
