@@ -62,7 +62,7 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_list"
+        android:id="@+id/list_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -74,19 +74,19 @@
         tools:listitem="item_note_in_list" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_search"
+        android:id="@+id/search_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="vertical"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:itemCount="3"
         tools:listitem="item_note_in_search" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_planner"
+        android:id="@+id/planner_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -105,7 +105,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/no_notes"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

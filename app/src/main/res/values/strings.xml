@@ -9,7 +9,7 @@
     <string name="share_note">Поделиться</string>
     <string name="delete">Удалить</string>
 
-    <string name="search">Поиск</string>
+    <string name="search">Поиск по заметкам</string>
     <string name="undo">Отменить</string>
     <string name="redo">Вернуть</string>
     <string name="settings">Настройки</string>
@@ -107,6 +107,7 @@
     <string name="pin_notebook">Закрепить</string>
     <string name="unpin_notebook">Открепить</string>
     <string name="show_more">Show more</string>
+    <string name="nothing_found">Ничего не найдено</string>
 
 </resources>
 

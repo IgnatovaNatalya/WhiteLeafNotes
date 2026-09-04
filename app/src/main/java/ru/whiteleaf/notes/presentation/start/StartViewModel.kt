@@ -79,9 +79,6 @@ class StartViewModel(
     private var notebookList: List<Notebook> = emptyList()
     private var rootNoteList: List<Note> = emptyList()
 
-//    private val _message = MutableLiveData<String?>()
-//    val message: LiveData<String?> = _message
-
     private var visibleRecentCount = MAX_ITEMS
     private var visibleNotebooksCount = MAX_ITEMS
     private var visibleNotesCount = MAX_ITEMS
@@ -98,15 +95,17 @@ class StartViewModel(
 
     fun getAllNotebooks(): List<Notebook> = notebookList
 
+    fun prepareSearch() = _startScreenState.postValue(StartScreenState.Idle)
+
+
     fun loadData() {
 
         println("DEBUG: StartVM: loading data")
-
         _startScreenState.postValue(StartScreenState.Loading)
 
         viewModelScope.launch {
             try {
-                val rootNotes = getNotesUseCase(null) // Заметки в корневой папке
+                val rootNotes = getNotesUseCase(null)
 
                 rootNotes.forEach { note ->
                     if (note.isEmpty()) {
@@ -130,7 +129,6 @@ class StartViewModel(
 
     private fun findNotes() {
         val query = searchQuery ?: return
-
         println("DEBUG: NoteListVM: Поиск заметок, query=$query") //todo сделать еще постранично
 
         viewModelScope.launch {
@@ -164,41 +162,30 @@ class StartViewModel(
             } catch (_: AuthenticationRequiredException) {
                 //поймали зашифрованную но ничего не делаем
             } catch (e: IOException) {
-                _navigationEvent.postValue(StartNavigationEvent.ShowMessage("Ошибка поиска заметок: ${e.message}"))
+                postMessage("Ошибка поиска заметок: ${e.message}")
             } catch (e: Exception) {
                 if (e.cause is InvalidKeyException) {
                     //тоже ничего не делаем
                     println("DEBUG: Start VM: InvalidKeyException ${e.message}")
                 } else
-                    _navigationEvent.postValue(
-                        StartNavigationEvent.ShowMessage(e.message ?: "Ошибка поиска")
-                    )
+                    postMessage(e.message ?: "Ошибка поиска")
             }
         }
     }
 
     fun onSearchQueryChanged(query: String) {
-        if (query.length >= 3) {
-            searchQuery = query
-            searchDebounceJob?.cancel()
-            searchDebounceJob = viewModelScope.launch {
-                delay(500)
-                findNotes()
-            }
-        } else {
-            _startScreenState.postValue(StartScreenState.Loading)
+        searchQuery = query
+        searchDebounceJob?.cancel()
+        searchDebounceJob = viewModelScope.launch {
+            delay(500)
+            findNotes()
         }
     }
 
     fun onSearchQuerySubmitted(query: String) {
-
-        if (query.length >= 3) {
-            searchDebounceJob?.cancel()
-            searchQuery = query
-            findNotes()
-        } else {
-            _startScreenState.postValue(StartScreenState.Loading)
-        }
+        searchDebounceJob?.cancel()
+        searchQuery = query
+        findNotes()
     }
 
     fun buildStartItems() {
@@ -297,7 +284,6 @@ class StartViewModel(
             try {
                 val newNote = createNoteUseCase(null)
                 _navigationEvent.postValue(StartNavigationEvent.NavigateToCreatedNote(newNote))
-                //_message.postValue("Заметка создана")
             } catch (e: Exception) {
                 postMessage("Ошибка создания заметки: ${e.message}")
             }
@@ -517,16 +503,10 @@ class StartViewModel(
         loadData()
     }
 
-
     private fun postMessage(msg: String) =
         _navigationEvent.postValue(StartNavigationEvent.ShowMessage(msg))
 
     fun clearEvent() {
         _navigationEvent.postValue(StartNavigationEvent.Idle)
     }
-
-//    fun onNavigated() = _navigationEvent.postValue(StartNavigationEvent.Idle)
-//
-//    fun clearMessage() = _message.postValue(null)
-
 }

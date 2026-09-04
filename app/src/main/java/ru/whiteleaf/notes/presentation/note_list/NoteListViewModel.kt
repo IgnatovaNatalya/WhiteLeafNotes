@@ -92,7 +92,8 @@ class NoteListViewModel(
     fun resumeScreen() {
         when (_noteListState.value) {
             is NoteListState.Success -> loadNotes()
-            is NoteListState.SearchResults -> if (searchQuery != null) findNotes() else loadNotes()
+            is NoteListState.SearchResults -> {}//if (searchQuery == null) loadNotes()
+                //if (searchQuery != null) findNotes() else loadNotes()
             else -> {}
         }
     }
@@ -183,6 +184,8 @@ class NoteListViewModel(
             }
         }
     }
+
+    fun prepareSearch() = _noteListState.postValue(NoteListState.Idle)
 
     fun loadNotes() {
         viewModelScope.launch {
@@ -532,6 +535,4 @@ class NoteListViewModel(
         super.onCleared()
         onNotebookExited(false)
     }
-
-
 }

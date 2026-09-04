@@ -105,10 +105,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             contextActionHandler = this
         )
 
-        binding.recyclerViewList.adapter = noteLinearAdapter
-        binding.recyclerViewList.layoutManager = LinearLayoutManager(requireContext())
+        binding.listRecyclerView.adapter = noteLinearAdapter
+        binding.listRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        binding.recyclerViewList.addItemDecoration(
+        binding.listRecyclerView.addItemDecoration(
             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
         )
     }
@@ -133,7 +133,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             }
         }
 
-        binding.recyclerViewPlanner.apply {
+        binding.plannerRecyclerView.apply {
             this.layoutManager = layoutManager
             adapter = plannerAdapter
         }
@@ -148,10 +148,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             onFoundNotebookClicked = {},
         )
 
-        binding.recyclerViewSearch.adapter = noteSearchAdapter
-        binding.recyclerViewSearch.layoutManager = LinearLayoutManager(requireContext())
+        binding.searchRecyclerView.adapter = noteSearchAdapter
+        binding.searchRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        binding.recyclerViewSearch.addItemDecoration(
+        binding.searchRecyclerView.addItemDecoration(
             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
         )
     }
@@ -277,17 +277,19 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onSearchQueryChanged(query: String) {
         println("DEBUG: NoteList Fragment: onSearchQueryChanged: query=$query")
-        if (query.length>=3) viewModel.onSearchQueryChanged(query)
+        if (query.isEmpty()) viewModel.prepareSearch()
+        if (query.length >= 3) viewModel.onSearchQueryChanged(query)
+
     }
 
     override fun onSearchQuerySubmitted(query: String) {
         println("DEBUG: NoteList Fragment: onSearchQuerySubmitted: query=$query")
-        if (query.length>=3) viewModel.onSearchQuerySubmitted(query)
+        if (query.length >= 3) viewModel.onSearchQuerySubmitted(query)
     }
 
-    override fun onSearchCleared() {
-        viewModel.loadNotes()
-    }
+    override fun onSearchCleared() = viewModel.loadNotes()
+
+    override fun onSearchStarted() = viewModel.prepareSearch()
 
     private fun shareExportFile(uri: Uri?) {
         val shareIntent = Intent().apply {
@@ -325,22 +327,22 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun renderState(state: NoteListState) {
-        println("👀 Fragment observed state: ${state.javaClass.simpleName}")
+        println("DEBUG:👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
             is NoteListState.Success -> {
 
                 if (isPlannerView) {
-                    binding.recyclerViewList.visibility = View.GONE
-                    binding.recyclerViewPlanner.visibility = View.VISIBLE
+                    binding.listRecyclerView.visibility = View.GONE
+                    binding.plannerRecyclerView.visibility = View.VISIBLE
                     plannerAdapter.submitList(state.notes)
                 } else {
-                    binding.recyclerViewList.visibility = View.VISIBLE
-                    binding.recyclerViewPlanner.visibility = View.GONE
+                    binding.listRecyclerView.visibility = View.VISIBLE
+                    binding.plannerRecyclerView.visibility = View.GONE
                     noteLinearAdapter.submitList(state.notes)
                 }
-                binding.recyclerViewSearch.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
 
-                println("✅ Fragment showing ${state.notes.size} notes")
+                println("DEBUG:✅ Fragment showing ${state.notes.size} notes")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility =
                     if (state.notes.isNotEmpty()) View.GONE else View.VISIBLE
@@ -353,42 +355,43 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             }
 
             is NoteListState.Blocked -> {
-                println("⏳ Fragment showing Blocked")
+                println("DEBUG:⏳ Fragment showing Blocked")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.VISIBLE
                 binding.createNote.visibility = View.GONE
-                binding.recyclerViewList.visibility = View.GONE
-                binding.recyclerViewPlanner.visibility = View.GONE
-                binding.recyclerViewSearch.visibility = View.GONE
+                binding.listRecyclerView.visibility = View.GONE
+                binding.plannerRecyclerView.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
             }
 
             is NoteListState.Error -> {
-                println("❌ Fragment showing error: ${state.message}")
+                println("DEBUG:❌ Fragment showing error: ${state.message}")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.VISIBLE
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
-                binding.recyclerViewList.visibility = View.GONE
-                binding.recyclerViewPlanner.visibility = View.GONE
-                binding.recyclerViewSearch.visibility = View.GONE
+                binding.listRecyclerView.visibility = View.GONE
+                binding.plannerRecyclerView.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
                 binding.emptyList.text = state.message
             }
 
             NoteListState.Loading -> {
-                println("⏳ Fragment showing loading")
+                println("DEBUG:⏳ Fragment showing loading")
                 binding.noteListProgressBar.visibility = View.VISIBLE
                 binding.emptyList.visibility = View.GONE
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
-                binding.recyclerViewList.visibility = View.GONE
-                binding.recyclerViewPlanner.visibility = View.GONE
-                binding.recyclerViewSearch.visibility = View.GONE
+                binding.listRecyclerView.visibility = View.GONE
+                binding.plannerRecyclerView.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
             }
 
             is NoteListState.SearchResults -> {
+                println("DEBUG:\uD83D\uDD0D  Fragment showing search results ")
                 binding.noteListProgressBar.visibility = View.GONE
 
                 if (!state.foundNotes.isNotEmpty()) {
@@ -398,13 +401,24 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
-                binding.recyclerViewList.visibility = View.GONE
-                binding.recyclerViewPlanner.visibility = View.GONE
+                binding.listRecyclerView.visibility = View.GONE
+                binding.plannerRecyclerView.visibility = View.GONE
 
-                binding.recyclerViewSearch.visibility = View.VISIBLE
+                binding.searchRecyclerView.visibility = View.VISIBLE
                 noteSearchAdapter.submitList(state.foundNotes)
 
                 (requireActivity() as RootActivity).toggleSearchView(true, state.query)
+            }
+
+            NoteListState.Idle -> {
+                println("DEBUG:0\uFE0F⃣ Fragment showing idle")
+                binding.noteListProgressBar.visibility = View.GONE
+                binding.emptyList.visibility = View.GONE
+                binding.notebookProtected.visibility = View.GONE
+                binding.createNote.visibility = View.GONE
+                binding.listRecyclerView.visibility = View.GONE
+                binding.plannerRecyclerView.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
             }
         }
     }

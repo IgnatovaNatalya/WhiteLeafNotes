@@ -84,19 +84,22 @@ class RootActivity : AppCompatActivity() {
     }
 
     private fun setupSearchView() {
-
         searchView.setOnCloseListener {
+            toggleSearchView(false)
             getCurrentSearchableFragment()?.onSearchCleared()
-            true
+            false
         }
 
-        searchView.setOnQueryTextFocusChangeListener { _, hasFocus -> toggleSearchView(hasFocus) }
-        //searchView.setOnSearchClickListener { toggleSearchView(true) }
-        //searchView.setOnCloseListener {  toggleSearchView(false) ; true}
+        searchView.setOnSearchClickListener {
+            getCurrentSearchableFragment()?.onSearchStarted()
+            toggleSearchView(true)
+        }
+       // searchView.setOnQueryTextFocusChangeListener { _, hasFocus -> toggleSearchView(hasFocus) }
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
                 searchCursorPosition = getCursorSearchView()
+                println("DEBUG: RootActivity: query changed on pos $searchCursorPosition")
                 getCurrentSearchableFragment()?.onSearchQueryChanged(newText.orEmpty())
                 return true
             }
@@ -110,18 +113,20 @@ class RootActivity : AppCompatActivity() {
 
     private fun setCursorSearchView(pos: Int) {
         val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        editText.setSelection(pos)
+        val len = editText.text.length
+        if (pos > 0) if (pos <= len) editText.setSelection(pos) else editText.setSelection(len)
     }
 
     private fun getCursorSearchView(): Int {
         val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        return editText.selectionStart
+        val pos = editText.selectionStart
+        return pos
     }
 
-    fun toggleSearchView(focus: Boolean, query: String? = null) {
-        if (focus) {
-            searchView.isIconified = false
-            setCursorSearchView(searchCursorPosition)
+    fun toggleSearchView(expand: Boolean, query: String? = null) {
+        if (expand) {
+            //searchView.isIconified = false
+
             searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
             val params = searchView.layoutParams as Toolbar.LayoutParams
             params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -129,6 +134,8 @@ class RootActivity : AppCompatActivity() {
             searchView.layoutParams = params
 
             if (query != null) searchView.setQuery(query, false)
+            setCursorSearchView(searchCursorPosition)
+            println("DEBUG: RootActivity: toggleSearchView: pos=$searchCursorPosition")
 
             binding.toolbar.navigationIcon = null
 
@@ -136,7 +143,7 @@ class RootActivity : AppCompatActivity() {
             startHeader.visibility = View.GONE
 
         } else {
-            searchView.isIconified = true
+            //searchView.isIconified = true
             searchView.background = null
             val params = searchView.layoutParams as Toolbar.LayoutParams
             params.width = ViewGroup.LayoutParams.WRAP_CONTENT

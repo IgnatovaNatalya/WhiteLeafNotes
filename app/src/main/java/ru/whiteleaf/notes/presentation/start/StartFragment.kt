@@ -91,10 +91,10 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             onFoundNotebookClicked = { notebook -> navigateToNotebook(notebook) },
         )
 
-        binding.recyclerViewSearch.adapter = noteSearchAdapter
-        binding.recyclerViewSearch.layoutManager = LinearLayoutManager(requireContext())
+        binding.searchRecyclerView.adapter = noteSearchAdapter
+        binding.searchRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        binding.recyclerViewSearch.addItemDecoration(
+        binding.searchRecyclerView.addItemDecoration(
             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
         )
     }
@@ -112,17 +112,19 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onSearchQueryChanged(query: String) {
         println("DEBUG: NoteList Fragment: onSearchQueryChanged: query=$query")
-        viewModel.onSearchQueryChanged(query)
+        if (query.isEmpty()) viewModel.prepareSearch()
+        if (query.length >= 3) viewModel.onSearchQueryChanged(query)
     }
 
     override fun onSearchQuerySubmitted(query: String) {
         println("DEBUG: NoteList Fragment: onSearchQuerySubmitted: query=$query")
-        viewModel.onSearchQuerySubmitted(query)
+        if (query.length >= 3) viewModel.onSearchQuerySubmitted(query)
     }
 
-    override fun onSearchCleared() {
-        viewModel.loadData()
-    }
+    override fun onSearchCleared() = viewModel.loadData()
+
+    override fun onSearchStarted() = viewModel.prepareSearch()
+
 
     private fun renderEvent(event: StartNavigationEvent) {
         when (event) {
@@ -161,26 +163,41 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             StartScreenState.Loading -> {
                 binding.startProgressBar.visibility = View.VISIBLE
                 binding.startRecyclerView.visibility = View.GONE
-                binding.recyclerViewSearch.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
                 binding.startCreateNote.visibility = View.GONE
+                binding.emptyList.visibility = View.GONE
             }
 
             is StartScreenState.Success -> {
                 binding.startProgressBar.visibility = View.GONE
                 binding.startRecyclerView.visibility = View.VISIBLE
                 (binding.startRecyclerView.adapter as StartAdapter).submitList(state.startScreenItems)
-                binding.recyclerViewSearch.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
                 binding.startCreateNote.visibility = View.VISIBLE
+                binding.emptyList.visibility = View.GONE
             }
 
             is StartScreenState.SearchResults -> {
                 binding.startProgressBar.visibility = View.GONE
                 binding.startRecyclerView.visibility = View.GONE
-
-                binding.recyclerViewSearch.visibility = View.VISIBLE
-                noteSearchAdapter.submitList(state.foundItems)
+                if (state.foundItems.isNotEmpty()) {
+                    binding.searchRecyclerView.visibility = View.VISIBLE
+                    noteSearchAdapter.submitList(state.foundItems)
+                    binding.emptyList.visibility = View.GONE
+                } else {
+                    binding.searchRecyclerView.visibility = View.GONE
+                    binding.emptyList.visibility = View.VISIBLE
+                }
                 (requireActivity() as RootActivity).toggleSearchView(true, state.query)
                 binding.startCreateNote.visibility = View.GONE
+            }
+
+            StartScreenState.Idle -> {
+                binding.startProgressBar.visibility = View.GONE
+                binding.startRecyclerView.visibility = View.GONE
+                binding.searchRecyclerView.visibility = View.GONE
+                binding.startCreateNote.visibility = View.GONE
+                binding.emptyList.visibility = View.GONE
             }
         }
     }
@@ -212,7 +229,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     fun navigateToNoteFound(noteFound: NoteFound) {
-        val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
+        val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
             noteId = noteFound.id,
             notebookPath = noteFound.notebookPath,
             contentPosition = noteFound.contentPosition ?: 0,
@@ -224,8 +241,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     override fun onRenameNote(note: Note) {
         DialogHelper.createRenameNoteDialog(requireContext(), note.title) { newTitle ->
             viewModel.updateNoteTitle(note, newTitle)
-        }
-            .show()
+        }.show()
     }
 
     override fun onDeleteNotebook(notebook: Notebook) {
@@ -310,6 +326,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadData()
+        //viewModel.loadData()
     }
 }

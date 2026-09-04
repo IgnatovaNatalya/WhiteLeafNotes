@@ -10,4 +10,5 @@ sealed class NoteListState {
     object Blocked : NoteListState()
     data class SearchResults(val query: String, val foundNotes: List<SearchListItem>) :
         NoteListState()
+    object Idle : NoteListState()
 }
