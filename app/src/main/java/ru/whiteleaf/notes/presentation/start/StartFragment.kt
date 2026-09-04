@@ -22,7 +22,6 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.model.NoteFound
-import ru.whiteleaf.notes.presentation.note_list.NoteListFragmentDirections
 import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
@@ -111,13 +110,13 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     override fun onSearchQueryChanged(query: String) {
-        println("DEBUG: NoteList Fragment: onSearchQueryChanged: query=$query")
+        println("DEBUG: Start Fragment: onSearchQueryChanged: query=$query")
         if (query.isEmpty()) viewModel.prepareSearch()
         if (query.length >= 3) viewModel.onSearchQueryChanged(query)
     }
 
     override fun onSearchQuerySubmitted(query: String) {
-        println("DEBUG: NoteList Fragment: onSearchQuerySubmitted: query=$query")
+        println("DEBUG: Start Fragment: onSearchQuerySubmitted: query=$query")
         if (query.length >= 3) viewModel.onSearchQuerySubmitted(query)
     }
 
@@ -326,6 +325,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onResume() {
         super.onResume()
-        //viewModel.loadData()
+        viewModel.resumeScreen()
     }
 }

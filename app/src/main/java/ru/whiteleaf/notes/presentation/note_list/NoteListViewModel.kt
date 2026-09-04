@@ -92,7 +92,7 @@ class NoteListViewModel(
     fun resumeScreen() {
         when (_noteListState.value) {
             is NoteListState.Success -> loadNotes()
-            is NoteListState.SearchResults -> {}//if (searchQuery == null) loadNotes()
+            is NoteListState.SearchResults -> {if (searchQuery != null) findNotes()  }//if (searchQuery == null) loadNotes()
                 //if (searchQuery != null) findNotes() else loadNotes()
             else -> {}
         }

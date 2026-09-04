@@ -114,7 +114,10 @@ class RootActivity : AppCompatActivity() {
     private fun setCursorSearchView(pos: Int) {
         val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
         val len = editText.text.length
-        if (pos > 0) if (pos <= len) editText.setSelection(pos) else editText.setSelection(len)
+        if (pos > 0) {
+            println("DEBUG: RootActivity: setCursorSearchView: pos=$pos")
+            if (pos <= len) editText.setSelection(pos) else editText.setSelection(len)
+        }
     }
 
     private fun getCursorSearchView(): Int {
@@ -135,7 +138,6 @@ class RootActivity : AppCompatActivity() {
 
             if (query != null) searchView.setQuery(query, false)
             setCursorSearchView(searchCursorPosition)
-            println("DEBUG: RootActivity: toggleSearchView: pos=$searchCursorPosition")
 
             binding.toolbar.navigationIcon = null
 
@@ -172,11 +174,11 @@ class RootActivity : AppCompatActivity() {
     private fun setupNavigationListener() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
 
-            searchView.post {
-                searchView.setQuery("", false)
-                searchView.clearFocus()
-                searchView.isIconified = true
-            }
+//            searchView.post {
+//                searchView.setQuery("", false)
+//                searchView.clearFocus()
+//                searchView.isIconified = true
+//            }
 
             when (destination.id) {
                 R.id.startFragment -> {

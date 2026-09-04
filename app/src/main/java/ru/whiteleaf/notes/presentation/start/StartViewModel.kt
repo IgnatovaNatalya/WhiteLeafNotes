@@ -36,6 +36,7 @@ import ru.whiteleaf.notes.domain.use_case.notebooks.PinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
+import ru.whiteleaf.notes.presentation.note_list.NoteListState
 import ru.whiteleaf.notes.presentation.search.SearchListItem
 import java.io.IOException
 import java.security.InvalidKeyException
@@ -93,10 +94,17 @@ class StartViewModel(
         loadData()
     }
 
+    fun resumeScreen() {
+        when (_startScreenState.value) {
+            is StartScreenState.Success -> loadData()
+            is StartScreenState.SearchResults -> if (searchQuery != null) findNotes()
+            else -> {}
+        }
+    }
+
     fun getAllNotebooks(): List<Notebook> = notebookList
 
     fun prepareSearch() = _startScreenState.postValue(StartScreenState.Idle)
-
 
     fun loadData() {
 
@@ -128,8 +136,8 @@ class StartViewModel(
     }
 
     private fun findNotes() {
+        println("DEBUG: StartVM: Поиск заметок, searchQuery=$searchQuery") //todo сделать еще постранично
         val query = searchQuery ?: return
-        println("DEBUG: NoteListVM: Поиск заметок, query=$query") //todo сделать еще постранично
 
         viewModelScope.launch {
             _startScreenState.postValue(StartScreenState.Loading)
