@@ -222,7 +222,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     private fun navigateToNote(note: Note) {
         val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
             noteId = note.id,
-            notebookPath = null
+            notebookPath = note.notebookPath
         )
         findNavController().navigate(action)
     }

@@ -36,7 +36,6 @@ import ru.whiteleaf.notes.domain.use_case.notebooks.PinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
-import ru.whiteleaf.notes.presentation.note_list.NoteListState
 import ru.whiteleaf.notes.presentation.search.SearchListItem
 import java.io.IOException
 import java.security.InvalidKeyException

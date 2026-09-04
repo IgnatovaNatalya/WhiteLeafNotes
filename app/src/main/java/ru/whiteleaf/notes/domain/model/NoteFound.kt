@@ -22,5 +22,5 @@ fun NoteFound.toNote(): Note {
 }
 
 fun NoteFound.printDebug() {
-    println("DEBUG found note id=$id, title=$title, search preview=$contentSearchPreview")
+    println("DEBUG found note id=$id, title=$title, path=$notebookPath, search preview=$contentSearchPreview")
 }
