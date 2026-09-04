@@ -155,6 +155,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         binding.searchRecyclerView.addItemDecoration(
             DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
         )
+
+        val text = "Поиск в записной книжке «$notebookPath»"
+        binding.searchHeaderTitle.text = text
     }
 
     private fun setupOptionsMenu() {
@@ -342,6 +345,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                     noteLinearAdapter.submitList(state.notes)
                 }
                 binding.searchRecyclerView.visibility = View.GONE
+                binding.searchHeaderTitle.visibility = View.GONE
 
                 println("DEBUG:✅ Fragment showing ${state.notes.size} notes")
                 binding.noteListProgressBar.visibility = View.GONE
@@ -364,6 +368,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.listRecyclerView.visibility = View.GONE
                 binding.plannerRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
+                binding.searchHeaderTitle.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
             }
@@ -377,6 +382,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.listRecyclerView.visibility = View.GONE
                 binding.plannerRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
+                binding.searchHeaderTitle.visibility = View.GONE
                 binding.emptyList.text = state.message
             }
 
@@ -389,29 +395,33 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.listRecyclerView.visibility = View.GONE
                 binding.plannerRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
+                binding.searchHeaderTitle.visibility = View.GONE
             }
 
             is NoteListState.SearchResults -> {
                 println("DEBUG:\uD83D\uDD0D  Fragment showing search results ")
                 binding.noteListProgressBar.visibility = View.GONE
 
+                binding.searchHeaderTitle.visibility = View.VISIBLE
+                (requireActivity() as RootActivity).toggleSearchView(true, state.query)
+
                 if (!state.foundNotes.isNotEmpty()) {
                     binding.emptyList.visibility = View.VISIBLE
                     binding.emptyList.text = "Не найдено"
-                } else binding.emptyList.visibility = View.GONE
+                    binding.searchRecyclerView.visibility = View.GONE
+                } else {
+                    binding.emptyList.visibility = View.GONE
+                    binding.searchRecyclerView.visibility = View.VISIBLE
+                    noteSearchAdapter.submitList(state.foundNotes)
+                }
 
                 binding.notebookProtected.visibility = View.GONE
                 binding.createNote.visibility = View.GONE
                 binding.listRecyclerView.visibility = View.GONE
                 binding.plannerRecyclerView.visibility = View.GONE
-
-                binding.searchRecyclerView.visibility = View.VISIBLE
-                noteSearchAdapter.submitList(state.foundNotes)
-
-                (requireActivity() as RootActivity).toggleSearchView(true, state.query)
             }
 
-            NoteListState.Idle -> {
+            NoteListState.SearchIdle -> {
                 println("DEBUG:0\uFE0F⃣ Fragment showing idle")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
@@ -420,6 +430,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.listRecyclerView.visibility = View.GONE
                 binding.plannerRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
+                binding.searchHeaderTitle.visibility = View.VISIBLE
             }
         }
     }

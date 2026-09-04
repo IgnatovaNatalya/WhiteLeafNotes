@@ -10,7 +10,7 @@ sealed class StartScreenState {
     data class Success(val startScreenItems: List<StartListItem>) : StartScreenState()
     data class SearchResults(val query: String, val foundItems: List<SearchListItem>) :
         StartScreenState()
-    object Idle : StartScreenState()
+    object SearchIdle : StartScreenState()
 }
 
 sealed class StartNavigationEvent {

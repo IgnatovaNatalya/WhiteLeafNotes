@@ -73,17 +73,37 @@
         tools:itemCount="3"
         tools:listitem="item_note_in_list" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/search_recycler_view"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:itemCount="3"
-        tools:listitem="item_note_in_search" />
+        app:layout_constraintVertical_bias="0.0">
+
+        <TextView
+            android:id="@+id/search_header_title"
+            style="@style/StartScreenItemHeader"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginHorizontal="16dp"
+            android:gravity="center_vertical"
+            android:textAllCaps="true"
+            android:textColor="?attr/android:textColorSecondary"
+            tools:text="Поиск в записной книжке" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/search_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:itemCount="3"
+            tools:listitem="item_note_in_search" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/planner_recycler_view"

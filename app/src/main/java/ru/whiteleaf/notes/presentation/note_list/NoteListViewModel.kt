@@ -184,7 +184,7 @@ class NoteListViewModel(
         }
     }
 
-    fun prepareSearch() = _noteListState.postValue(NoteListState.Idle)
+    fun prepareSearch() = _noteListState.postValue(NoteListState.SearchIdle)
 
     fun loadNotes() {
         viewModelScope.launch {

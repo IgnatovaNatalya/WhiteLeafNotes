@@ -165,8 +165,9 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                 binding.startProgressBar.visibility = View.VISIBLE
                 binding.startRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
-                binding.startCreateNote.visibility = View.GONE
+                binding.searchHeaderStart.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
+                binding.startCreateNote.visibility = View.GONE
             }
 
             is StartScreenState.Success -> {
@@ -174,13 +175,15 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                 binding.startRecyclerView.visibility = View.VISIBLE
                 (binding.startRecyclerView.adapter as StartAdapter).submitList(state.startScreenItems)
                 binding.searchRecyclerView.visibility = View.GONE
-                binding.startCreateNote.visibility = View.VISIBLE
+                binding.searchHeaderStart.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
+                binding.startCreateNote.visibility = View.VISIBLE
             }
 
             is StartScreenState.SearchResults -> {
                 binding.startProgressBar.visibility = View.GONE
                 binding.startRecyclerView.visibility = View.GONE
+                binding.searchHeaderStart.visibility = View.VISIBLE
                 if (state.foundItems.isNotEmpty()) {
                     binding.searchRecyclerView.visibility = View.VISIBLE
                     noteSearchAdapter.submitList(state.foundItems)
@@ -193,12 +196,14 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                 binding.startCreateNote.visibility = View.GONE
             }
 
-            StartScreenState.Idle -> {
+            StartScreenState.SearchIdle -> {
                 binding.startProgressBar.visibility = View.GONE
                 binding.startRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
-                binding.startCreateNote.visibility = View.GONE
+                binding.searchHeaderStart.visibility = View.VISIBLE
                 binding.emptyList.visibility = View.GONE
+                binding.startCreateNote.visibility = View.GONE
+
             }
         }
     }

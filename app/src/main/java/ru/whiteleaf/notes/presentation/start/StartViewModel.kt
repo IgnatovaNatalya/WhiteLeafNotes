@@ -103,7 +103,7 @@ class StartViewModel(
 
     fun getAllNotebooks(): List<Notebook> = notebookList
 
-    fun prepareSearch() = _startScreenState.postValue(StartScreenState.Idle)
+    fun prepareSearch() = _startScreenState.postValue(StartScreenState.SearchIdle)
 
     fun loadData() {
 

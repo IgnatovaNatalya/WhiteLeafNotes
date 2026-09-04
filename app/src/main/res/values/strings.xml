@@ -108,6 +108,7 @@
     <string name="unpin_notebook">Открепить</string>
     <string name="show_more">Show more</string>
     <string name="nothing_found">Ничего не найдено</string>
+    <string name="search_global">Поиск во всех заметках и записных книжках</string>
 
 </resources>
 
