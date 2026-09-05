@@ -37,6 +37,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import ru.whiteleaf.notes.presentation.search.SearchListItem
 import java.io.IOException
 import java.security.InvalidKeyException
+import kotlin.time.Duration.Companion.milliseconds
 
 class NoteListViewModel(
     private val getNotesUseCase: GetNotesUseCase,
@@ -132,7 +133,7 @@ class NoteListViewModel(
         searchQuery = query
         searchDebounceJob?.cancel()
         searchDebounceJob = viewModelScope.launch {
-            delay(500)
+            delay(500.milliseconds)
             findNotes()
         }
     }

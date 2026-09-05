@@ -42,7 +42,8 @@ val viewmodelModule = module {
     viewModel {
         DrawerMenuViewModel(
             createNotebookUseCase = get(),
-            createNoteUseCase = get()
+            createNoteUseCase = get(),
+            clearScrollPositionsUseCase = get()
         )
     }
 

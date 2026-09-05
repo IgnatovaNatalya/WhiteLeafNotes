@@ -40,6 +40,7 @@ import ru.whiteleaf.notes.presentation.search.SearchListItem
 import java.io.IOException
 import java.security.InvalidKeyException
 import kotlin.collections.forEach
+import kotlin.time.Duration.Companion.milliseconds
 
 const val MAX_ITEMS = 3
 const val STEP_ITEMS = 3
@@ -166,14 +167,15 @@ class StartViewModel(
                     else items.add(SearchListItem.SearchListNoteContent(foundNote))
                 }
                 _startScreenState.postValue(StartScreenState.SearchResults(query, items))
-            } catch (_: AuthenticationRequiredException) {
-                //поймали зашифрованную но ничего не делаем
+            } catch (e: AuthenticationRequiredException) {
+                //поймали зашифрованную
+                postMessage("DEBUG: StartVM: findNotes: AuthenticationRequiredException: ${e.message}")
             } catch (e: IOException) {
-                postMessage("Ошибка поиска заметок: ${e.message}")
+                postMessage("DEBUG: StartVM: findNotes: Ошибка поиска заметок: ${e.message}")
             } catch (e: Exception) {
                 if (e.cause is InvalidKeyException) {
                     //тоже ничего не делаем
-                    println("DEBUG: Start VM: InvalidKeyException ${e.message}")
+                    println("DEBUG: StartVM: findNotes: InvalidKeyException ${e.message}")
                 } else
                     postMessage(e.message ?: "Ошибка поиска")
             }
@@ -184,7 +186,7 @@ class StartViewModel(
         searchQuery = query
         searchDebounceJob?.cancel()
         searchDebounceJob = viewModelScope.launch {
-            delay(500)
+            delay(500.milliseconds)
             findNotes()
         }
     }

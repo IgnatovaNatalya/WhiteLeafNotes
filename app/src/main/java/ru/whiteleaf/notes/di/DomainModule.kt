@@ -31,6 +31,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.scroll.ClearScrollPositionsUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ExportAllNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.share.GetSharedContentUseCase
@@ -84,6 +85,8 @@ val domainModule = module {
 
     factory { PinNotebookUseCase(get()) }
     factory { UnpinNotebookUseCase(get()) }
+
+    factory { ClearScrollPositionsUseCase(get(), get()) }
 
     //interactor
     factory { SettingsInteractor(get()) }

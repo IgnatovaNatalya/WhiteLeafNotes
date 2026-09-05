@@ -59,11 +59,10 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
 
 
     //SCROLL POS
-
     override fun saveNoteScrollPosition(noteId: String, notebookPath: String, scrollY: Int) {
-        println("DEBUG: PreferencesRepositoryImpl: saveNoteScrollPosition Scroll noteId=$noteId, notebookPath=$notebookPath, pos=$scrollY")
-
         val key = makeScrollKey(noteId, notebookPath)
+        if (scrollY == 0 && !prefs.contains(key)) return
+        println("DEBUG: PreferencesRepositoryImpl: saveNoteScrollPosition Scroll noteId=$noteId, notebookPath=$notebookPath, pos=$scrollY")
         prefs.edit { putInt(key, scrollY) }
     }
 
