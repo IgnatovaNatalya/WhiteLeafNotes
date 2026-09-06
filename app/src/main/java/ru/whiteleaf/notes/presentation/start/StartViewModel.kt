@@ -94,20 +94,12 @@ class StartViewModel(
         loadData()
     }
 
-    fun resumeScreen() {
-        when (_startScreenState.value) {
-            is StartScreenState.Success -> loadData()
-            is StartScreenState.SearchResults -> if (searchQuery != null) findNotes()
-            else -> {}
-        }
-    }
-
     fun getAllNotebooks(): List<Notebook> = notebookList
 
     fun prepareSearch() = _startScreenState.postValue(StartScreenState.SearchIdle)
+    fun resumeSearch() = findNotes()
 
     fun loadData() {
-
         println("DEBUG: StartVM: loading data")
         _startScreenState.postValue(StartScreenState.Loading)
 
@@ -167,7 +159,7 @@ class StartViewModel(
                     )
                     else items.add(SearchListItem.SearchListNoteContent(foundNote))
                 }
-                _startScreenState.postValue(StartScreenState.SearchResults(query, items))
+                _startScreenState.postValue(StartScreenState.SearchResults( items))
             } catch (e: AuthenticationRequiredException) {
                 //поймали зашифрованную
                 println("DEBUG: StartVM: findNotes: AuthenticationRequiredException: ${e.message}")

@@ -8,7 +8,6 @@ sealed class NoteListState {
     data class Success(val notes: List<Note>) : NoteListState()
     data class Error(val message: String) : NoteListState()
     object Blocked : NoteListState()
-    data class SearchResults(val query: String, val foundNotes: List<SearchListItem>) :
-        NoteListState()
+    data class SearchResults(val foundNotes: List<SearchListItem>) : NoteListState()
     object SearchIdle : NoteListState()
 }

@@ -90,13 +90,13 @@ class NoteListViewModel(
         loadNotebooks()
     }
 
-    fun resumeScreen() {
-        when (_noteListState.value) {
-            is NoteListState.Success -> loadNotes()
-            is NoteListState.SearchResults -> if (searchQuery != null) findNotes()
-            else -> {}
-        }
-    }
+//    fun resumeScreen() {
+//        when (_noteListState.value) {
+//            is NoteListState.Success -> loadNotes()
+//            is NoteListState.SearchResults -> if (searchQuery != null) findNotes()
+//            else -> {}
+//        }
+//    }
 
     fun getEncryptionStatus(): Boolean = isEncrypted
 
@@ -128,6 +128,9 @@ class NoteListViewModel(
     fun getViewMode(): Boolean {
         return _isPlannerView.value ?: false
     }
+
+    fun prepareSearch() = _noteListState.postValue(NoteListState.SearchIdle)
+    fun resumeSearch() = findNotes()
 
     fun onSearchQueryChanged(query: String) {
         searchQuery = query
@@ -170,7 +173,7 @@ class NoteListViewModel(
                     )
                     else items.add(SearchListItem.SearchListNoteContent(foundNote))
                 }
-                _noteListState.postValue(NoteListState.SearchResults(query, items))
+                _noteListState.postValue(NoteListState.SearchResults(items))
             } catch (_: AuthenticationRequiredException) {
                 _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToSearch))
             } catch (e: IOException) {
@@ -184,8 +187,6 @@ class NoteListViewModel(
             }
         }
     }
-
-    fun prepareSearch() = _noteListState.postValue(NoteListState.SearchIdle)
 
     fun loadNotes() {
         viewModelScope.launch {

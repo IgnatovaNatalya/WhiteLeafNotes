@@ -10,7 +10,6 @@ import android.text.style.StyleSpan
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import android.widget.TextView
@@ -51,9 +50,9 @@ class RootActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
 
-    private val menuViewModel: DrawerMenuViewModel by viewModel()
+    private val viewModel: RootViewModel by viewModel()
 
-    private var searchCursorPosition = 0
+    //private var searchCursorPosition = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,11 +85,13 @@ class RootActivity : AppCompatActivity() {
     private fun setupSearchView() {
 
         searchView.setOnSearchClickListener {
+            viewModel.setSearchExpanded(true)
             getCurrentSearchableFragment()?.onSearchStarted()
             toggleSearchView(true)
         }
 
         searchView.setOnCloseListener {
+            viewModel.clearSearch()
             toggleSearchView(false)
             getCurrentSearchableFragment()?.onSearchCleared()
             false
@@ -98,38 +99,38 @@ class RootActivity : AppCompatActivity() {
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
-                searchCursorPosition = getCursorSearchView()
-                println("DEBUG: RootActivity: query changed on pos $searchCursorPosition")
+                viewModel.setSearchQuery(newText)
+                //searchCursorPosition = getCursorSearchView()
+                //println("DEBUG: RootActivity: query changed on pos $searchCursorPosition")
                 getCurrentSearchableFragment()?.onSearchQueryChanged(newText.orEmpty())
                 return true
             }
 
             override fun onQueryTextSubmit(query: String?): Boolean {
+                viewModel.setSearchQuery(query)
                 getCurrentSearchableFragment()?.onSearchQuerySubmitted(query.orEmpty())
                 return true
             }
         })
     }
 
-    private fun setCursorSearchView(pos: Int) {
-        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        val len = editText.text.length
-        if (pos > 0) {
-            println("DEBUG: RootActivity: setCursorSearchView: pos=$pos")
-            if (pos <= len) editText.setSelection(pos) else editText.setSelection(len)
-        }
-    }
+//    private fun setCursorSearchView(pos: Int) {
+//        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+//        val len = editText.text.length
+//        if (pos > 0) {
+//            println("DEBUG: RootActivity: setCursorSearchView: pos=$pos")
+//            if (pos <= len) editText.setSelection(pos) else editText.setSelection(len)
+//        }
+//    }
 
-    private fun getCursorSearchView(): Int {
-        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        val pos = editText.selectionStart
-        return pos
-    }
+//    private fun getCursorSearchView(): Int {
+//        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+//        val pos = editText.selectionStart
+//        return pos
+//    }
 
     fun toggleSearchView(expand: Boolean, query: String? = null) {
         if (expand) {
-            //searchView.isIconified = false
-
             searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
             val params = searchView.layoutParams as Toolbar.LayoutParams
             params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -137,7 +138,7 @@ class RootActivity : AppCompatActivity() {
             searchView.layoutParams = params
 
             if (query != null) searchView.setQuery(query, false)
-            setCursorSearchView(searchCursorPosition)
+            //setCursorSearchView(searchCursorPosition)
 
             binding.toolbar.navigationIcon = null
 
@@ -182,7 +183,7 @@ class RootActivity : AppCompatActivity() {
 
             when (destination.id) {
                 R.id.startFragment -> {
-                    startHeader.visibility = View.VISIBLE
+                    if (!viewModel.isSearching()) startHeader.visibility = View.VISIBLE else  startHeader.visibility = View.GONE
                     lockIndicatorButton.visibility = View.GONE
                     optionsButton.visibility = View.GONE
                     searchView.visibility = View.VISIBLE
@@ -256,14 +257,14 @@ class RootActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_create_note -> {
-                    menuViewModel.createNewNote()
+                    viewModel.createNewNote()
                     drawerLayout.closeDrawers()
                     true
                 }
 
                 R.id.menu_create_notebook -> {
                     createCreateNotebookDialog(this) { name ->
-                        menuViewModel.createNewNotebook(name)
+                        viewModel.createNewNotebook(name)
                     }.show()
                     drawerLayout.closeDrawers()
                     true
@@ -278,24 +279,38 @@ class RootActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        menuViewModel.error.observe(this) { error ->
+        viewModel.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, error, Toast.LENGTH_LONG).show()
-                menuViewModel.clearError()
+                viewModel.clearError()
             }
         }
 
-        menuViewModel.navigateToCreatedNote.observe(this) { note ->
+        viewModel.navigateToCreatedNote.observe(this) { note ->
             note?.let {
                 navigateToCreatedNote(note)
-                menuViewModel.onNoteNavigated()
+                viewModel.onNoteNavigated()
             }
         }
-        menuViewModel.navigateToCreatedNotebook.observe(this) { notebook ->
+        viewModel.navigateToCreatedNotebook.observe(this) { notebook ->
             notebook?.let {
                 navigateToNotebook(notebook)
-                menuViewModel.onNotebookNavigated()
+                viewModel.onNotebookNavigated()
             }
+        }
+
+        viewModel.searchQuery.observe(this) { query ->
+            val currentQuery = searchView.query.toString()
+            if (currentQuery != query) {
+                searchView.setQuery(query, false)
+            }
+        }
+
+        viewModel.isSearchExpanded.observe(this) { expanded ->
+//            if (expanded != !searchView.isIconified) {
+//                searchView.isIconified = !expanded
+//            }
+            toggleSearchView(expanded)
         }
     }
 
@@ -340,6 +355,18 @@ class RootActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
+        // Если SearchView раскрыт — сворачиваем и очищаем поиск
+//        val navHostFragment = supportFragmentManager
+//            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+//        val currentFragment = navHostFragment.childFragmentManager.primaryNavigationFragment
+//
+//        if (currentFragment?.id == R.id.startFragment)
+//            if (!searchView.isIconified) {
+//                searchView.isIconified = true
+//                viewModel.clearSearch()
+//                return true
+//            }
+        // Иначе — передаём управление NavController
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 

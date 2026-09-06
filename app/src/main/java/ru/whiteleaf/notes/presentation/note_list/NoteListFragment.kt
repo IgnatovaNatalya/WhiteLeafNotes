@@ -30,7 +30,7 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.note_list.grid.NotesGridAdapter
 import ru.whiteleaf.notes.presentation.note_list.linear.NotesLinearAdapter
-import ru.whiteleaf.notes.presentation.root.RootActivity
+import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 
@@ -39,6 +39,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     SearchableFragment {
 
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
+    private val rootViewModel: RootViewModel by viewModel()
+
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookPath = ""
 
@@ -403,7 +405,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.noteListProgressBar.visibility = View.GONE
 
                 binding.searchHeaderTitle.visibility = View.VISIBLE
-                (requireActivity() as RootActivity).toggleSearchView(true, state.query)
 
                 if (!state.foundNotes.isNotEmpty()) {
                     binding.emptyList.visibility = View.VISIBLE
@@ -466,7 +467,15 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onResume() {
         super.onResume()
-        viewModel.resumeScreen()
+//        viewModel.resumeScreen()
+
+        if (rootViewModel.isSearching()) {
+            println("DEBUG: NoteListFragment: resume search")
+            viewModel.resumeSearch()
+        } else {
+            println("DEBUG: NoteListFragment: resume load")
+            viewModel.loadNotes()
+        }
     }
 
     override fun onPause() {

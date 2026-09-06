@@ -8,7 +8,7 @@ import ru.whiteleaf.notes.presentation.search.SearchListItem
 sealed class StartScreenState {
     object Loading : StartScreenState()
     data class Success(val startScreenItems: List<StartListItem>) : StartScreenState()
-    data class SearchResults(val query: String, val foundItems: List<SearchListItem>) :
+    data class SearchResults(val foundItems: List<SearchListItem>) :
         StartScreenState()
     object SearchIdle : StartScreenState()
 }

@@ -5,7 +5,7 @@ import org.koin.dsl.module
 import ru.whiteleaf.notes.presentation.note_edit.NoteEditViewModel
 import ru.whiteleaf.notes.presentation.note_list.NoteListViewModel
 import ru.whiteleaf.notes.presentation.notebooks.NotebooksViewModel
-import ru.whiteleaf.notes.presentation.root.DrawerMenuViewModel
+import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.settings.SettingsViewModel
 import ru.whiteleaf.notes.presentation.shareReceive.ShareReceiverViewModel
 import ru.whiteleaf.notes.presentation.start.StartViewModel
@@ -40,7 +40,7 @@ val viewmodelModule = module {
     }
 
     viewModel {
-        DrawerMenuViewModel(
+        RootViewModel(
             createNotebookUseCase = get(),
             createNoteUseCase = get(),
             clearScrollPositionsUseCase = get()

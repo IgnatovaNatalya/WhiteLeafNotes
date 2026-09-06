@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
 import ru.whiteleaf.notes.common.interfaces.ContextNotebookActionHandler
@@ -22,7 +23,7 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.model.NoteFound
-import ru.whiteleaf.notes.presentation.root.RootActivity
+import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 
@@ -37,6 +38,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     private val viewModel: StartViewModel by viewModel()
+    private val rootViewModel: RootViewModel by activityViewModel()
+
     private lateinit var noteSearchAdapter: NoteSearchAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,7 +129,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onSearchStarted() = viewModel.prepareSearch()
 
-
     private fun renderEvent(event: StartNavigationEvent) {
         when (event) {
             StartNavigationEvent.Idle -> {}
@@ -192,7 +194,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                     binding.searchRecyclerView.visibility = View.GONE
                     binding.emptyList.visibility = View.VISIBLE
                 }
-                (requireActivity() as RootActivity).toggleSearchView(true, state.query)
                 binding.startCreateNote.visibility = View.GONE
             }
 
@@ -331,6 +332,14 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onResume() {
         super.onResume()
-        viewModel.resumeScreen()
+
+        if(rootViewModel.isSearching()) {
+            println("DEBUG: StartFragment: resume search")
+            viewModel.resumeSearch()
+        }
+        else {
+            println("DEBUG: StartFragment: resume load")
+            viewModel.loadData()
+        }
     }
 }
