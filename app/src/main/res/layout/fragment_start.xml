@@ -37,7 +37,7 @@
             android:layout_marginHorizontal="16dp"
             android:gravity="center_vertical"
             android:textAllCaps="true"
-            android:textColor="@color/accent_blue"
+            android:textColor="?attr/android:textColorSecondary"
             android:text="@string/search_global" />
 
         <androidx.recyclerview.widget.RecyclerView

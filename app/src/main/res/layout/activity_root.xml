@@ -73,6 +73,7 @@
                 app:hideNavigationIcon="true"
                 app:queryBackground="@null"
                 app:queryHint="@string/search"
+                app:searchHintIcon="@null"
                 app:searchIcon="@drawable/ic_find" />
 
             <ImageButton

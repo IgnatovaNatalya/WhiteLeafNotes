@@ -84,17 +84,17 @@ class RootActivity : AppCompatActivity() {
     }
 
     private fun setupSearchView() {
-        searchView.setOnCloseListener {
-            toggleSearchView(false)
-            getCurrentSearchableFragment()?.onSearchCleared()
-            false
-        }
 
         searchView.setOnSearchClickListener {
             getCurrentSearchableFragment()?.onSearchStarted()
             toggleSearchView(true)
         }
-       // searchView.setOnQueryTextFocusChangeListener { _, hasFocus -> toggleSearchView(hasFocus) }
+
+        searchView.setOnCloseListener {
+            toggleSearchView(false)
+            getCurrentSearchableFragment()?.onSearchCleared()
+            false
+        }
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String?): Boolean {
