@@ -38,8 +38,6 @@ class RootViewModel(
     }
 
     fun isSearching():Boolean {
-//        val query = _searchQuery.value?: return false
-//        return query.length>=3
         println("DEBUG: RootVM: isSearchExpanded=${isSearchExpanded.value}, searchQuery=${searchQuery.value} ")
         return isSearchExpanded.value == true && searchQuery.value?.isNotEmpty()?:false
     }
