@@ -154,7 +154,8 @@ class StartViewModel(
 
                 val foundNotes = findNotesUseCase(
                     null, query,
-                    notebookList
+                    notebookList,
+                    false
                 )
 
                 println("DEBUG: StartVM: findNotes: ${foundNotes.size} notes found")
@@ -169,7 +170,7 @@ class StartViewModel(
                 _startScreenState.postValue(StartScreenState.SearchResults(query, items))
             } catch (e: AuthenticationRequiredException) {
                 //поймали зашифрованную
-                postMessage("DEBUG: StartVM: findNotes: AuthenticationRequiredException: ${e.message}")
+                println("DEBUG: StartVM: findNotes: AuthenticationRequiredException: ${e.message}")
             } catch (e: IOException) {
                 postMessage("DEBUG: StartVM: findNotes: Ошибка поиска заметок: ${e.message}")
             } catch (e: Exception) {

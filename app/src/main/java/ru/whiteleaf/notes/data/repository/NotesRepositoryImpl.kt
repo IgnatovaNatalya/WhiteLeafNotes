@@ -385,7 +385,8 @@ class NoteRepositoryImpl(
     override suspend fun findNotes(
         notebookPath: String?,
         query: String,
-        notebooks: List<Notebook>
+        notebooks: List<Notebook>,
+        searchInProtected: Boolean
     ): List<NoteFound> = withContext(Dispatchers.IO) {
         val previewLen = 50
         val lowerQuery = query.lowercase()
@@ -431,8 +432,8 @@ class NoteRepositoryImpl(
                     )
                 }
 
-                // Поиск по содержимому (только если можно прочитать)
-                val canReadContent = !isProtected || (isProtected && isUnlocked)
+                // Поиск по содержимому (только если можно и нужно прочитать)
+                val canReadContent = !isProtected || (isProtected && isUnlocked && searchInProtected)
                 if (canReadContent) {
                     try {
                         val rawContent = noteDataSource.readNoteContent(file)

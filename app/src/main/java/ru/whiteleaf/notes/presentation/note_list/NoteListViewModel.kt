@@ -156,7 +156,8 @@ class NoteListViewModel(
                 val foundNotes = findNotesUseCase(
                     notebookPath,
                     query,
-                    notebooksList.filter { it.path == notebookPath })
+                    notebooksList.filter { it.path == notebookPath },
+                    true)
 
                 println("DEBUG: NoteListM: findNotes: ${foundNotes.size} notes found")
                 foundNotes.forEach { note -> note.printDebug() }
@@ -176,8 +177,7 @@ class NoteListViewModel(
                 _noteListState.postValue(NoteListState.Error("Ошибка поиска заметок: ${e.message}"))
             } catch (e: Exception) {
                 if (e.cause is InvalidKeyException) {
-                    _noteListState.postValue(NoteListState.Blocked)
-                    if (notebookPath != null) lockNotebookUseCase(notebookPath)
+                    _navigationEvent.postValue(NoteListNavigationEvent.ShowBiometric(UnlockTarget.ToSearch))
                     println("DEBUG: NoteListViewmodel: InvalidKeyException ${e.message}")
                 } else
                     _noteListState.postValue(NoteListState.Error(e.message ?: "Ошибка поиска"))

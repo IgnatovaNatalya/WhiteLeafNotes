@@ -200,10 +200,9 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                 binding.startProgressBar.visibility = View.GONE
                 binding.startRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
-                binding.searchHeaderStart.visibility = View.VISIBLE
+                binding.searchHeaderStart.visibility = View.GONE
                 binding.emptyList.visibility = View.GONE
                 binding.startCreateNote.visibility = View.GONE
-
             }
         }
     }

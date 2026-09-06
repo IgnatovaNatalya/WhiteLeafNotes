@@ -28,6 +28,7 @@ interface NotesRepository {
     suspend fun findNotes(
         notebookPath: String?,
         query: String,
-        notebooks: List<Notebook> = emptyList()
+        notebooks: List<Notebook> = emptyList(),
+        searchInProtected : Boolean
     ): List<NoteFound>
 }

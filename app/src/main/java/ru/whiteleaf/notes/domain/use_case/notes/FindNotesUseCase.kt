@@ -8,8 +8,9 @@ class FindNotesUseCase(private val repository: NotesRepository) {
     suspend operator fun invoke(
     notebookPath: String? = null,
     query: String,
-    notebooks: List<Notebook> = emptyList()
+    notebooks: List<Notebook> = emptyList(),
+    searchInProtected: Boolean
     ): List<NoteFound> {
-        return repository.findNotes(notebookPath, query, notebooks)
+        return repository.findNotes(notebookPath, query, notebooks, searchInProtected)
     }
 }

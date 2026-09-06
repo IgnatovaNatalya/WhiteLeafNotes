@@ -430,7 +430,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.listRecyclerView.visibility = View.GONE
                 binding.plannerRecyclerView.visibility = View.GONE
                 binding.searchRecyclerView.visibility = View.GONE
-                binding.searchHeaderTitle.visibility = View.VISIBLE
+                binding.searchHeaderTitle.visibility = View.GONE
             }
         }
     }

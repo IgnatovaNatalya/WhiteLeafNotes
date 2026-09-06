@@ -37,7 +37,7 @@
             android:layout_marginHorizontal="16dp"
             android:gravity="center_vertical"
             android:textAllCaps="true"
-            android:textColor="?attr/android:textColorSecondary"
+            android:textColor="@color/accent_blue"
             android:text="@string/search_global" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -51,20 +51,20 @@
             tools:itemCount="3"
             tools:listitem="item_note_in_search" />
 
-        <TextView
-            android:id="@+id/empty_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:layout_gravity="center_vertical"
-            android:text="@string/nothing_found"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/empty_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_gravity="center_vertical"
+        android:text="@string/nothing_found"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
         android:id="@+id/start_progress_bar"

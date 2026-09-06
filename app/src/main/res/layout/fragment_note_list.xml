@@ -90,7 +90,7 @@
             android:layout_marginHorizontal="16dp"
             android:gravity="center_vertical"
             android:textAllCaps="true"
-            android:textColor="?attr/android:textColorSecondary"
+            android:textColor="@color/accent_blue"
             tools:text="Поиск в записной книжке" />
 
         <androidx.recyclerview.widget.RecyclerView
