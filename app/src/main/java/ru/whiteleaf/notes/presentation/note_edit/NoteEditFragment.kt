@@ -10,8 +10,10 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -27,16 +29,18 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
-import ru.whiteleaf.notes.common.utils.checkKeyboard
 import ru.whiteleaf.notes.common.utils.formatDate
 import ru.whiteleaf.notes.common.utils.hideKeyboard
+import ru.whiteleaf.notes.common.utils.highlightAllMatches
 import ru.whiteleaf.notes.common.utils.showKeyboard
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
+import ru.whiteleaf.notes.presentation.root.RootActivity
+import ru.whiteleaf.notes.presentation.search.SearchableFragment
 
-class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
+class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableFragment {
 
     private val viewModel: NoteEditViewModel by viewModel {
-        parametersOf(args.noteId, args.notebookPath)
+        parametersOf(args.noteId, args.notebookPath, args.searchQuery)
     }
 
     private val args: NoteEditFragmentArgs by navArgs()
@@ -45,7 +49,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private var notSaveOnPause = false
     private var wasInterrupted = false
 
-    private var lastCursorPosition = -1 //-1 если не была открыта клавиатура и не вводился текст
+    private var searchCursorPosition = -1
     private var searchQuery: String? = null
 
     private lateinit var titleEditText: EditText
@@ -58,6 +62,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     private lateinit var progressBar: ProgressBar
 
     private var windowFocusListener: ViewTreeObserver.OnWindowFocusChangeListener? = null
+
+    private var highlightColor = 0
 
     override fun createBinding(
         inflater: LayoutInflater,
@@ -81,8 +87,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-        lastCursorPosition = args.contentPosition
         searchQuery = args.searchQuery
+        searchCursorPosition = args.contentPosition.takeIf { it != 0 } ?: -1
+
+        highlightColor = ContextCompat.getColor(requireContext(), R.color.blue_transparent)
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -108,16 +116,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
     fun onFocusChanged(hasFocus: Boolean) {
         if (!hasFocus) {
             //при переходе фокуса, клавиатура скрывается системой
-            //println("DEBUG: NoteEditFragment: Window focus gone,saving scroll")
 
             viewModel.updateNoteTitleIfChanged(titleEditText.text.toString()) //обновляем только заголовок, т.к. контент и так сохраняется при любом изменении
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
 
-            if (checkKeyboard(contentEditText))
-                lastCursorPosition = contentEditText.selectionStart
+//            if (checkKeyboard(contentEditText))
+//                lastCursorPosition = contentEditText.selectionStart
             //println("DEBUG: NoteEditFragment: Saving cursorPosition $lastCursorPosition")
-
+            contentEditText.clearFocus() //снимаем фокус с контента, чтобы клавитура могла включиться потом
         } else if (wasInterrupted) {
             wasInterrupted = false
             //println("DEBUG: NoteEditFragment: Window focus received")
@@ -147,11 +154,20 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         TextWatcherManager.setupEditText(
             editText = contentEditText,
             condition = { isEditing },
-            onAfterTextChanged = { text -> viewModel.updateNoteContent(text) }
+            onAfterTextChanged = { text ->
+                println("DEBUG: NoteEditFragment: text changed")
+                viewModel.updateNoteContent(text)
+            }
         )
 
         contentEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             isEditing = hasFocus
+            if (hasFocus) {
+                clearHighlights()
+                viewModel.onSearchCleared()
+                (requireActivity() as RootActivity).searchClearFocus()
+            }
+
         }
 
         titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
@@ -174,6 +190,33 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         }
 
         binding.cancelButton.setOnClickListener { findNavController().popBackStack() }
+    }
+
+    override fun onSearchQueryChanged(query: String) {
+        //ничего не делаем пока не нажмет сабмит
+        contentEditText.clearFocus()
+        if (query == "") clearHighlights()
+    }
+
+    override fun onSearchQuerySubmitted(query: String) {
+        viewModel.onSearchQuerySubmitted(query)
+        hideKeyboard(contentEditText)
+    }
+
+    override fun onSearchCleared() {
+        clearHighlights()
+        viewModel.onSearchCleared()
+    }
+
+    override fun onSearchStarted() {}
+
+    // Дополнительные методы для навигации по совпадениям (их можно вызывать из Activity)
+    fun onNextMatch() {
+        viewModel.nextMatch()
+    }
+
+    fun onPreviousMatch() {
+        viewModel.previousMatch()
     }
 
     fun changeNoteDate() {
@@ -252,7 +295,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         when (state) {
 
             is NoteEditState.Success -> {
-                println("DEBUG: NoteEditFragment: Rendering note, lastcursor=$lastCursorPosition")
+                val st =
+                    if (state.searchState == null) "search state is null" else state.searchState.debugString()
+                println("DEBUG: NoteEditFragment: Rendering note, $st, isEditing=$isEditing")
                 noteScrollView.visibility = View.VISIBLE
                 progressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
@@ -268,37 +313,37 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
 
                 val note = state.note
                 titleEditText.setText(note.title)
-
                 binding.noteEditDate.text = formatDate(note.modifiedAt)
+                //if (isEditing) showKeyboard(contentEditText)
 
-                if (isEditing) showKeyboard(contentEditText)
+                val searchState = state.searchState
 
-                if (contentEditText.text.toString() != note.content) {
+                if (searchState != null) {
+                    println("DEBUG: NoteEditFragment: rendering matches")
+
+                    //Результаты поиска
                     isEditing = false
-                    contentEditText.setText(note.content)
-                    isEditing = true
-                }
-                noteScrollView.post { noteScrollView.scrollTo(0, state.scrollPosition) }
-                //println("DEBUG: NoteEditFragment: Restore scroll position ${state.scrollPosition}")
+                    renderContentWithSearchResults(searchState)
 
-                if (lastCursorPosition > 0) {
-                    contentEditText.post {
-                        println("DEBUG: NoteEditFragment: Restore cursor $lastCursorPosition & showKeyboard ")
-                        titleEditText.requestFocus()
-                        contentEditText.requestFocus()
-                        showKeyboard(contentEditText)
-
-                        val len = if (searchQuery != null) searchQuery!!.length else 0
+                    if (searchQuery != null) {
+                        println("DEBUG: NoteEditFragment: setting selection first time $searchCursorPosition")
+                        contentEditText.setSelection(searchCursorPosition, searchQuery!!.length)
                         searchQuery = null
-
-                        if (contentEditText.text.length >= lastCursorPosition) {
-                            contentEditText.setSelection(
-                                lastCursorPosition,
-                                lastCursorPosition + len
-                            )
-                        } else contentEditText.setSelection(contentEditText.text.length)
-                        //lastCursorPosition = -1
+                    } else {
+                        viewModel.nextMatch()
                     }
+
+                } else {
+                    //Обычный вид
+                    println("DEBUG: NoteEditFragment: rendering note no search")
+                    if (isEditing) showKeyboard(contentEditText)
+
+                    if (contentEditText.text.toString() != note.content) { //не трогаем если уже заполняли
+                        println("DEBUG: NoteEditFragment: set content")
+                        isEditing = false        //не хотим чтоб сразу открылась клавиатура
+                        contentEditText.setText(note.content)    //заполняем контент если его нет
+                    }
+                    noteScrollView.post { noteScrollView.scrollTo(0, state.scrollPosition) }
                 }
             }
 
@@ -338,8 +383,32 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-
             }
+        }
+    }
+
+    private fun clearHighlights() {
+        val text = viewModel.getNote()?.content ?: return
+        contentEditText.setText(text)
+    }
+
+    private fun renderContentWithSearchResults(searchState: SearchState) {
+        val content = viewModel.getNote()?.content ?: return
+
+        val query = searchState.query
+        val matches = searchState.matches
+        val currentIndex = searchState.currentMatchIndex
+
+        val (spannable, _) = highlightAllMatches(content, query, highlightColor)
+
+        contentEditText.setText(spannable, TextView.BufferType.SPANNABLE)
+
+        // Если есть совпадения, устанавливаем курсор на текущее
+        if (matches.isNotEmpty() && currentIndex in matches.indices) {
+            val (start, end) = matches[currentIndex]
+            println("DEBUG: NoteEditFragment: Rendering matches currentIndex=$currentIndex start=$start end=$end")
+            contentEditText.post { contentEditText.setSelection(start, end) }
+            // Прокручиваем к видимости этого совпадения (опционально)
         }
     }
 
@@ -380,11 +449,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>() {
         super.onPause()
 
         if (!notSaveOnPause) {
-            //viewModel.updateNoteContent(contentEditText.text.toString())
+            viewModel.updateNoteTitleIfChanged(titleEditText.text.toString())
             viewModel.saveNoteScrollPosition(noteScrollView.scrollY)
-            //viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             viewModel.saveToRecent()
-            println("Debug: NoteEditFragment: Saved scroll and recent on pause")
+            println("Debug: NoteEditFragment: Saved scroll and recent on pause title updated(if changed)")
         } else println("Debug: NoteEditFragment: Paused and not saved")
     }
 

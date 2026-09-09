@@ -105,9 +105,14 @@ class RootActivity : AppCompatActivity() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 viewModel.setSearchQuery(query)
                 getCurrentSearchableFragment()?.onSearchQuerySubmitted(query.orEmpty())
+                searchView.clearFocus()
                 return true
             }
         })
+    }
+
+    fun searchClearFocus() {
+        searchView.clearFocus()
     }
 
     fun toggleSearchView(expand: Boolean, query: String? = null) {

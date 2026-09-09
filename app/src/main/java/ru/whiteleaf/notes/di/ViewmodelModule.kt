@@ -94,7 +94,7 @@ val viewmodelModule = module {
         )
     }
 
-    viewModel { (noteId: String?, notebookPath: String?) ->
+    viewModel { (noteId: String?, notebookPath: String?, searchQuery: String?) ->
         NoteEditViewModel(
             getNoteUseCase = get(),
             deleteNoteUseCase = get(),
@@ -105,6 +105,7 @@ val viewmodelModule = module {
             updateNoteDateUseCase = get(),
             noteId = noteId,
             notebookPath = notebookPath,
+            searchQuery = searchQuery,
             unlockNotebookUseCase = get(),
             settingsInteractor = get(),
             isNotebookProtectedUseCase = get(),

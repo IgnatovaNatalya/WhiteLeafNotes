@@ -16,6 +16,7 @@
     <color name="success_green">#A5D6A7</color>
     <color name="dark_blue">#1976D2</color>
     <color name="medium_blue">#0CA0E9</color>
+    <color name="blue_transparent">#5481D4FA</color>
     <color name="coral_transparent">#12FF9E80</color>
     <color name="coral_transparent_ripple">#1AFF9E80</color>
 

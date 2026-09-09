@@ -14,6 +14,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.common.utils.highlightAllMatches
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
@@ -34,6 +35,7 @@ class NoteEditViewModel(
     private val updateNoteDateUseCase: UpdateNoteDateUseCase,
     private val noteId: String?,
     private val notebookPath: String?,
+    private val searchQuery: String?,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
     private val settingsInteractor: SettingsInteractor,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
@@ -55,6 +57,8 @@ class NoteEditViewModel(
     private var pendingSaveContent: String? = null
     private var currentScrollPosition: Int? = null
     private var notebookList: List<Notebook> = emptyList()
+
+    private var currentSearchQuery: String? = searchQuery
 
     init {
         viewModelScope.launch { loadNote() }
@@ -79,7 +83,15 @@ class NoteEditViewModel(
 
     fun reloadNotePosition() {
         val note = currentNote ?: return
-        if (_noteEditState.value is NoteEditState.Success) postNote(note)
+        if (_noteEditState.value !is NoteEditState.Success) return
+
+        val state = _noteEditState.value as NoteEditState.Success
+        val searchState = state.searchState
+
+        if (searchState == null)
+            postNote(note)
+        else
+            postNoteAndSearch(searchState.query, searchState.matches, searchState.currentMatchIndex)
     }
 
     private suspend fun loadNote() {
@@ -92,7 +104,10 @@ class NoteEditViewModel(
                 if (currentScrollPosition == null) currentScrollPosition = getNoteScrollPosition()
                 println("DEBUG: NoteEditVM: Note loaded: ${note.printDebug()}. scroll=$currentScrollPosition")
 
-                postNote(note)
+                if (searchQuery == null)
+                    postNote(note)
+                else
+                    performSearch(searchQuery)
 
                 if (note.isNotEmpty()) removeRecentNoteUseCase(note)
 
@@ -105,6 +120,71 @@ class NoteEditViewModel(
                 _noteEditState.postValue(NoteEditState.Error(e.message ?: "Ошибка загрузки"))
             }
         }
+    }
+
+    fun onSearchQuerySubmitted(query: String) {
+        println("DEBUG: NoteEditVM: search with query=$query")
+        if (!query.isEmpty()) { //>=3
+            performSearch(query)
+        }
+    }
+
+    fun onSearchCleared() {
+        currentSearchQuery = null
+        val note = currentNote ?: return
+        postNote(note)
+    }
+
+    // Навигация по совпадениям
+    fun nextMatch() {
+        val state = _noteEditState.value
+        if (state is NoteEditState.Success && state.searchState != null) {
+            val searchState = state.searchState
+            if (searchState.matches.isNotEmpty()) {
+                val newIndex = (searchState.currentMatchIndex + 1) % searchState.matches.size
+                postNoteAndSearch(searchState.query, searchState.matches, newIndex)
+            }
+        }
+    }
+
+    fun previousMatch() {
+        val state = _noteEditState.value
+        if (state is NoteEditState.Success && state.searchState != null) {
+            val searchState = state.searchState
+            if (searchState.matches.isNotEmpty()) {
+                val newIndex = if (searchState.currentMatchIndex - 1 < 0)
+                    searchState.matches.size - 1
+                else
+                    searchState.currentMatchIndex - 1
+                postNoteAndSearch(searchState.query, searchState.matches, newIndex)
+            }
+        }
+    }
+
+    private fun performSearch(query: String) {
+        println("DEBUG: NoteEditVM: perfonm search")
+        val note = currentNote ?: return
+        val content = note.content
+        if (content.isEmpty()) {
+            postNoteAndSearch(query, emptyList(), -1)
+            return
+        }
+        currentSearchQuery = query
+        val (spannable, matches) = highlightAllMatches(content, query, 0)
+        val currentIndex = if (matches.isNotEmpty()) 0 else -1
+        postNoteAndSearch(query, matches, currentIndex)
+    }
+
+    private fun postNoteAndSearch(query: String, matches: List<Pair<Int, Int>>, currentIndex: Int) {
+        val note = currentNote ?: return
+        _noteEditState.postValue(
+            NoteEditState.Success(
+                note = note,
+                scrollPosition = currentScrollPosition ?: 0,
+                isEncrypted = getEncryptionStatus(),
+                searchState = SearchState(query, matches, currentIndex)
+            )
+        )
     }
 
     fun lockNote() {
@@ -230,7 +310,7 @@ class NoteEditViewModel(
             NoteEditState.Success(
                 note,
                 currentScrollPosition ?: 0,
-                if (!note.notebookPath.isNullOrBlank()) isNotebookProtectedUseCase(note.notebookPath) else true
+                getEncryptionStatus(), null
             )
         )
     }
