@@ -326,11 +326,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                     renderContentWithSearchResults(searchState)
 
                     if (searchQuery != null) {
-                        println("DEBUG: NoteEditFragment: setting selection first time $searchCursorPosition")
-                        contentEditText.setSelection(searchCursorPosition, searchQuery!!.length)
+                        val start = searchCursorPosition
+                        val stop = searchCursorPosition + searchQuery!!.length
+                        println("DEBUG: NoteEditFragment: setting selection first time $start to $stop")
+                        contentEditText.requestFocus()
+                        contentEditText.setSelection(start, stop)
                         searchQuery = null
-                    } else {
-                        viewModel.nextMatch()
                     }
 
                 } else {
@@ -407,6 +408,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         if (matches.isNotEmpty() && currentIndex in matches.indices) {
             val (start, end) = matches[currentIndex]
             println("DEBUG: NoteEditFragment: Rendering matches currentIndex=$currentIndex start=$start end=$end")
+            contentEditText.requestFocus()
             contentEditText.post { contentEditText.setSelection(start, end) }
             // Прокручиваем к видимости этого совпадения (опционально)
         }
