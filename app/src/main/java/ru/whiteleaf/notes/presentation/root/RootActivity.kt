@@ -90,7 +90,7 @@ class RootActivity : AppCompatActivity() {
 
         searchView.setOnCloseListener {
             viewModel.clearSearch()
-            toggleSearchView(false)
+                //toggleSearchView(false)
             getCurrentSearchableFragment()?.onSearchCleared()
             false
         }
@@ -117,6 +117,7 @@ class RootActivity : AppCompatActivity() {
 
     fun toggleSearchView(expand: Boolean, query: String? = null) {
         if (expand) {
+            println("DEBUG: RootActivity: toggleSearchView expanded")
             searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
             val params = searchView.layoutParams as Toolbar.LayoutParams
             params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -131,6 +132,8 @@ class RootActivity : AppCompatActivity() {
             startHeader.visibility = View.GONE
 
         } else {
+            println("DEBUG: RootActivity: toggleSearchView collapsed")
+
             searchView.background = null
             val params = searchView.layoutParams as Toolbar.LayoutParams
             params.width = ViewGroup.LayoutParams.WRAP_CONTENT

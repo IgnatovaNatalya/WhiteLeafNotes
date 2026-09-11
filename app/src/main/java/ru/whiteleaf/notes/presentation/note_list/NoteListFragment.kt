@@ -444,6 +444,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
 
             is NoteListNavigationEvent.NavigateToNote -> {
+                rootViewModel.clearSearch() ///
                 navigateToNote = true
                 navigateToNoteEdit(event.noteId)
             }
