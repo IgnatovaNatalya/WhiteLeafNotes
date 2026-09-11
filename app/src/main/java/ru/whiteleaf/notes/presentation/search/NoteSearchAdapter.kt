@@ -45,7 +45,7 @@ class NoteSearchAdapter(
                         LayoutInflater.from(parent.context),
                         parent, false
                     ),
-                    onFoundNoteClicked,
+                    onNoteClicked,
                 ) else
                     NoteInListViewHolder(
                         ItemNoteInListBinding.inflate(

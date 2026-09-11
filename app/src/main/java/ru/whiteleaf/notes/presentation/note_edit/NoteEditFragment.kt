@@ -323,7 +323,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                     isEditing = false
                     renderContentWithSearchResults(searchState)
 
-                    if (searchQuery != null && searchCursorPosition > 0) {
+                    if (searchQuery != null) {
                         val start = searchCursorPosition
                         val stop = searchCursorPosition + searchQuery!!.length
                         println("DEBUG: NoteEditFragment: setting selection first time $start to $stop")
