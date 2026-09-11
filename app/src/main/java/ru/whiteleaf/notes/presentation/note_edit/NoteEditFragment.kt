@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
@@ -35,13 +36,16 @@ import ru.whiteleaf.notes.common.utils.highlightAllMatches
 import ru.whiteleaf.notes.common.utils.showKeyboard
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.root.RootActivity
+import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
+import kotlin.getValue
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableFragment {
 
     private val viewModel: NoteEditViewModel by viewModel {
         parametersOf(args.noteId, args.notebookPath, args.searchQuery)
     }
+    private val rootViewModel: RootViewModel by activityViewModel()
 
     private val args: NoteEditFragmentArgs by navArgs()
 
@@ -98,6 +102,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         searchCursorPosition = args.contentPosition.takeIf { it != 0 } ?: -1
 
         highlightColor = ContextCompat.getColor(requireContext(), R.color.blue_transparent)
+
+        //if (searchQuery==null) rootViewModel.clearSearch()
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -317,12 +323,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                     isEditing = false
                     renderContentWithSearchResults(searchState)
 
-                    if (searchQuery != null) {
+                    if (searchQuery != null && searchCursorPosition > 0) {
                         val start = searchCursorPosition
                         val stop = searchCursorPosition + searchQuery!!.length
                         println("DEBUG: NoteEditFragment: setting selection first time $start to $stop")
                         contentEditText.requestFocus()
-                        contentEditText.setSelection(start, stop)
+                        contentEditText.post { contentEditText.setSelection(start, stop) }
                         searchQuery = null
                     }
                     isRenderingSearch = false
@@ -399,7 +405,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         val (spannable, _) = highlightAllMatches(content, query, highlightColor)
 
-        contentEditText.setText(spannable, TextView.BufferType.SPANNABLE)
+        contentEditText.post { contentEditText.setText(spannable, TextView.BufferType.SPANNABLE) }
 
         // Если есть совпадения, устанавливаем курсор на текущее
         if (matches.isNotEmpty() && currentIndex in matches.indices) {

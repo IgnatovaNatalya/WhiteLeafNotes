@@ -43,10 +43,12 @@ class RootViewModel(
     }
 
     fun setSearchQuery(query: String?) {
+        println("DEBUG: RootVM: setSearchQuery=$query")
         _searchQuery.value = query
     }
 
     fun setSearchExpanded(expanded: Boolean) {
+        println("DEBUG: RootVM: setSearchExpanded=$expanded")
         _isSearchExpanded.value = expanded
     }
 

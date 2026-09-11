@@ -85,9 +85,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     private fun setupSearchRecyclerView() {
         noteSearchAdapter = NoteSearchAdapter(
-            onFoundNoteClicked = { noteFound ->
-                navigateToNoteFound(noteFound)
-            },
+            onFoundNoteClicked = { noteFound -> navigateToNoteFound(noteFound) },
+
             onNoteClicked = { note -> navigateToNote(note) },
 
             onFoundNotebookClicked = { notebook -> navigateToNotebook(notebook) },
@@ -333,11 +332,10 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     override fun onResume() {
         super.onResume()
 
-        if(rootViewModel.isSearching()) {
+        if (rootViewModel.isSearching()) {
             println("DEBUG: StartFragment: resume search")
             viewModel.resumeSearch()
-        }
-        else {
+        } else {
             println("DEBUG: StartFragment: resume load")
             viewModel.loadData()
         }

@@ -90,14 +90,6 @@ class NoteListViewModel(
         loadNotebooks()
     }
 
-//    fun resumeScreen() {
-//        when (_noteListState.value) {
-//            is NoteListState.Success -> loadNotes()
-//            is NoteListState.SearchResults -> if (searchQuery != null) findNotes()
-//            else -> {}
-//        }
-//    }
-
     fun getEncryptionStatus(): Boolean = isEncrypted
 
     private fun loadNotebooks() {

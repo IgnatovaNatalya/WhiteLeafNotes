@@ -16,6 +16,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
@@ -33,13 +34,14 @@ import ru.whiteleaf.notes.presentation.note_list.linear.NotesLinearAdapter
 import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
+import kotlin.getValue
 
 
 class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNoteActionHandler,
     SearchableFragment {
 
     private val viewModel: NoteListViewModel by viewModel { parametersOf(args.notebookPath) }
-    private val rootViewModel: RootViewModel by viewModel()
+    private val rootViewModel: RootViewModel by activityViewModel()
 
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookPath = ""
@@ -315,6 +317,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun navigateToNoteFound(noteId: String, contentPosition: Int, query: String?) {
+
         val action = NoteListFragmentDirections.actionNoteListFragmentToNoteEditFragment(
             noteId = noteId,
             notebookPath = args.notebookPath,
@@ -467,7 +470,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onResume() {
         super.onResume()
-//        viewModel.resumeScreen()
 
         if (rootViewModel.isSearching()) {
             println("DEBUG: NoteListFragment: resume search")
