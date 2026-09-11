@@ -27,9 +27,11 @@ class NoteContentInSearchViewHolder(
             highlightColor = ContextCompat.getColor(binding.root.context, R.color.accent_blue),
             ignoreCase = true
         )
-        binding.noteTitle.text = if (modeGlobal) noteFound.notebookPath?:"" + " / " + noteFound.title
+
+        val subtitleText = if (modeGlobal) "${noteFound.notebookPath ?: ""} / ${noteFound.title}"
         else noteFound.title
 
+        binding.subTitle.text = subtitleText
         binding.noteDate.text = formatDateNoteList(noteFound.modifiedAt)
 
         binding.root.setOnClickListener { onFoundNoteClicked(noteFound) }
