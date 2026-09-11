@@ -109,6 +109,8 @@
     <string name="show_more">Show more</string>
     <string name="nothing_found">Ничего не найдено</string>
     <string name="search_global">Поиск по всем заметкам и записным книжкам</string>
+    <string name="next">Следующее</string>
+    <string name="prev">Предыдущее</string>
 
 </resources>
 

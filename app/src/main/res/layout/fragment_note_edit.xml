@@ -176,6 +176,7 @@
             android:textColor="@color/accent_coral" />
     </LinearLayout>
 
+
     <ImageButton
         android:id="@+id/note_scroll_down"
         android:layout_width="52dp"
@@ -186,9 +187,53 @@
         android:elevation="4dp"
         android:paddingTop="3dp"
         android:scaleType="centerInside"
-        android:src="@drawable/ic_down"
+        android:src="@drawable/ic_arrow_down"
         android:visibility="gone"
         app:layout_anchor="@id/note_edit_scroll_view"
         app:layout_anchorGravity="bottom|end" />
+
+    <LinearLayout
+        android:id="@+id/ll_prev_next_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_anchor="@id/note_edit_scroll_view"
+        android:visibility="visible"
+        app:layout_anchorGravity="top|end"
+        android:orientation="vertical"
+        android:layout_marginTop="24dp">
+
+        <ImageButton
+            android:id="@+id/prev_match"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="12dp"
+            android:layout_marginHorizontal="18dp"
+            android:background="@drawable/bg_round"
+            android:contentDescription="@string/prev"
+            android:elevation="4dp"
+            android:paddingTop="3dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_arrow_up"
+            android:visibility="visible"
+            app:tint="@color/search_matches_button_color_selector" />
+
+        <ImageButton
+            android:id="@+id/next_match"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginBottom="18dp"
+            android:layout_marginHorizontal="18dp"
+            android:background="@drawable/bg_round"
+            android:contentDescription="@string/next"
+            android:elevation="4dp"
+            android:paddingTop="3dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_arrow_down"
+            android:visibility="visible"
+            app:tint="@color/search_matches_button_color_selector"/>
+
+    </LinearLayout>
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

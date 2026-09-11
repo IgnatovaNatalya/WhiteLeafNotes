@@ -46,6 +46,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private val args: NoteEditFragmentArgs by navArgs()
 
     private var isEditing = false
+    private var isRenderingSearch = false
     private var notSaveOnPause = false
     private var wasInterrupted = false
 
@@ -60,6 +61,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private lateinit var noteBlockedUnsaved: LinearLayout
     private lateinit var btnLockIndicator: ImageButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var nextButton: ImageButton
+    private lateinit var prevButton: ImageButton
+    private lateinit var llMatchButtons: LinearLayout
 
     private var windowFocusListener: ViewTreeObserver.OnWindowFocusChangeListener? = null
 
@@ -83,6 +87,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         noteBlocked = binding.llBlocked
         noteBlockedUnsaved = binding.llBlockedUnsaved
         progressBar = binding.noteEditProgressBar
+        nextButton = binding.nextMatch
+        prevButton = binding.prevMatch
+        llMatchButtons = binding.llPrevNextButtons
 
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
@@ -120,10 +127,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
             viewModel.updateNoteTitleIfChanged(titleEditText.text.toString()) //обновляем только заголовок, т.к. контент и так сохраняется при любом изменении
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
-
-//            if (checkKeyboard(contentEditText))
-//                lastCursorPosition = contentEditText.selectionStart
-            //println("DEBUG: NoteEditFragment: Saving cursorPosition $lastCursorPosition")
             contentEditText.clearFocus() //снимаем фокус с контента, чтобы клавитура могла включиться потом
         } else if (wasInterrupted) {
             wasInterrupted = false
@@ -154,20 +157,16 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         TextWatcherManager.setupEditText(
             editText = contentEditText,
             condition = { isEditing },
-            onAfterTextChanged = { text ->
-                println("DEBUG: NoteEditFragment: text changed")
-                viewModel.updateNoteContent(text)
-            }
+            onAfterTextChanged = { text -> viewModel.updateNoteContent(text) }
         )
 
         contentEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             isEditing = hasFocus
-            if (hasFocus) {
+            if (hasFocus && !isRenderingSearch) {
                 clearHighlights()
                 viewModel.onSearchCleared()
                 (requireActivity() as RootActivity).searchClearFocus()
             }
-
         }
 
         titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
@@ -190,6 +189,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         }
 
         binding.cancelButton.setOnClickListener { findNavController().popBackStack() }
+
+        nextButton.setOnClickListener { viewModel.nextMatch() }
+        prevButton.setOnClickListener { viewModel.previousMatch() }
     }
 
     override fun onSearchQueryChanged(query: String) {
@@ -209,15 +211,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     override fun onSearchStarted() {}
-
-    // Дополнительные методы для навигации по совпадениям (их можно вызывать из Activity)
-    fun onNextMatch() {
-        viewModel.nextMatch()
-    }
-
-    fun onPreviousMatch() {
-        viewModel.previousMatch()
-    }
 
     fun changeNoteDate() {
         val note = viewModel.getNote() ?: return
@@ -314,14 +307,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 val note = state.note
                 titleEditText.setText(note.title)
                 binding.noteEditDate.text = formatDate(note.modifiedAt)
-                //if (isEditing) showKeyboard(contentEditText)
 
                 val searchState = state.searchState
 
                 if (searchState != null) {
-                    println("DEBUG: NoteEditFragment: rendering matches")
-
                     //Результаты поиска
+                    println("DEBUG: NoteEditFragment: rendering matches")
+                    isRenderingSearch = true
                     isEditing = false
                     renderContentWithSearchResults(searchState)
 
@@ -333,6 +325,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                         contentEditText.setSelection(start, stop)
                         searchQuery = null
                     }
+                    isRenderingSearch = false
 
                 } else {
                     //Обычный вид
@@ -345,6 +338,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                         contentEditText.setText(note.content)    //заполняем контент если его нет
                     }
                     noteScrollView.post { noteScrollView.scrollTo(0, state.scrollPosition) }
+                    llMatchButtons.visibility = View.GONE
                 }
             }
 
@@ -355,6 +349,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
+                llMatchButtons.visibility = View.GONE
             }
 
             is NoteEditState.Error -> {
@@ -366,6 +361,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 btnLockIndicator.visibility = View.GONE
                 buttonScroll.visibility = View.GONE
                 renderMessage(state.message)
+                llMatchButtons.visibility = View.GONE
             }
 
             is NoteEditState.Blocked -> {
@@ -384,6 +380,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
+                llMatchButtons.visibility = View.GONE
             }
         }
     }
@@ -410,8 +407,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
             println("DEBUG: NoteEditFragment: Rendering matches currentIndex=$currentIndex start=$start end=$end")
             contentEditText.requestFocus()
             contentEditText.post { contentEditText.setSelection(start, end) }
+
             // Прокручиваем к видимости этого совпадения (опционально)
         }
+        buttonScroll.visibility = View.GONE
+        llMatchButtons.visibility = if (matches.size > 1) View.VISIBLE else View.GONE
+        prevButton.isEnabled = currentIndex > 0
+        nextButton.isEnabled = currentIndex < matches.lastIndex
+
     }
 
     private fun renderEvent(event: NoteEditNavigationEvent?) {
