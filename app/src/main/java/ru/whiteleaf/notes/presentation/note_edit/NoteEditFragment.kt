@@ -185,6 +185,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun setupClickListeners() {
+
+        noteScrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            viewModel.rememberNoteScrollPosition(scrollY)   // или отдельный метод
+        }
+
         binding.noteEditDate.setOnClickListener { changeNoteDate() }
 
         binding.unlockButton.setOnClickListener {
