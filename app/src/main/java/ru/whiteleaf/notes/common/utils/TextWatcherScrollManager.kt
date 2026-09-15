@@ -38,20 +38,19 @@ object TextWatcherScrollManager {
             scrollView.smoothScrollTo(0, scrollView.getChildAt(0)?.height ?: 0)
             true
         }
-
     }
 }
 
 private fun scrollToNextParagraph(editText: EditText, scrollView: NestedScrollView) {
     val text = editText.text.toString()
-    val currentPosition = editText.selectionStart.coerceAtLeast(0)
+    //val currentPosition = editText.selectionStart.coerceAtLeast(0)
+    val layout = editText.layout ?: return
+    val currentPosition = getTopVisibleOffset(editText, scrollView, layout)
 
-    val nextParagraphPattern = "\n\n\n"
-    val pattern = Pattern.compile(nextParagraphPattern)
+    val pattern = Pattern.compile("\n\n\n")
     val matcher = pattern.matcher(text)
 
     var nextParagraphPosition = -1
-
     while (matcher.find()) {
         if (matcher.start() > currentPosition) {
             nextParagraphPosition = matcher.start()
@@ -60,30 +59,54 @@ private fun scrollToNextParagraph(editText: EditText, scrollView: NestedScrollVi
     }
 
     if (nextParagraphPosition != -1) {
-        //nextParagraphPosition это где начинается паттерн нового абзаца  + 2 это чтобы чуть ниже сместиться
         val targetPosition = nextParagraphPosition + 2
+        val targetCursorPosition = nextParagraphPosition + 3
 
-        // 1. Устанавливаем курсор там где начинается сам текст
-        val targetCursorPosition = nextParagraphPosition + nextParagraphPattern.length
         editText.setSelection(targetCursorPosition)
         editText.requestFocus()
 
-        // 2. Даем время на обновление layout
         editText.post {
-            // 3. Вычисляем позицию для прокрутки
             val line = editText.layout.getLineForOffset(targetPosition)
             val lineTop = editText.layout.getLineTop(line)
             val editTextTop = editText.top
             val targetScrollY = editTextTop + lineTop
-
-            // 4. Прокручиваем так, чтобы курсор был у верха
             scrollView.smoothScrollTo(0, targetScrollY)
-
         }
     } else {
         scrollView.smoothScrollTo(0, scrollView.getChildAt(0)?.height ?: 0)
         editText.setSelection(editText.text?.length ?: 0)
         editText.requestFocus()
+    }
+}
+
+/**
+ * Возвращает смещение (в символах) строки, которая сейчас находится
+ * у верхней кромки видимой области NestedScrollView.
+ */
+private fun getTopVisibleOffset(
+    editText: EditText,
+    scrollView: NestedScrollView,
+    layout: android.text.Layout
+): Int {
+    if (editText.height == 0 || layout.lineCount == 0) return 0
+
+    val etLoc = IntArray(2)
+    val svLoc = IntArray(2)
+    editText.getLocationInWindow(etLoc)
+    scrollView.getLocationInWindow(svLoc)
+
+    // Верх EditText в координатах контента скролл-вью
+    val editTextTopInContent = (etLoc[1] - svLoc[1]) + scrollView.scrollY
+    // Насколько глубоко внутрь EditText попала верхняя кромка вьюпорта
+    val yInEditText = scrollView.scrollY - editTextTopInContent
+
+    return when {
+        yInEditText <= 0 -> 0
+        yInEditText >= editText.height -> layout.getLineStart(layout.lineCount - 1)
+        else -> {
+            val line = layout.getLineForVertical(yInEditText)
+            layout.getLineStart(line)
+        }
     }
 }
 

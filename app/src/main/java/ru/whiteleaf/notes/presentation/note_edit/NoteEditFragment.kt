@@ -2,6 +2,8 @@ package ru.whiteleaf.notes.presentation.note_edit
 
 
 import android.os.Bundle
+import android.text.Spannable
+import android.text.style.BackgroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,7 +37,6 @@ import ru.whiteleaf.notes.common.utils.hideKeyboard
 import ru.whiteleaf.notes.common.utils.highlightAllMatches
 import ru.whiteleaf.notes.common.utils.showKeyboard
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
-import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 import kotlin.getValue
@@ -168,11 +169,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         contentEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             isEditing = hasFocus
-            if (hasFocus && !isRenderingSearch) {
-                clearHighlights()
-                viewModel.onSearchCleared()
-                (requireActivity() as RootActivity).searchClearFocus()
-            }
+//            if (hasFocus && !isRenderingSearch) {
+//                clearHighlights()
+//                viewModel.onSearchCleared()
+//                (requireActivity() as RootActivity).searchClearFocus()
+//            }
         }
 
         titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
@@ -339,7 +340,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                     if (isEditing) showKeyboard(contentEditText)
 
                     if (contentEditText.text.toString() != note.content) { //не трогаем если уже заполняли
-                        println("DEBUG: NoteEditFragment: set content")
+                        println("DEBUG: NoteEditFragment: set content, scroll pos = ${state.scrollPosition}")
                         isEditing = false        //не хотим чтоб сразу открылась клавиатура
                         contentEditText.setText(note.content)    //заполняем контент если его нет
                     }
@@ -392,8 +393,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun clearHighlights() {
-        val text = viewModel.getNote()?.content ?: return
-        contentEditText.setText(text)
+//        val text = viewModel.getNote()?.content ?: return
+//        contentEditText.setText(text)
+        val text = contentEditText.text as? Spannable ?: return
+        val spans = text.getSpans(0, text.length, BackgroundColorSpan::class.java)
+        for (span in spans) text.removeSpan(span)
     }
 
     private fun renderContentWithSearchResults(searchState: SearchState) {
