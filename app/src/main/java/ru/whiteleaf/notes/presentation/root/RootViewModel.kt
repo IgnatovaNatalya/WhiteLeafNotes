@@ -58,6 +58,7 @@ class RootViewModel(
         _isSearchExpanded.value = false
     }
 
+
     fun createNewNotebook(name: String) {
         viewModelScope.launch {
             try {

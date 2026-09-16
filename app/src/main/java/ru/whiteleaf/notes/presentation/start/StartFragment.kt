@@ -23,6 +23,7 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.model.NoteFound
+import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
@@ -218,6 +219,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     private fun navigateToNotebook(notebook: Notebook) {
         val action = StartFragmentDirections.actionStartFragmentToNoteListFragment(notebook.path)
         findNavController().navigate(action)
+        (requireActivity() as RootActivity).cancelSearch()
     }
 
     private fun navigateToRootNotes() {

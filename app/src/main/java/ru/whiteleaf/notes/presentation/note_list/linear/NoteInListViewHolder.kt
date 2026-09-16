@@ -55,7 +55,10 @@ class NoteInListViewHolder(
 
         if (query != null) {
             val color =
-                if (isFeatured) ContextCompat.getColor(binding.root.context, R.color.text_primary_light)
+                if (isFeatured) ContextCompat.getColor(
+                    binding.root.context,
+                    R.color.text_primary_light
+                )
                 else ContextCompat.getColor(binding.root.context, R.color.accent_blue)
 
             highlightMatches(
@@ -69,7 +72,7 @@ class NoteInListViewHolder(
 
         binding.root.setOnClickListener { onNoteClicked(note) }
 
-        binding.root.setOnLongClickListener {
+        if (noteActionHandler != null) binding.root.setOnLongClickListener {
             showContextMenu(binding.root, note)
             true
         }

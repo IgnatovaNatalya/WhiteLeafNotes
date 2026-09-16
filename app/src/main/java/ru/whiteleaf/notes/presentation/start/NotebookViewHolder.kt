@@ -43,11 +43,11 @@ class NotebookViewHolder(
         llNotebook.setOnClickListener { onNotebookClicked(notebook) }
         icon.setOnClickListener { onNotebookClicked(notebook) }
 
-        llNotebook.setOnLongClickListener {
+        if (contextActionHandler != null) llNotebook.setOnLongClickListener {
             showContextMenu(itemView, notebook)
             true
         }
-        icon.setOnLongClickListener {
+        if (contextActionHandler != null) icon.setOnLongClickListener {
             showContextMenu(itemView, notebook)
             true
         }
