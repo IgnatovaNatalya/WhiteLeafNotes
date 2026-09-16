@@ -19,7 +19,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
@@ -37,7 +36,7 @@ import ru.whiteleaf.notes.common.utils.hideKeyboard
 import ru.whiteleaf.notes.common.utils.highlightAllMatches
 import ru.whiteleaf.notes.common.utils.showKeyboard
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
-import ru.whiteleaf.notes.presentation.root.RootViewModel
+import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 import kotlin.getValue
 
@@ -46,7 +45,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private val viewModel: NoteEditViewModel by viewModel {
         parametersOf(args.noteId, args.notebookPath, args.searchQuery)
     }
-    private val rootViewModel: RootViewModel by activityViewModel()
 
     private val args: NoteEditFragmentArgs by navArgs()
 
@@ -104,7 +102,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         highlightColor = ContextCompat.getColor(requireContext(), R.color.blue_transparent)
 
-        //if (searchQuery==null) rootViewModel.clearSearch()
+        if (searchQuery==null) (requireActivity() as RootActivity).cancelSearch()
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -477,12 +475,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
 
-//    override fun onDestroyView() {
-//        clearListeners()
-//        super.onDestroyView()
-//    }
+    override fun onDestroyView() {
+        clearListeners()
+        super.onDestroyView()
 
-    //   private fun clearListeners() {
+    }
+
+       private fun clearListeners() {
     // 1. Удаляем слушатель с optionsButton (из Activity)
     //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
     //optionsButton?.setOnClickListener(null)
@@ -491,9 +490,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     //btnLockIndicator.setOnClickListener(null)
 
     // 3. Удаляем OnWindowFocusChangeListener
-//        windowFocusListener?.let {
-//            binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
-//        }
-//        windowFocusListener = null
-//    }
+        windowFocusListener?.let {
+            binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
+        }
+        windowFocusListener = null
+    }
 }

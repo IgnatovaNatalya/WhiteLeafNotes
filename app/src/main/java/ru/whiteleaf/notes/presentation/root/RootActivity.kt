@@ -90,7 +90,7 @@ class RootActivity : AppCompatActivity() {
 
         searchView.setOnCloseListener {
             viewModel.clearSearch()
-                //toggleSearchView(false)
+            //toggleSearchView(false)
             getCurrentSearchableFragment()?.onSearchCleared()
             false
         }
@@ -111,10 +111,6 @@ class RootActivity : AppCompatActivity() {
         })
     }
 
-    fun searchClearFocus() {
-        searchView.clearFocus()
-    }
-
     fun toggleSearchView(expand: Boolean, query: String? = null) {
         if (expand) {
             println("DEBUG: RootActivity: toggleSearchView expanded")
@@ -126,7 +122,8 @@ class RootActivity : AppCompatActivity() {
 
             if (query != null) searchView.setQuery(query, false)
 
-            binding.toolbar.navigationIcon = null
+            //binding.toolbar.navigationIcon = null
+            binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
 
             optionsButton.visibility = View.GONE
             startHeader.visibility = View.GONE
@@ -334,25 +331,39 @@ class RootActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        // Если SearchView раскрыт — сворачиваем и очищаем поиск
-//        val navHostFragment = supportFragmentManager
-//            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-//        val currentFragment = navHostFragment.childFragmentManager.primaryNavigationFragment
-//
-//        if (currentFragment?.id == R.id.startFragment)
-//            if (!searchView.isIconified) {
-//                searchView.isIconified = true
-//                viewModel.clearSearch()
-//                return true
-//            }
+        // Если SearchView раскрыт — сворачиваем и очищаем поиск в каждом фрагменте
+
+        println("DEBUG: RootActivity: onSupportNavigateUp, current is start=${navController.currentDestination?.id == R.id.startFragment}, isSearchExpanded=${viewModel.isSearchExpanded.value}")
+
+        if (navController.currentDestination?.id == R.id.startFragment && viewModel.isSearchExpanded.value == true) {
+            cancelSearch()
+            return true
+        }
+        if (navController.currentDestination?.id == R.id.noteListFragment && viewModel.isSearchExpanded.value == true) {
+            cancelSearch()
+            //navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+            return true
+        }
+
         // Иначе — передаём управление NavController
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    fun cancelSearch() {
+        viewModel.clearSearch()
+        toggleSearchView(false)
+        searchView.isIconified = true
+        getCurrentSearchableFragment()?.onSearchCleared()
+    }
+
     @Deprecated("This method has been deprecated in favor of using the\n{@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
+        println("DEBUG: RootActivity: on back pressed")
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else if (viewModel.isSearchExpanded.value == true) {
+            if (navController.currentDestination?.id == R.id.startFragment || navController.currentDestination?.id == R.id.noteListFragment)
+                cancelSearch() else super.onBackPressed()
         } else {
             super.onBackPressed()
         }
