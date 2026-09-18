@@ -13,7 +13,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.DeleteNotebookByPathUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
-import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.GetNotesListUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
@@ -41,7 +41,7 @@ import java.security.InvalidKeyException
 import kotlin.time.Duration.Companion.milliseconds
 
 class NoteListViewModel(
-    private val getNotesUseCase: GetNotesUseCase,
+    private val getNotesListUseCase: GetNotesListUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val createNoteUseCase: CreateNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
@@ -203,7 +203,7 @@ class NoteListViewModel(
                 }
 
                 println("DEBUG: NoteListVM: Загрузка заметок, isProtected= $isProtected")
-                val notesList = getNotesUseCase(notebookPath)
+                val notesList = getNotesListUseCase(notebookPath)
 
                 notesList.forEach { note ->
                     if (note.isEmpty()) {

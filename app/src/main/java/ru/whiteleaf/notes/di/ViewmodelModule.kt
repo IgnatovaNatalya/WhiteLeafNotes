@@ -67,7 +67,7 @@ val viewmodelModule = module {
 
     viewModel { (notebookPath: String?) ->
         NoteListViewModel(
-            getNotesUseCase = get(),
+            getNotesListUseCase = get(),
             deleteNoteUseCase = get(),
             createNoteUseCase = get(),
             moveNoteUseCase = get(),

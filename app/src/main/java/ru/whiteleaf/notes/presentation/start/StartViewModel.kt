@@ -14,7 +14,6 @@ import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.CreateNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
-import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
@@ -35,6 +34,7 @@ import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.PinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import ru.whiteleaf.notes.presentation.search.SearchListItem
 import java.io.IOException

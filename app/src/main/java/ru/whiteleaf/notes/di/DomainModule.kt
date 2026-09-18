@@ -21,6 +21,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.GetNotesListUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.InsertNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
@@ -41,6 +42,7 @@ import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 val domainModule = module {
 
     // Use cases
+    factory { GetNotesListUseCase(get()) }
     factory { GetNotesUseCase(get()) }
     factory { GetNoteUseCase(get()) }
     factory { CreateNoteUseCase(get()) }
