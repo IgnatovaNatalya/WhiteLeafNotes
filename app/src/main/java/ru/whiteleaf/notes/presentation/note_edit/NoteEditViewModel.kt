@@ -66,7 +66,7 @@ class NoteEditViewModel(
     }
 
     fun getEncryptionStatus(): Boolean {
-        return isNotebookProtectedUseCase(notebookPath ?: "")
+        return if (notebookPath.isNullOrBlank()) false else isNotebookProtectedUseCase(notebookPath)
     }
 
     private fun loadNotebooks() {
@@ -200,7 +200,6 @@ class NoteEditViewModel(
                 println("DEBUG: NoteEditVM: Updating note title to $newTitle, currentNote: ${currentNote?.printDebug()}")
                 currentNote = renameNoteUseCase(note, newTitle)
                 postNote(currentNote!!)
-                //reopenNote(currentNote?.id ?: "")
             } catch (e: Exception) {
                 postNote(note)  //если название изменить не удалось, возвращаем прежнее
                 showMessage("Ошибка при переименовании заметки: ${e.message}")
@@ -329,12 +328,34 @@ class NoteEditViewModel(
         }
     }
 
+    fun shareNote(context: Context) {
+        viewModelScope.launch {
+            try {
+                val unlocked = if (getEncryptionStatus())
+                    unlockNotebookUseCase(notebookPath!!, context, reason = "Для экспорта")
+                else true
+
+                val note = currentNote?:return@launch
+
+                if (unlocked)
+                    _navigationEvent.postValue(
+                        NoteEditNavigationEvent.ShareNote(note)
+                    )
+                else _noteEditState.postValue(NoteEditState.Blocked(false))
+
+            } catch (e: Exception) {
+                showMessage("Ошибка при экспорте заметки: ${e.message}")
+            }
+        }
+    }
+
     fun shareFile(context: Context) {
         val note = currentNote ?: return
         viewModelScope.launch {
             try {
-                val unlocked = if (notebookPath != null)
-                    unlockNotebookUseCase(notebookPath, context, reason = "Для экспорта") else true
+                val unlocked = if (getEncryptionStatus())
+                    unlockNotebookUseCase(notebookPath!!, context, reason = "Для экспорта")
+                else true
 
                 val file = shareNoteFileUseCase(note)
 

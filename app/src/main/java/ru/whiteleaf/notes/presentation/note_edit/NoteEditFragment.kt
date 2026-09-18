@@ -26,7 +26,6 @@ import ru.whiteleaf.notes.common.utils.DialogHelper
 import ru.whiteleaf.notes.common.utils.ShareHelper
 import ru.whiteleaf.notes.common.utils.TextWatcherManager
 import ru.whiteleaf.notes.databinding.FragmentNoteEditBinding
-import ru.whiteleaf.notes.domain.model.Note
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
@@ -102,7 +101,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         highlightColor = ContextCompat.getColor(requireContext(), R.color.blue_transparent)
 
-        if (searchQuery==null) (requireActivity() as RootActivity).cancelSearch()
+        if (searchQuery == null) (requireActivity() as RootActivity).cancelSearch()
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -167,11 +166,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         contentEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             isEditing = hasFocus
-//            if (hasFocus && !isRenderingSearch) {
-//                clearHighlights()
-//                viewModel.onSearchCleared()
-//                (requireActivity() as RootActivity).searchClearFocus()
-//            }
         }
 
         titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
@@ -234,6 +228,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
 
         optionsButton?.setOnClickListener {
+            titleEditText.clearFocus()
+            contentEditText.clearFocus()
             ContextMenuHelper.showPopupMenu(
                 context = requireContext(),
                 anchorView = optionsButton,
@@ -269,16 +265,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun onOptionsShareNote() {
-        if (noteIsNotEmpty()) ShareHelper.shareNote(
-            requireContext(), Note(
-                id = titleEditText.text.toString(),
-                title = titleEditText.text.toString(),
-                content = contentEditText.text.toString(),
-                modifiedAt = System.currentTimeMillis(),
-                notebookPath = null,
-            )
-        )
-        else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
+        viewModel.shareNote(requireContext())
     }
 
     private fun onOptionsShareNoteFile() {
@@ -396,8 +383,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun clearHighlights() {
-//        val text = viewModel.getNote()?.content ?: return
-//        contentEditText.setText(text)
         val text = contentEditText.text as? Spannable ?: return
         val spans = text.getSpans(0, text.length, BackgroundColorSpan::class.java)
         for (span in spans) text.removeSpan(span)
@@ -440,8 +425,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 viewModel.clearEvent()
             }
 
-            is NoteEditNavigationEvent.ShareFile ->
+            is NoteEditNavigationEvent.ShareFile -> {
                 ShareHelper.shareFile(requireContext(), event.uri)
+                viewModel.clearEvent()
+            }
+
+            is NoteEditNavigationEvent.ShareNote -> {
+                ShareHelper.shareNote(requireContext(), event.note)
+                viewModel.clearEvent()
+            }
 
             is NoteEditNavigationEvent.ShowMessage -> {
                 renderMessage(event.message)
@@ -481,15 +473,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
     }
 
-       private fun clearListeners() {
-    // 1. Удаляем слушатель с optionsButton (из Activity)
-    //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
-    //optionsButton?.setOnClickListener(null)
+    private fun clearListeners() {
+        // 1. Удаляем слушатель с optionsButton (из Activity)
+        //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
+        //optionsButton?.setOnClickListener(null)
 
-    // 2. Удаляем слушатель с btnLockIndicator (из Activity)
-    //btnLockIndicator.setOnClickListener(null)
+        // 2. Удаляем слушатель с btnLockIndicator (из Activity)
+        //btnLockIndicator.setOnClickListener(null)
 
-    // 3. Удаляем OnWindowFocusChangeListener
+        // 3. Удаляем OnWindowFocusChangeListener
         windowFocusListener?.let {
             binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
         }
