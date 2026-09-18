@@ -1,5 +1,9 @@
 package ru.whiteleaf.notes.presentation.search
 
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
@@ -28,7 +32,17 @@ class NoteContentInSearchViewHolder(
             ignoreCase = true
         )
 
-        val subtitleText = if (modeGlobal) "${noteFound.notebookPath ?: ""} / ${noteFound.title}"
+        val folder = if (noteFound.notebookPath.isNullOrBlank()) "/ " else "/ ${noteFound.notebookPath} / "
+
+        val spannable = SpannableString(folder + noteFound.title)
+        spannable.setSpan(
+            StyleSpan(Typeface.BOLD),
+            0,
+            folder.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        val subtitleText = if (modeGlobal) spannable
         else noteFound.title
 
         binding.subTitle.text = subtitleText

@@ -27,7 +27,9 @@ class NoteInSearchGlobalViewHolder(
             ignoreCase = true
         )
 
-        binding.foundNoteNotebook.text = "/ " + noteFound.notebookPath
+        val folder = if (noteFound.notebookPath.isNullOrBlank()) "/ " else "/ ${noteFound.notebookPath}"
+
+        binding.foundNoteNotebook.text = folder
         binding.foundNoteDate.text = formatDateNoteList(noteFound.modifiedAt)
 
         binding.root.setOnClickListener { onNoteClicked(noteFound.toNote()) }
