@@ -33,6 +33,7 @@ import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.LockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.GetNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 import ru.whiteleaf.notes.presentation.search.SearchListItem
 import java.io.IOException
@@ -60,6 +61,7 @@ class NoteListViewModel(
     private val preferencesInteractor: SettingsInteractor,
     private val getNotebooksUseCase: GetNotebooksUseCase,
     private val findNotesUseCase: FindNotesUseCase,
+    private val getNoteUseCase: GetNoteUseCase,
     private val notebookPath: String?
 ) : ViewModel() {
 
@@ -441,6 +443,21 @@ class NoteListViewModel(
                     postMessage("Ошибка переименования: ${e.message}")
                 }
             }
+    }
+
+    fun shareNote(noteId:String) {
+        viewModelScope.launch {
+            try {
+                val note = getNoteUseCase(noteId, notebookPath)
+                _navigationEvent.postValue(NoteListNavigationEvent.ShareNote(note))
+            } catch (e: AuthenticationRequiredException) {
+                _noteListState.postValue(NoteListState.Blocked)
+                println("DEBUG: NoteListVM: Key not unlocked while loading note: ${e.message}")
+            } catch (e: Exception) {
+                _navigationEvent.postValue(NoteListNavigationEvent.ShowMessage( "Ошибка загрузки: ${e.message}"))
+                println("DEBUG: NoteEditVM: Error loading: ${e.message}")
+            }
+        }
     }
 
     fun exportNotebook(context: Context, shareFile: Boolean, password: String?) {

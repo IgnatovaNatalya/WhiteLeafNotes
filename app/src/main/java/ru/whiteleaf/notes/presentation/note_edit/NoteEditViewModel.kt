@@ -95,7 +95,7 @@ class NoteEditViewModel(
     }
 
     private suspend fun loadNote() {
-        if (noteId != null) {//viewModelScope.launch {
+        if (noteId != null) {
             _noteEditState.postValue(NoteEditState.Loading)
             println("DEBUG: NoteEditVM: Loading note id=$noteId path=$notebookPath")
             try {

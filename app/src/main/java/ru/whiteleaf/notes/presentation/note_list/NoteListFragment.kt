@@ -278,16 +278,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         ).show()
     }
 
-    override fun onShareNote(note: Note) {
-        if (note.isNotEmpty()) ShareHelper.shareNote(requireContext(), note)
-        else Toast.makeText(requireContext(), "Пустая заметка", Toast.LENGTH_SHORT).show()
-    }
-
     override fun onSearchQueryChanged(query: String) {
         println("DEBUG: NoteList Fragment: onSearchQueryChanged: query=$query")
         if (query.isEmpty()) viewModel.prepareSearch()
         if (query.length >= 3) viewModel.onSearchQueryChanged(query)
-
     }
 
     override fun onSearchQuerySubmitted(query: String) {
@@ -298,6 +292,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     override fun onSearchCleared() = viewModel.loadNotes()
 
     override fun onSearchStarted() = viewModel.prepareSearch()
+
+
+    override fun onShareNote(note: Note) = viewModel.shareNote(note.id)
 
     private fun shareExportFile(uri: Uri?) {
         val shareIntent = Intent().apply {
@@ -442,6 +439,11 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun renderEvent(event: NoteListNavigationEvent) {
         when (event) {
             is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
+
+            is NoteListNavigationEvent.ShareNote -> ShareHelper.shareNote(
+                requireContext(),
+                event.note
+            )
 
             is NoteListNavigationEvent.NavigateToNote -> {
                 rootViewModel.clearSearch() ///
