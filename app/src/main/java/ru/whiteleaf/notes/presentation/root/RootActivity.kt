@@ -335,14 +335,16 @@ class RootActivity : AppCompatActivity() {
 
         println("DEBUG: RootActivity: onSupportNavigateUp, current is start=${navController.currentDestination?.id == R.id.startFragment}, isSearchExpanded=${viewModel.isSearchExpanded.value}")
 
-        if (navController.currentDestination?.id == R.id.startFragment && viewModel.isSearchExpanded.value == true) {
-            cancelSearch()
-            return true
-        }
-        if (navController.currentDestination?.id == R.id.noteListFragment && viewModel.isSearchExpanded.value == true) {
-            cancelSearch()
-            //navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-            return true
+        if (viewModel.isSearchExpanded.value == true) {
+            if (navController.currentDestination?.id == R.id.startFragment) {
+                cancelSearch()
+                return true
+            }
+            if (navController.currentDestination?.id == R.id.noteListFragment || navController.currentDestination?.id == R.id.noteEditFragment) {
+                cancelSearch()
+                //navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+                return true
+            }
         }
 
         // Иначе — передаём управление NavController
@@ -366,7 +368,10 @@ class RootActivity : AppCompatActivity() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else if (viewModel.isSearchExpanded.value == true) {
-            if (navController.currentDestination?.id == R.id.startFragment || navController.currentDestination?.id == R.id.noteListFragment)
+            if (navController.currentDestination?.id == R.id.startFragment ||
+                navController.currentDestination?.id == R.id.noteListFragment ||
+                navController.currentDestination?.id == R.id.noteEditFragment
+            )
                 cancelSearch() else super.onBackPressed()
         } else {
             super.onBackPressed()
