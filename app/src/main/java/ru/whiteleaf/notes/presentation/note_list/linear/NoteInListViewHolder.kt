@@ -8,17 +8,16 @@ import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.interfaces.ContextNoteActionHandler
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
 import ru.whiteleaf.notes.common.utils.formatDateNoteList
-import ru.whiteleaf.notes.common.utils.highlightMatches
 import ru.whiteleaf.notes.databinding.ItemNoteInListBinding
 import ru.whiteleaf.notes.domain.model.Note
 
 class NoteInListViewHolder(
     private val binding: ItemNoteInListBinding,
-    private val onNoteClicked: (Note) -> Unit,
+    private val onNoteClicked: ((Note) -> Unit),
     private val noteActionHandler: ContextNoteActionHandler?
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(note: Note, query: String? = null) {
+    fun bind(note: Note) {
         val text = if (note.title != "") note.title else note.content.take(40)
         binding.noteInListTitle.text = text.trimStart('-')
 
@@ -53,26 +52,9 @@ class NoteInListViewHolder(
             binding.noteInListDate.text = formatDateNoteList(note.modifiedAt)
         }
 
-        if (query != null) {
-            val color =
-                if (isFeatured) ContextCompat.getColor(
-                    binding.root.context,
-                    R.color.text_primary_light
-                )
-                else ContextCompat.getColor(binding.root.context, R.color.accent_blue)
-
-            highlightMatches(
-                textView = binding.noteInListTitle,
-                text = text,
-                query = query,
-                highlightColor = color,
-                ignoreCase = true
-            )
-        }
-
         binding.root.setOnClickListener { onNoteClicked(note) }
 
-        if (noteActionHandler != null) binding.root.setOnLongClickListener {
+        binding.root.setOnLongClickListener {
             showContextMenu(binding.root, note)
             true
         }

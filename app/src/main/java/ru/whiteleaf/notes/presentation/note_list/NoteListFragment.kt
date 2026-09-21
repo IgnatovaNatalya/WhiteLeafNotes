@@ -3,12 +3,16 @@ package ru.whiteleaf.notes.presentation.note_list
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -46,6 +50,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private val args: NoteListFragmentArgs by navArgs()
     private var notebookPath = ""
 
+    private var searchQuery: String? = null
+
     private lateinit var noteLinearAdapter: NotesLinearAdapter
     private lateinit var plannerAdapter: NotesGridAdapter
     private lateinit var noteSearchAdapter: NoteSearchAdapter
@@ -68,6 +74,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         navigateToNote = false
         notebookPath = args.notebookPath.toString()
 
+        searchQuery = args.searchQuery
+
         setupTitleAndViewMode()
         setupObservers()
         setupOptionsMenu()
@@ -80,9 +88,23 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun setupTitleAndViewMode() {
         val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
 
-        actionBar?.title = notebookPath
-        if (notebookPath != "") actionBar?.subtitle = "Записная книжка"
+        if (searchQuery.isNullOrBlank())
+            actionBar?.title = notebookPath
+        else {
+            val color = ContextCompat.getColor(requireContext(), R.color.accent_blue)
+            val title = SpannableString(notebookPath)
+            val query = searchQuery ?: "".lowercase()
+            val index = notebookPath.lowercase().indexOf(query, 0)
+            if (index >= 0) title.setSpan(
+                ForegroundColorSpan(color),
+                index,
+                index + query.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            actionBar?.title = title
+        }
 
+        if (notebookPath != "") actionBar?.subtitle = "Записная книжка"
 
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
@@ -148,7 +170,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             onFoundNoteClicked = { noteFound ->
                 viewModel.onNoteFoundClicked(noteFound.id, noteFound.contentPosition ?: 0)
             },
-            onNoteClicked = { note -> viewModel.onNoteClicked(note.id) },
             onFoundNotebookClicked = {},
             modeGlobal = false,
         )

@@ -154,7 +154,8 @@ class NoteListViewModel(
                     notebookPath,
                     query,
                     notebooksList.filter { it.path == notebookPath },
-                    true)
+                    true
+                )
 
                 println("DEBUG: NoteListM: findNotes: ${foundNotes.size} notes found")
                 foundNotes.forEach { note -> note.printDebug() }
@@ -445,7 +446,7 @@ class NoteListViewModel(
             }
     }
 
-    fun shareNote(noteId:String) {
+    fun shareNote(noteId: String) {
         viewModelScope.launch {
             try {
                 val note = getNoteUseCase(noteId, notebookPath)
@@ -454,7 +455,7 @@ class NoteListViewModel(
                 _noteListState.postValue(NoteListState.Blocked)
                 println("DEBUG: NoteListVM: Key not unlocked while loading note: ${e.message}")
             } catch (e: Exception) {
-                _navigationEvent.postValue(NoteListNavigationEvent.ShowMessage( "Ошибка загрузки: ${e.message}"))
+                _navigationEvent.postValue(NoteListNavigationEvent.ShowMessage("Ошибка загрузки: ${e.message}"))
                 println("DEBUG: NoteEditVM: Error loading: ${e.message}")
             }
         }
@@ -510,11 +511,9 @@ class NoteListViewModel(
     fun onNoteFoundClicked(noteId: String, contentPosition: Int) =
         _navigationEvent.postValue(
             NoteListNavigationEvent.NavigateToNoteFound(
-                noteId,
-                contentPosition, searchQuery
+                noteId, contentPosition, searchQuery
             )
         )
-
 
     private fun postMessage(msg: String) =
         _navigationEvent.postValue(NoteListNavigationEvent.ShowMessage(msg))

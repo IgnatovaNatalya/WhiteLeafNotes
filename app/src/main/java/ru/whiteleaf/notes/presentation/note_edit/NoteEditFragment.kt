@@ -3,6 +3,8 @@ package ru.whiteleaf.notes.presentation.note_edit
 
 import android.os.Bundle
 import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
 import android.text.style.BackgroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
@@ -38,6 +40,7 @@ import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 import kotlin.getValue
+import kotlin.text.indexOf
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableFragment {
 
@@ -315,11 +318,28 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                     renderContentWithSearchResults(searchState)
 
                     if (searchQuery != null) {
-                        val start = searchCursorPosition
-                        val stop = searchCursorPosition + searchQuery!!.length
-                        println("DEBUG: NoteEditFragment: setting selection first time $start to $stop")
-                        contentEditText.requestFocus()
-                        contentEditText.post { contentEditText.setSelection(start, stop) }
+                        val title = titleEditText.text.toString()
+                        val query = searchQuery ?: ""
+
+                        if (title.lowercase().contains(query)) {
+                            val spannable = SpannableString(title)
+                            val start = title.lowercase().indexOf(query.lowercase())
+                            spannable.setSpan(
+                                BackgroundColorSpan(highlightColor),
+                                start, start + query.length,
+                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                            )
+                            titleEditText.setText(spannable, TextView.BufferType.SPANNABLE)
+                            titleEditText.requestFocus()
+                            titleEditText.setSelection(start, start + query.length)
+                        }
+                        if (searchCursorPosition >= 0) {
+                            val start = searchCursorPosition
+                            val stop = searchCursorPosition + searchQuery!!.length
+                            println("DEBUG: NoteEditFragment: setting selection first time $start to $stop")
+                            contentEditText.requestFocus()
+                            contentEditText.post { contentEditText.setSelection(start, stop) }
+                        }
                         searchQuery = null
                     }
                     isRenderingSearch = false

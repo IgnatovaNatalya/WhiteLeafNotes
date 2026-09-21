@@ -96,6 +96,7 @@ class StartViewModel(
 
     fun getAllNotebooks(): List<Notebook> = notebookList
 
+    fun getQuery() = searchQuery
     fun prepareSearch() = _startScreenState.postValue(StartScreenState.SearchIdle)
     fun resumeSearch() = findNotes()
 

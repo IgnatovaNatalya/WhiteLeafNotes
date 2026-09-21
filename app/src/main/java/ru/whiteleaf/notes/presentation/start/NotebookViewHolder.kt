@@ -37,8 +37,10 @@ class NotebookViewHolder(
             icon.setImageResource(R.drawable.ic_folder)
         }
 
-        pinIcon.visibility = if (notebook.isPinned) View.VISIBLE else View.GONE
-        pinIcon.setOnClickListener { contextActionHandler?.onUnpinNotebook(notebook) }
+        if (query == null) {
+            pinIcon.visibility = if (notebook.isPinned) View.VISIBLE else View.GONE
+            pinIcon.setOnClickListener { contextActionHandler?.onUnpinNotebook(notebook) }
+        } else pinIcon.visibility = View.GONE
 
         llNotebook.setOnClickListener { onNotebookClicked(notebook) }
         icon.setOnClickListener { onNotebookClicked(notebook) }

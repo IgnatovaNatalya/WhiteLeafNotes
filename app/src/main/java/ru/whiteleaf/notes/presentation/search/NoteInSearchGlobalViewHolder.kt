@@ -6,13 +6,11 @@ import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.utils.formatDateNoteList
 import ru.whiteleaf.notes.common.utils.highlightMatches
 import ru.whiteleaf.notes.databinding.ItemNoteInSearchTitlePathBinding
-import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.NoteFound
-import ru.whiteleaf.notes.domain.model.toNote
 
 class NoteInSearchGlobalViewHolder(
     private val binding: ItemNoteInSearchTitlePathBinding,
-    private val onNoteClicked: (Note) -> Unit,
+    private val onNoteFoundClicked: (NoteFound) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(noteFound: NoteFound) {
@@ -32,7 +30,7 @@ class NoteInSearchGlobalViewHolder(
         binding.foundNoteNotebook.text = folder
         binding.foundNoteDate.text = formatDateNoteList(noteFound.modifiedAt)
 
-        binding.root.setOnClickListener { onNoteClicked(noteFound.toNote()) }
+        binding.root.setOnClickListener { onNoteFoundClicked(noteFound) }
     }
 
 }

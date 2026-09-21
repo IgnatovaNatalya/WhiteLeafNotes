@@ -7,15 +7,11 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.databinding.ItemNoteInListBinding
 import ru.whiteleaf.notes.databinding.ItemNoteInSearchContentBinding
 import ru.whiteleaf.notes.databinding.ItemNoteInSearchTitlePathBinding
-import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.NoteFound
 import ru.whiteleaf.notes.domain.model.Notebook
-import ru.whiteleaf.notes.domain.model.toNote
-import ru.whiteleaf.notes.presentation.note_list.linear.NoteInListViewHolder
 import ru.whiteleaf.notes.presentation.start.NotebookViewHolder
 
 class NoteSearchAdapter(
-    private val onNoteClicked: (Note) -> Unit,
     private val onFoundNoteClicked: (NoteFound) -> Unit,
     private val onFoundNotebookClicked: (Notebook) -> Unit,
     private val modeGlobal: Boolean
@@ -45,17 +41,17 @@ class NoteSearchAdapter(
                         LayoutInflater.from(parent.context),
                         parent, false
                     ),
-                    onNoteClicked,
+                    onNoteFoundClicked = onFoundNoteClicked,
                 ) else
-                    NoteInListViewHolder(
+                    NoteInSearchByTitleViewHolder(
                         ItemNoteInListBinding.inflate(
                             LayoutInflater.from(parent.context), parent, false
-                        ), onNoteClicked, null
+                        ), onFoundNoteClicked
                     )
             }
 
             TYPE_NOTE_CONTENT -> {
-                NoteContentInSearchViewHolder(
+                NoteInSearchByContentViewHolder(
                     ItemNoteInSearchContentBinding.inflate(
                         LayoutInflater.from(parent.context),
                         parent,
@@ -85,9 +81,9 @@ class NoteSearchAdapter(
             is SearchListItem.SearchListNoteTitle -> if (modeGlobal)
                 (holder as NoteInSearchGlobalViewHolder).bind(item.noteFound)
             else
-                (holder as NoteInListViewHolder).bind(item.noteFound.toNote(), item.noteFound.query)
+                (holder as NoteInSearchByTitleViewHolder).bind(item.noteFound)
 
-            is SearchListItem.SearchListNoteContent -> (holder as NoteContentInSearchViewHolder).bind(
+            is SearchListItem.SearchListNoteContent -> (holder as NoteInSearchByContentViewHolder).bind(
                 item.noteFound, modeGlobal
             )
 

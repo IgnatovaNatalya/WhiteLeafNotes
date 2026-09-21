@@ -12,7 +12,7 @@ import ru.whiteleaf.notes.common.utils.highlightMatches
 import ru.whiteleaf.notes.databinding.ItemNoteInSearchContentBinding
 import ru.whiteleaf.notes.domain.model.NoteFound
 
-class NoteContentInSearchViewHolder(
+class NoteInSearchByContentViewHolder(
     private val binding: ItemNoteInSearchContentBinding,
     private val onFoundNoteClicked: (NoteFound) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
