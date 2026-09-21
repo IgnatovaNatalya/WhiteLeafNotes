@@ -16,7 +16,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
@@ -65,6 +65,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private lateinit var noteBlocked: LinearLayout
     private lateinit var noteBlockedUnsaved: LinearLayout
     private lateinit var btnLockIndicator: ImageButton
+    private lateinit var searchButton: SearchView
+    private lateinit var optionsButton: ImageButton
     private lateinit var progressBar: ProgressBar
     private lateinit var nextButton: ImageButton
     private lateinit var prevButton: ImageButton
@@ -89,15 +91,15 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         buttonScroll = binding.noteScrollDown
         noteScrollView = binding.noteEditScrollView
         noteBlocked = binding.llBlocked
-        noteBlocked = binding.llBlocked
         noteBlockedUnsaved = binding.llBlockedUnsaved
         progressBar = binding.noteEditProgressBar
         nextButton = binding.nextMatch
         prevButton = binding.prevMatch
         llMatchButtons = binding.llPrevNextButtons
 
-        btnLockIndicator =
-            (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
+        btnLockIndicator = requireActivity().findViewById(R.id.btn_lock_indicator)
+        optionsButton = requireActivity().findViewById(R.id.btn_options_menu)
+        searchButton =  requireActivity().findViewById(R.id.search_view)
 
         searchQuery = args.searchQuery
         searchCursorPosition = args.contentPosition.takeIf { it != 0 } ?: -1
@@ -228,9 +230,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun setupOptionsMenu() {
-        val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
+        //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
 
-        optionsButton?.setOnClickListener {
+        optionsButton.setOnClickListener {
             titleEditText.clearFocus()
             contentEditText.clearFocus()
             ContextMenuHelper.showPopupMenu(
@@ -295,7 +297,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 progressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
-
+                searchButton.visibility = View.VISIBLE
+                optionsButton.visibility = View.VISIBLE
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
@@ -366,6 +369,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
+                searchButton.visibility = View.GONE
+                optionsButton.visibility = View.GONE
                 llMatchButtons.visibility = View.GONE
             }
 
@@ -376,6 +381,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
+                searchButton.visibility = View.GONE
+                optionsButton.visibility = View.GONE
                 buttonScroll.visibility = View.GONE
                 renderMessage(state.message)
                 llMatchButtons.visibility = View.GONE
@@ -397,6 +404,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
+                searchButton.visibility = View.GONE
+                optionsButton.visibility = View.GONE
                 llMatchButtons.visibility = View.GONE
             }
         }
