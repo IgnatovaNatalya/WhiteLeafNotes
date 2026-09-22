@@ -21,7 +21,6 @@ import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.data.model.RecentNote
-import ru.whiteleaf.notes.domain.model.printDebug
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
@@ -152,7 +151,7 @@ class StartViewModel(
                 )
 
                 println("DEBUG: StartVM: findNotes: ${foundNotes.size} notes found")
-                foundNotes.forEach { note -> note.printDebug() }
+                //foundNotes.forEach { note -> note.printDebug() }
 
                 foundNotes.forEach { foundNote ->
                     if (foundNote.foundedInTitle) items.add(
@@ -196,7 +195,7 @@ class StartViewModel(
 
         // Секция Недавние
         val recentToShow = recentList.take(visibleRecentCount)
-        println("DEBUG: StartVM: build start items, recent items count: ${recentList.size}, showing ${recentToShow.size}")
+        //println("DEBUG: StartVM: build start items, recent items count: ${recentList.size}, showing ${recentToShow.size}")
 
         if (recentToShow.isNotEmpty()) {
             items.add(StartListItem.HeaderRecent)
@@ -216,7 +215,7 @@ class StartViewModel(
 
         // Секция записных книжек
         val notebooksToShow = notebookList.take(visibleNotebooksCount)
-        println("DEBUG: StartVM: build start items, notebooks items count: ${notebookList.size} , showing ${notebooksToShow.size}")
+        //println("DEBUG: StartVM: build start items, notebooks items count: ${notebookList.size} , showing ${notebooksToShow.size}")
 
         items.add(StartListItem.HeaderNotebooks)
 
@@ -248,7 +247,7 @@ class StartViewModel(
         val rootNotesToShow = rootNoteList.take(visibleNotesCount)
 
         if (rootNotesToShow.isNotEmpty()) {
-            println("DEBUG: StartVM: build start items, rootNotes items count: ${rootNoteList.size}, showing ${rootNotesToShow.size}")
+            //println("DEBUG: StartVM: build start items, rootNotes items count: ${rootNoteList.size}, showing ${rootNotesToShow.size}")
 
             items.add(StartListItem.HeaderRootNotes)
             items.add(StartListItem.DividerHeader)

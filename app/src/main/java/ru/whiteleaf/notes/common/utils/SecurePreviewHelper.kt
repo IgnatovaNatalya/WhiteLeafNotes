@@ -4,7 +4,7 @@ import android.view.WindowManager
 import androidx.fragment.app.FragmentActivity
 
 fun toggleSecurePreview(activity: FragmentActivity, isSecure: Boolean) {
-    println("DEBUG: toggleSecurePreview isSecure: $isSecure")
+   //println("DEBUG: toggleSecurePreview isSecure: $isSecure")
     if (isSecure) {
         activity.window.setFlags(
             WindowManager.LayoutParams.FLAG_SECURE,

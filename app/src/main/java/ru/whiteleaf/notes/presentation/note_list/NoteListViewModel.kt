@@ -82,7 +82,6 @@ class NoteListViewModel(
     private var searchDebounceJob: Job? = null
     var searchQuery: String? = null
 
-
     init {
         isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
 

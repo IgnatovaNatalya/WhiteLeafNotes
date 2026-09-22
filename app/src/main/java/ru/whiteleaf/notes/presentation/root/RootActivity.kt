@@ -14,6 +14,7 @@ import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -76,8 +77,35 @@ class RootActivity : AppCompatActivity() {
         setupToolbar()
         setupSearchView()
         setupNavigation()
+        setupBackCallback()
         setupNavigationListener()
         setupObservers()
+    }
+
+    private fun setupBackCallback() {
+        onBackPressedDispatcher.addCallback(this) {
+            println("DEBUG: RootActivity: BackCallback ")
+            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                println("DEBUG: RootActivity: BackCallback: close drawer")
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            } else if (viewModel.isSearchExpanded.value == true) {
+                println("DEBUG: RootActivity: BackCallback: cancel search")
+                cancelSearch()
+            } else {
+                println("DEBUG: RootActivity: BackCallback: call onBackPressed")
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
+        }
+//
+//
+//        onBackPressedDispatcher.addCallback(this) {
+//            if (!navController.navigateUp()) {
+//                println("DEBUG: RootActivity: BackCallback for navigateUp - back pressed")
+//                isEnabled = false
+//                onBackPressedDispatcher.onBackPressed()
+//            }
+//        }
     }
 
     private fun setupSearchView() {
@@ -113,7 +141,7 @@ class RootActivity : AppCompatActivity() {
 
     fun toggleSearchView(expand: Boolean, query: String? = null) {
         if (expand) {
-            println("DEBUG: RootActivity: toggleSearchView expanded")
+            //println("DEBUG: RootActivity: toggleSearchView expanded")
             searchView.setBackgroundResource(R.drawable.bg_rounded_corners)
             val params = searchView.layoutParams as Toolbar.LayoutParams
             params.width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -129,7 +157,7 @@ class RootActivity : AppCompatActivity() {
             startHeader.visibility = View.GONE
 
         } else {
-            println("DEBUG: RootActivity: toggleSearchView collapsed")
+            //println("DEBUG: RootActivity: toggleSearchView collapsed")
 
             searchView.background = null
             val params = searchView.layoutParams as Toolbar.LayoutParams
@@ -257,6 +285,7 @@ class RootActivity : AppCompatActivity() {
         }
     }
 
+
     private fun setupObservers() {
         viewModel.error.observe(this) { error ->
             error?.let {
@@ -330,26 +359,15 @@ class RootActivity : AppCompatActivity() {
         menuItem.title = spannable
     }
 
+
     override fun onSupportNavigateUp(): Boolean {
-        // Если SearchView раскрыт — сворачиваем и очищаем поиск в каждом фрагменте
-
-        println("DEBUG: RootActivity: onSupportNavigateUp, current is start=${navController.currentDestination?.id == R.id.startFragment}, isSearchExpanded=${viewModel.isSearchExpanded.value}")
-
         if (viewModel.isSearchExpanded.value == true) {
-            if (navController.currentDestination?.id == R.id.startFragment) {
-                cancelSearch()
-                return true
-            }
-            if (navController.currentDestination?.id == R.id.noteListFragment || navController.currentDestination?.id == R.id.noteEditFragment) {
-                cancelSearch()
-                //navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-                return true
-            }
-        }
-
-        // Иначе — передаём управление NavController
-        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+            cancelSearch()
+            return true
+        } else
+            return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
+
 
     fun cancelSearch() {
         viewModel.clearSearch()
@@ -358,23 +376,12 @@ class RootActivity : AppCompatActivity() {
         getCurrentSearchableFragment()?.onSearchCleared()
     }
 
-    fun hideSearch() {} //todo скрывать поиск но сохранять запрос при перехода к блокноту или заметке по названию
+    fun hideSearch() {
+        viewModel.clearSearch()
+        toggleSearchView(false)
+        searchView.isIconified = true
+    }
 
     fun restoreSearch() {} //todo а когда возворащаемся снвоа показывать поиск
 
-    @Deprecated("This method has been deprecated in favor of using the\n{@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
-    override fun onBackPressed() {
-        println("DEBUG: RootActivity: on back pressed")
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else if (viewModel.isSearchExpanded.value == true) {
-            if (navController.currentDestination?.id == R.id.startFragment ||
-                navController.currentDestination?.id == R.id.noteListFragment ||
-                navController.currentDestination?.id == R.id.noteEditFragment
-            )
-                cancelSearch() else super.onBackPressed()
-        } else {
-            super.onBackPressed()
-        }
-    }
 }

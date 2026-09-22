@@ -37,9 +37,9 @@ class RootViewModel(
         viewModelScope.launch { clearScrollPositionsUseCase() }
     }
 
-    fun isSearching():Boolean {
-        println("DEBUG: RootVM: isSearching=${isSearchExpanded.value == true && searchQuery.value?.isNotEmpty()?:false} ")
-        return isSearchExpanded.value == true && searchQuery.value?.isNotEmpty()?:false
+    fun isSearching(): Boolean {
+        println("DEBUG: RootVM: isSearching=${isSearchExpanded.value == true && searchQuery.value?.isNotEmpty() ?: false} ")
+        return isSearchExpanded.value == true && searchQuery.value?.isNotEmpty() ?: false
     }
 
     fun setSearchQuery(query: String?) {
@@ -57,7 +57,6 @@ class RootViewModel(
         _searchQuery.value = null
         _isSearchExpanded.value = false
     }
-
 
     fun createNewNotebook(name: String) {
         viewModelScope.launch {

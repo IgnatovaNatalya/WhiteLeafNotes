@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -35,6 +36,7 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.note_list.grid.NotesGridAdapter
 import ru.whiteleaf.notes.presentation.note_list.linear.NotesLinearAdapter
+import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
@@ -83,6 +85,28 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         setupPlannerRecyclerView()
         setupSearchRecyclerView()
         setupClickListeners()
+        setupBackCallback()
+    }
+
+    private fun setupBackCallback() {
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            println("DEBUG: NoteListFragment: BackCallback: isSearching=${rootViewModel.isSearching()}, external search query=${args.searchQuery}")
+            if (rootViewModel.isSearching()) {
+                if (args.searchQuery != null) { //todo завести переменую чтобы различать
+                    // если пришли из поиска был ли он сброшен и запущен новый в этом фрагменте
+                    // тогда нужно сбросить его
+                    println("DEBUG: NoteListFragment: navigated up")
+                    findNavController().navigateUp()
+                }
+                else {
+                    println("DEBUG: NoteListFragment:search cancelled in RootVM")
+                    (requireActivity() as RootActivity).cancelSearch()
+                }
+            } else {
+                println("DEBUG: NoteListFragment: navigated up")
+                findNavController().navigateUp()
+            }
+        }
     }
 
     private fun setupTitleAndViewMode() {
@@ -314,7 +338,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onSearchStarted() = viewModel.prepareSearch()
 
-
     override fun onShareNote(note: Note) = viewModel.shareNote(note.id)
 
     private fun shareExportFile(uri: Uri?) {
@@ -494,7 +517,15 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     override fun onResume() {
         super.onResume()
-
+//        val query = viewModel.getQuery()
+//
+//        if (query.isNullOrBlank() ) {
+//            println("DEBUG: NoteListFragment: resume load")
+//            viewModel.loadNotes()
+//        } else {
+//            println("DEBUG: NoteListFragment: resume search")
+//            if (query.length >= 3) viewModel.resumeSearch()
+//        }
         if (rootViewModel.isSearching()) {
             println("DEBUG: NoteListFragment: resume search")
             viewModel.resumeSearch()

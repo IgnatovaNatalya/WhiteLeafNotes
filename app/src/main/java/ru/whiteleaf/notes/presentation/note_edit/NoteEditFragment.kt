@@ -16,11 +16,13 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
@@ -38,6 +40,7 @@ import ru.whiteleaf.notes.common.utils.highlightAllMatches
 import ru.whiteleaf.notes.common.utils.showKeyboard
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.root.RootActivity
+import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 import kotlin.getValue
 import kotlin.text.indexOf
@@ -47,6 +50,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private val viewModel: NoteEditViewModel by viewModel {
         parametersOf(args.noteId, args.notebookPath, args.searchQuery)
     }
+    private val rootViewModel: RootViewModel by activityViewModel()
 
     private val args: NoteEditFragmentArgs by navArgs()
 
@@ -115,8 +119,28 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         setupEditTexts()
         setupScrollDown()
         setupClickListeners()
+        setupBackCallback()
     }
 
+
+    private fun setupBackCallback() {
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            println("DEBUG: NoteEditFragment: BackCallback: isSearching=${rootViewModel.isSearching()}, external search query=${args.searchQuery}")
+            if (rootViewModel.isSearching()) {
+                if (args.searchQuery != null) {
+                    println("DEBUG: NoteEditFragment: navigated up")
+                    findNavController().navigateUp()
+                }
+                else {
+                    println("DEBUG: NoteEditFragment:search cancelled in RootVM")
+                    (requireActivity() as RootActivity).cancelSearch()
+                }
+            } else {
+                println("DEBUG: NoteEditFragment: navigated up")
+                findNavController().navigateUp()
+            }
+        }
+    }
 
     private fun setupSecurityPreview() {
         toggleSecurePreview(requireActivity(), viewModel.getEncryptionStatus())

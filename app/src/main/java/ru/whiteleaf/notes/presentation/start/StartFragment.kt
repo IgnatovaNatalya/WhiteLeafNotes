@@ -335,6 +335,16 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onResume() {
         super.onResume()
+//
+//        val query = viewModel.getQuery()
+//
+//        if (query.isNullOrBlank() ) {
+//            println("DEBUG: StartFragment: resume load")
+//            viewModel.loadData()
+//        } else {
+//            println("DEBUG: StartFragment: resume search")
+//            if (query.length >= 3) viewModel.resumeSearch()
+//        }
 
         if (rootViewModel.isSearching()) {
             println("DEBUG: StartFragment: resume search")
