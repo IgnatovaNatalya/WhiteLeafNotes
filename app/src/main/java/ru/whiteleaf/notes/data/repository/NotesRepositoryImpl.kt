@@ -327,22 +327,31 @@ class NoteRepositoryImpl(
     override suspend fun shareNoteFile(note: Note): Uri? {
         return withContext(Dispatchers.IO) {
             try {
-                val noteFile = noteDataSource.getNoteFile(note.notebookPath ?: "", note.id)
+                val notebookPath = note.notebookPath ?: ""
+                val noteFile = noteDataSource.getNoteFile(notebookPath, note.id)
+
                 if (!noteFile.exists()) {
                     return@withContext null
                 }
 
-                // Создаем временный файл для sharing
                 val cacheDir = context.cacheDir
                 val shareFile = File(cacheDir, "${note.id}.txt")
-                noteFile.copyTo(shareFile, overwrite = true)
 
-                // Получаем URI через FileProvider
+                if (encryptionRepository.hasKey(notebookPath)) {
+                    val rawContent = noteFile.readText()
+                    val decryptedContent = encryptionRepository.decryptNote(notebookPath, rawContent)
+                    shareFile.writeText(decryptedContent)
+                } else {
+                    noteFile.copyTo(shareFile, overwrite = true)
+                }
+
                 FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.fileprovider",
                     shareFile
                 )
+            } catch (e: AuthenticationRequiredException) {
+                throw e
             } catch (_: Exception) {
                 null
             }
