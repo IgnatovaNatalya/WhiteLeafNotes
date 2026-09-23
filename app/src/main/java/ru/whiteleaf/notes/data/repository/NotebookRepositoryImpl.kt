@@ -29,7 +29,7 @@ class NotebookRepositoryImpl(
                             path = dir.name,
                             createdAt = dir.lastModified(),
                             noteCount = notebookDataSource.getNoteCount(dir),
-                            //modifiedAt = notebookDataSource.getLastModifiedDate(dir),
+                            modifiedAt = notebookDataSource.getLastModifiedDate(dir),
                             isEncrypted = encryptionRepository.hasKey(dir.name),
                             isUnlocked = encryptionRepository.isUnlocked(dir.name),
                             isLastOpened = lastOpened == dir.name,
@@ -37,7 +37,11 @@ class NotebookRepositoryImpl(
                         )
                     }
                     //.sortedByDescending { it.modifiedAt }
-                    .sortedByDescending { it.isPinned }
+                    //.sortedByDescending { it.isPinned}
+                    .sortedWith(compareByDescending<Notebook> { it.isPinned }
+                            //.thenBy { it.path }
+                        .thenByDescending() { it.modifiedAt }
+                    )
             } catch (e: Exception) {
                 Log.e("NotebookRepository", "Ошибка получения записных книжек: ${e.message}")
                 emptyList()

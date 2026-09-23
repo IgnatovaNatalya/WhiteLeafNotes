@@ -7,5 +7,6 @@ data class Notebook(
     val isEncrypted: Boolean = false,
     val isUnlocked: Boolean = false,
     val isLastOpened: Boolean = false,
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false,
+    val modifiedAt: Long = 0
 )

@@ -15,6 +15,10 @@ class FileNotebookDataSource(private val context: Context) {
         }
     }
 
+    fun getLastModifiedDate(dir:File): Long {
+        return dir.lastModified()
+    }
+
     fun getNotebookDir(name: String): File {
         return File(baseDir, name).apply {
             if (!exists()) {
