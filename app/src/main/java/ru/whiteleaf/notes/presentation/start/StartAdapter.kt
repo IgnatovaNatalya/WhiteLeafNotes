@@ -45,8 +45,8 @@ class StartAdapter(
 
         private const val TYPE_DIVIDER_HEADER = 10
         private const val TYPE_DIVIDER_AFTER = 11
-        private const val TYPE_DIVIDER_LINE_BG = 12
-        private const val TYPE_DIVIDER_LINE = 13
+        private const val TYPE_DIVIDER_LINE_ON_GREY_BG = 12
+        private const val TYPE_DIVIDER_LINE_ON_TRANSPARENT_BG = 13
 
     }
 
@@ -60,7 +60,7 @@ class StartAdapter(
             is StartListItem.NotebookItem -> TYPE_NOTEBOOK
             is StartListItem.ShowMoreNotebooks -> TYPE_SHOW_MORE_NOTEBOOKS
             StartListItem.CreateNotebook -> TYPE_CREATE_NOTEBOOK
-            StartListItem.DividerLine -> TYPE_DIVIDER_LINE
+            StartListItem.DividerLineOnTransparentBg -> TYPE_DIVIDER_LINE_ON_TRANSPARENT_BG
 
             is StartListItem.HeaderRootNotes -> TYPE_HEADER_NOTES
             is StartListItem.NoteItem -> TYPE_NOTE
@@ -68,7 +68,7 @@ class StartAdapter(
 
             StartListItem.DividerHeader -> TYPE_DIVIDER_HEADER
             StartListItem.DividerAfter -> TYPE_DIVIDER_AFTER
-            is StartListItem.DividerLineBg -> TYPE_DIVIDER_LINE_BG
+            is StartListItem.DividerLineOnGreyBg -> TYPE_DIVIDER_LINE_ON_GREY_BG
         }
     }
 
@@ -121,9 +121,9 @@ class StartAdapter(
                 )
             }
 
-            TYPE_DIVIDER_LINE -> {
+            TYPE_DIVIDER_LINE_ON_TRANSPARENT_BG -> {
                 DividerLineViewHolder(LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_start_divider_white, parent, false))
+                    .inflate(R.layout.item_start_divider_line_on_transparent, parent, false))
             }
 
             TYPE_CREATE_NOTEBOOK -> {
@@ -165,10 +165,9 @@ class StartAdapter(
                 )
             }
 
-            TYPE_DIVIDER_LINE_BG -> {
-                DividerLineViewHolder(
-                    LayoutInflater.from(parent.context)
-                        .inflate(R.layout.item_start_divider_line, parent, false)
+            TYPE_DIVIDER_LINE_ON_GREY_BG -> {
+                DividerLineViewHolder(   LayoutInflater.from(parent.context)
+                        .inflate(R.layout.item_start_divider_line_on_grey, parent, false)
                 )
             }
 
@@ -201,7 +200,7 @@ class StartAdapter(
             is StartListItem.NotebookItem -> (holder as NotebookViewHolder).bind(item.notebook)
             is StartListItem.ShowMoreNotebooks -> (holder as ShowMoreButtonViewHolder).bind()
             StartListItem.CreateNotebook -> (holder as CreateNotebookViewHolder).bind()
-            StartListItem.DividerLine ->  (holder as DividerLineViewHolder).bind()
+            StartListItem.DividerLineOnTransparentBg ->  (holder as DividerLineViewHolder).bind()
 
             is StartListItem.HeaderRootNotes -> (holder as HeaderViewHolder).bind(
                 "ЗАМЕТКИ", true
@@ -210,7 +209,7 @@ class StartAdapter(
             is StartListItem.NoteItem -> (holder as StartNoteViewHolder).bind(item.note)
             is StartListItem.ShowMoreNotes -> (holder as ShowMoreButtonViewHolder).bind()
 
-            is StartListItem.DividerLineBg -> (holder as DividerLineViewHolder).bind()
+            is StartListItem.DividerLineOnGreyBg -> (holder as DividerLineViewHolder).bind()
             StartListItem.DividerHeader -> (holder as DividerHeaderViewHolder).bind()
             StartListItem.DividerAfter -> (holder as DividerAfterViewHolder).bind()
 

@@ -205,7 +205,7 @@ class StartViewModel(
                 items.add(StartListItem.RecentNoteItem(note))
 
                 if (index < recentToShow.lastIndex)
-                    items.add(StartListItem.DividerLineBg)
+                    items.add(StartListItem.DividerLineOnGreyBg)
                 else
                     if (recentToShow.size < recentList.size) items.add(StartListItem.ShowMoreRecent) else items.add(
                         StartListItem.DividerAfter
@@ -220,25 +220,25 @@ class StartViewModel(
         items.add(StartListItem.HeaderNotebooks)
 
         if (notebooksToShow.isEmpty()) {
-            items.add(StartListItem.DividerLine)
+            items.add(StartListItem.DividerLineOnTransparentBg)
             items.add(StartListItem.CreateNotebook)
-            items.add(StartListItem.DividerLine)
+            items.add(StartListItem.DividerLineOnTransparentBg)
         } else {
             items.add(StartListItem.DividerHeader)
             notebooksToShow.forEachIndexed { index, notebook ->
                 items.add(StartListItem.NotebookItem(notebook))
 
                 if (index < notebooksToShow.lastIndex)
-                    items.add(StartListItem.DividerLineBg)
+                    items.add(StartListItem.DividerLineOnGreyBg)
                 else
                     if (notebooksToShow.size < notebookList.size) {
                         items.add(StartListItem.ShowMoreNotebooks)
                         items.add(StartListItem.CreateNotebook)
-                        items.add(StartListItem.DividerLine)
+                        items.add(StartListItem.DividerLineOnTransparentBg)
                     } else {
-                        items.add(StartListItem.DividerLineBg)
+                        items.add(StartListItem.DividerAfter)
                         items.add(StartListItem.CreateNotebook)
-                        items.add(StartListItem.DividerLine)
+                        items.add(StartListItem.DividerLineOnTransparentBg)
                     }
             }
         }
@@ -255,7 +255,7 @@ class StartViewModel(
             rootNotesToShow.forEachIndexed { index, note ->
                 items.add(StartListItem.NoteItem(note))
                 if (index < rootNotesToShow.lastIndex)
-                    items.add(StartListItem.DividerLineBg)
+                    items.add(StartListItem.DividerLineOnGreyBg)
                 else
                     if (rootNotesToShow.size < rootNoteList.size) items.add(StartListItem.ShowMoreNotes)
                     else items.add(StartListItem.DividerAfter)

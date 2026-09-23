@@ -13,7 +13,7 @@ sealed class StartListItem {
     data class NotebookItem(val notebook: Notebook) : StartListItem()
     object ShowMoreNotebooks : StartListItem()
     object CreateNotebook : StartListItem()
-    object DividerLine : StartListItem()
+    object DividerLineOnTransparentBg : StartListItem()
 
     object HeaderRootNotes : StartListItem()
     data class NoteItem(val note: Note) : StartListItem()
@@ -21,7 +21,7 @@ sealed class StartListItem {
 
 
     object DividerHeader : StartListItem()
-    object DividerLineBg : StartListItem()
+    object DividerLineOnGreyBg : StartListItem()
     object DividerAfter : StartListItem() //show more без кнопки
 
     // Для DiffUtil
@@ -44,8 +44,8 @@ sealed class StartListItem {
             is NoteItem -> this == other
             ShowMoreNotes -> other is ShowMoreNotes
 
-            DividerLineBg -> other is DividerLineBg
-            DividerLine -> other is DividerLine
+            DividerLineOnGreyBg -> other is DividerLineOnGreyBg
+            DividerLineOnTransparentBg -> other is DividerLineOnTransparentBg
             DividerHeader -> other is DividerHeader
             DividerAfter -> other is DividerAfter
         }
