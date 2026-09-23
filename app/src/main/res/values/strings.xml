@@ -111,6 +111,9 @@
     <string name="search_global">Поиск по всем заметкам и записным книжкам</string>
     <string name="next">Следующее</string>
     <string name="prev">Предыдущее</string>
+    <string name="plus_note">+ Заметка</string>
+    <string name="plus_notebook">+ Записная книжка</string>
+    <string name="all_notebooks">Все записные книжки</string>
 
 </resources>
 

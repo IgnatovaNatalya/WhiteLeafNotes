@@ -97,15 +97,6 @@ class RootActivity : AppCompatActivity() {
                 onBackPressedDispatcher.onBackPressed()
             }
         }
-//
-//
-//        onBackPressedDispatcher.addCallback(this) {
-//            if (!navController.navigateUp()) {
-//                println("DEBUG: RootActivity: BackCallback for navigateUp - back pressed")
-//                isEnabled = false
-//                onBackPressedDispatcher.onBackPressed()
-//            }
-//        }
     }
 
     private fun setupSearchView() {
@@ -150,7 +141,6 @@ class RootActivity : AppCompatActivity() {
 
             if (query != null) searchView.setQuery(query, false)
 
-            //binding.toolbar.navigationIcon = null
             binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
 
             optionsButton.visibility = View.GONE
@@ -169,8 +159,9 @@ class RootActivity : AppCompatActivity() {
                 startHeader.visibility = View.VISIBLE
                 binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
             } else {
+                if (navController.currentDestination?.id != R.id.notebooksFragment)
+                    optionsButton.visibility = View.VISIBLE
                 binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
-                optionsButton.visibility = View.VISIBLE
             }
         }
     }

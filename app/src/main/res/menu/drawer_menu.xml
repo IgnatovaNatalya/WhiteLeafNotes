@@ -5,25 +5,22 @@
     <group android:checkableBehavior="none">
         <item
             android:id="@+id/menu_create_note"
-            android:title="+ Заметка" />
+            android:title="@string/plus_note" />
 
         <item
             android:id="@+id/menu_create_notebook"
-            android:title="+ Записная книжка" />
+            android:title="@string/plus_notebook" />
     </group>
 
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/startFragment"
-            android:title="Главный экран" />
 
         <item
             android:id="@+id/notebooksFragment"
-            android:title="Все записные книжки" />
+            android:title="@string/all_notebooks" />
 
         <item
             android:id="@+id/settingsFragment"
-            android:title="Настройки" />
+            android:title="@string/settings" />
     </group>
 
 
