@@ -15,7 +15,6 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -141,14 +140,13 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         btnLockIndicator =
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
-        val isEncrypted = viewModel.getEncryptionStatus()
+        //val isEncrypted = viewModel.getEncryptionStatus()
 
-        btnLockIndicator.visibility = if (isEncrypted) View.VISIBLE else View.GONE
 
         isPlannerView = viewModel.getViewMode()
         println("DEBUG: Fragment onViewCreated viewMode is planner = $isPlannerView")
 
-        toggleSecurePreview(requireActivity(), isEncrypted)
+        toggleSecurePreview(requireActivity(), viewModel.getEncryptionStatus())
     }
 
     private fun setupObservers() {
@@ -407,8 +405,9 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                     if (state.notes.isNotEmpty()) View.GONE else View.VISIBLE
                 binding.notebookProtected.visibility = View.GONE
 
-                if (btnLockIndicator.isVisible)
-                    btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
+                val isEncrypted = viewModel.getEncryptionStatus()
+                btnLockIndicator.visibility = if (isEncrypted) View.VISIBLE else View.GONE
+                if (isEncrypted) btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
 
                 binding.createNote.visibility = View.VISIBLE
             }
