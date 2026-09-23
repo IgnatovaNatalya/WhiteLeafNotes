@@ -5,9 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.interfaces.ContextNotebookActionHandler
 import ru.whiteleaf.notes.common.utils.DialogHelper
@@ -15,6 +17,7 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
 import ru.whiteleaf.notes.common.utils.ShareHelper
 import ru.whiteleaf.notes.databinding.FragmentNotebooksBinding
 import ru.whiteleaf.notes.domain.model.Notebook
+import ru.whiteleaf.notes.presentation.root.RootActivity
 
 class NotebooksFragment : BindingFragment<FragmentNotebooksBinding>(),
     ContextNotebookActionHandler {
@@ -33,6 +36,12 @@ class NotebooksFragment : BindingFragment<FragmentNotebooksBinding>(),
         setupFab()
         setupRecyclerView()
         setupObservers()
+        setupSearchView()
+    }
+
+    private fun setupSearchView() {
+        val searchView = (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
+        searchView.queryHint = "Поиск по заметкам"
     }
 
     private fun setupFab() {

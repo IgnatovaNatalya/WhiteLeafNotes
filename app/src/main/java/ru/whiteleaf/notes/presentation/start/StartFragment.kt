@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,11 +19,13 @@ import ru.whiteleaf.notes.databinding.FragmentStartBinding
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.utils.DialogHelper.createCreateNotebookDialog
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.data.model.RecentNote
 import ru.whiteleaf.notes.domain.model.NoteFound
+import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.NoteSearchAdapter
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
@@ -51,7 +54,14 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         setupStartRecyclerView()
         setupSearchRecyclerView()
         setupObservers()
+        setupSearchView()
     }
+
+    private fun setupSearchView() {
+        val searchView = (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
+        searchView.queryHint = "Поиск по заметкам и блокнотам"
+    }
+
 
     private fun setupFab() {
         binding.startCreateNote.setOnClickListener { viewModel.createNewNote() }

@@ -13,6 +13,7 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.navigation.NavOptions
@@ -86,7 +87,14 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         setupSearchRecyclerView()
         setupClickListeners()
         setupBackCallback()
+        setupSearchView()
     }
+
+    private fun setupSearchView() {
+        val searchView = (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
+        searchView.queryHint = "Поиск по заметкам"
+    }
+
 
     private fun setupBackCallback() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {

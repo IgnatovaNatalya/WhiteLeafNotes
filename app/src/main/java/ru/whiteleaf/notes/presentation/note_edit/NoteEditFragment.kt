@@ -120,8 +120,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         setupScrollDown()
         setupClickListeners()
         setupBackCallback()
+        setupSearchView()
     }
 
+    private fun setupSearchView() {
+        val searchView = (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
+        searchView.queryHint = "Поиск по заметке"
+    }
 
     private fun setupBackCallback() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
