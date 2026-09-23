@@ -185,7 +185,6 @@ class NoteListViewModel(
     fun loadNotes() {
         viewModelScope.launch {
             _noteListState.postValue(NoteListState.Loading)
-            // var isProtected = false
 
             try {
                 if (notebookPath != null) {
@@ -481,11 +480,7 @@ class NoteListViewModel(
                 try {
                     if (isEncrypted) {
                         val unlocked =
-                            unlockNotebookUseCase(
-                                notebookPath,
-                                context,
-                                reason = "Для удаления"
-                            )
+                            unlockNotebookUseCase(notebookPath, context, reason = "Для удаления")
 
                         if (!unlocked) {
                             postMessage("Не удалось подтвердить личность")
@@ -494,9 +489,9 @@ class NoteListViewModel(
                     }
 
                     deleteNotebookUseCase(notebookPath)
-
-                    _navigationEvent.postValue(NoteListNavigationEvent.NavigateUp)
-                    postMessage("Записная книжка удалена")
+                    println("DEBUG: NoteListVM: notebuck deleted, go back")
+                    _navigationEvent.postValue(NoteListNavigationEvent.NavigateBack)
+                   //postMessage("Записная книжка удалена")
 
                 } catch (e: Exception) {
                     postMessage("Ошибка удаления записной книжки: ${e.message}")
@@ -518,7 +513,7 @@ class NoteListViewModel(
         _navigationEvent.postValue(NoteListNavigationEvent.ShowMessage(msg))
 
     fun clearEvent() {
-        _navigationEvent.postValue(NoteListNavigationEvent.Idle)
+        _navigationEvent.value = null
     }
 
     private fun saveLastOpenedNotebook() {

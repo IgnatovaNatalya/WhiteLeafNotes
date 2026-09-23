@@ -90,7 +90,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun setupSearchView() {
-        val searchView = (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
+        val searchView =
+            (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
         searchView.queryHint = "Поиск по заметкам"
     }
 
@@ -104,8 +105,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                     // тогда нужно сбросить его
                     println("DEBUG: NoteListFragment: navigated up")
                     findNavController().navigateUp()
-                }
-                else {
+                } else {
                     println("DEBUG: NoteListFragment:search cancelled in RootVM")
                     (requireActivity() as RootActivity).cancelSearch()
                 }
@@ -150,7 +150,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun setupObservers() {
-        viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> renderEvent(event) }
+        viewModel.navigationEvent.observe(viewLifecycleOwner) { event -> renderEvent(event)}
 
         viewModel.noteListState.observe(viewLifecycleOwner) { state -> renderState(state) }
     }
@@ -487,8 +487,17 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         }
     }
 
-    private fun renderEvent(event: NoteListNavigationEvent) {
+    private fun renderEvent(event: NoteListNavigationEvent?) {
+        if (event == null) return
+
+        println("DEBUG: NoteListFragment: Rendering event ${event.javaClass.simpleName}")
         when (event) {
+            is NoteListNavigationEvent.NavigateBack -> {
+                println("DEBUG: NoteListFragment: navigation back ")
+                val handled = findNavController().popBackStack()
+                println("DEBUG: NoteListFragment: navigateBack handled=$handled, current=${findNavController().currentDestination?.id}\"")
+            }
+
             is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
 
             is NoteListNavigationEvent.ShareNote -> ShareHelper.shareNote(
@@ -497,7 +506,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             )
 
             is NoteListNavigationEvent.NavigateToNote -> {
-                rootViewModel.clearSearch() ///
+                //rootViewModel.clearSearch() ///
                 navigateToNote = true
                 navigateToNoteEdit(event.noteId)
             }
@@ -508,8 +517,6 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             }
 
             is NoteListNavigationEvent.ReopenNotebook -> reopenNotebook(event.path)
-
-            NoteListNavigationEvent.NavigateUp -> findNavController().navigateUp()
 
             is NoteListNavigationEvent.ShowBiometric ->
                 viewModel.unlockNotebook(requireActivity(), event.unlockTarget)

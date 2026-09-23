@@ -9,7 +9,7 @@ import ru.whiteleaf.notes.presentation.note_list.UnlockTarget.ToSearch
 sealed class NoteListNavigationEvent {
     object Idle : NoteListNavigationEvent()
     data class NavigateToNote(val noteId: String) : NoteListNavigationEvent()
-    object NavigateUp : NoteListNavigationEvent()
+    object NavigateBack : NoteListNavigationEvent()
     data class ReopenNotebook(val path: String) : NoteListNavigationEvent()
     data class ExportLink(val uri: Uri?) : NoteListNavigationEvent()
     data class ShareNote(val note: Note) : NoteListNavigationEvent()
