@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.start
 
+import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -13,7 +14,7 @@ import ru.whiteleaf.notes.common.utils.highlightMatches
 import ru.whiteleaf.notes.domain.model.Notebook
 
 class NotebookViewHolder(
-    view: View,
+    val view: View,
     private val onNotebookClicked: (Notebook) -> Unit,
     private val contextActionHandler: ContextNotebookActionHandler?
 ) : RecyclerView.ViewHolder(view) {
@@ -22,6 +23,7 @@ class NotebookViewHolder(
     private val icon: ImageView = view.findViewById(R.id.notebook_icon)
     private val llNotebook: LinearLayout = view.findViewById(R.id.ll_notebook)
     private val pinIcon: ImageView = view.findViewById(R.id.pin_icon)
+
 
     fun bind(notebook: Notebook, query: String? = null) {
         name.text = notebook.path
@@ -38,8 +40,23 @@ class NotebookViewHolder(
         }
 
         if (query == null) {
-            pinIcon.visibility = if (notebook.isPinned) View.VISIBLE else View.GONE
-            pinIcon.setOnClickListener { contextActionHandler?.onUnpinNotebook(notebook) }
+            val typedValue = TypedValue()
+            val resolved = view.context.theme.resolveAttribute(
+                android.R.attr.colorPressedHighlight,
+                typedValue,
+                true // resolveRefs = true
+            )
+
+            pinIcon.visibility =  View.VISIBLE
+
+            if(notebook.isPinned) {
+                pinIcon.setColorFilter(ContextCompat.getColor(view.context, R.color.accent_blue))
+                pinIcon.setOnClickListener { contextActionHandler?.onUnpinNotebook(notebook) }}
+            else {
+                if (resolved) pinIcon.setColorFilter(ContextCompat.getColor(view.context, typedValue.resourceId))
+                pinIcon.setOnClickListener { contextActionHandler?.onPinNotebook(notebook) }
+            }
+
         } else pinIcon.visibility = View.GONE
 
         llNotebook.setOnClickListener { onNotebookClicked(notebook) }
