@@ -58,7 +58,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
     }
 
     private fun setupSearchView() {
-        val searchView = (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
+        val searchView =
+            (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
         searchView.queryHint = "Поиск по заметкам и блокнотам"
     }
 
@@ -134,11 +135,19 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onSearchStarted() = viewModel.prepareSearch()
 
-    private fun renderEvent(event: StartNavigationEvent) {
+    private fun renderEvent(event: StartNavigationEvent?) {
+        if (event == null) return
+
         when (event) {
             StartNavigationEvent.Idle -> {}
 
-            is StartNavigationEvent.NavigateToCreatedNotebook -> {}
+            is StartNavigationEvent.NavigateToCreatedNotebook -> {
+                val action = StartFragmentDirections.actionStartFragmentToNoteListFragment(
+                    event.notebook.path
+                )
+                findNavController().navigate(action)
+                viewModel.clearEvent()
+            }
 
             is StartNavigationEvent.NavigateToCreatedNote -> {
                 event.note.let {
@@ -345,16 +354,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onResume() {
         super.onResume()
-//
-//        val query = viewModel.getQuery()
-//
-//        if (query.isNullOrBlank() ) {
-//            println("DEBUG: StartFragment: resume load")
-//            viewModel.loadData()
-//        } else {
-//            println("DEBUG: StartFragment: resume search")
-//            if (query.length >= 3) viewModel.resumeSearch()
-//        }
 
         if (rootViewModel.isSearching()) {
             println("DEBUG: StartFragment: resume search")

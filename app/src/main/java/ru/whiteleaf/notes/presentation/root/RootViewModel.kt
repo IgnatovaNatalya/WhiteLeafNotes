@@ -38,7 +38,7 @@ class RootViewModel(
     }
 
     fun isSearching(): Boolean {
-        println("DEBUG: RootVM: isSearching=${isSearchExpanded.value == true && searchQuery.value?.isNotEmpty() ?: false} ")
+        //println("DEBUG: RootVM: isSearching=${isSearchExpanded.value == true && searchQuery.value?.isNotEmpty() ?: false} ")
         return isSearchExpanded.value == true && searchQuery.value?.isNotEmpty() ?: false
     }
 

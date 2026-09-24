@@ -69,8 +69,8 @@ class StartViewModel(
 
     ) : ViewModel() {
 
-    private val _navigationEvent = MutableLiveData<StartNavigationEvent>()
-    val navigationEvent: LiveData<StartNavigationEvent> = _navigationEvent
+    private val _navigationEvent = MutableLiveData<StartNavigationEvent?>()
+    val navigationEvent: LiveData<StartNavigationEvent?> = _navigationEvent
 
     private val _startScreenState = MutableLiveData<StartScreenState>()
     val startScreenState: LiveData<StartScreenState> = _startScreenState
@@ -159,7 +159,7 @@ class StartViewModel(
                     )
                     else items.add(SearchListItem.SearchListNoteContent(foundNote))
                 }
-                _startScreenState.postValue(StartScreenState.SearchResults( items))
+                _startScreenState.postValue(StartScreenState.SearchResults(items))
             } catch (e: AuthenticationRequiredException) {
                 //поймали зашифрованную
                 println("DEBUG: StartVM: findNotes: AuthenticationRequiredException: ${e.message}")
@@ -509,6 +509,6 @@ class StartViewModel(
         _navigationEvent.postValue(StartNavigationEvent.ShowMessage(msg))
 
     fun clearEvent() {
-        _navigationEvent.postValue(StartNavigationEvent.Idle)
+        _navigationEvent.value = null
     }
 }
