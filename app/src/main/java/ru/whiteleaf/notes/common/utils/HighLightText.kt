@@ -10,12 +10,14 @@ import androidx.annotation.ColorInt
 
 /**
  * Подсвечивает все вхождения подстроки [query] в тексте [text] цветом [highlightColor].
+ * подсветка цветом самого текста
  * @param textView TextView, в который будет установлен текст с подсветкой.
  * @param text Исходный текст (может содержать переносы и пр.).
  * @param query Искомая подстрока (регистр учитывается, если не указано иное).
  * @param highlightColor Цвет подсветки (можно передать colorRes или ColorInt).
  * @param ignoreCase Флаг регистронезависимости (по умолчанию false).
  */
+
 fun highlightMatches(
     textView: TextView,
     text: String,
@@ -53,7 +55,7 @@ fun highlightMatches(
 
 /**
  * Подсвечивает все вхождения подстроки [query] в тексте [text] заданным цветом.
- *
+ * подсветка фоном текста
  * @param text исходный текст
  * @param query искомая подстрока
  * @param highlightColor цвет подсветки (например, Color.YELLOW или ContextCompat.getColor(...))

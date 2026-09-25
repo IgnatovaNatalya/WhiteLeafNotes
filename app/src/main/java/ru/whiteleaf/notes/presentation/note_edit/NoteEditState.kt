@@ -1,5 +1,6 @@
 package ru.whiteleaf.notes.presentation.note_edit
 
+import android.text.SpannableString
 import ru.whiteleaf.notes.domain.model.Note
 
 sealed class NoteEditState {
@@ -17,8 +18,22 @@ sealed class NoteEditState {
 
 data class SearchState(
     val query: String,                      // текущий поисковый запрос
-    val matches: List<Pair<Int, Int>>,      // список пар (start, end) всех совпадений
+    val matches: List<SearchMatch>,         // список всех совпадений включая название и контент
     val currentMatchIndex: Int              // индекс текущего выделенного совпадения (-1, если нет совпадений)
+)
+
+data class SearchMatch(
+    val start: Int,
+    val end: Int,
+    val target: SearchMatchTarget
+)
+
+enum class SearchMatchTarget { TITLE, CONTENT }
+
+data class NoteSearchHighlights(
+    val title: SpannableString,
+    val content: SpannableString,
+    val matches: List<SearchMatch>
 )
 
 fun SearchState.debugString(): String {

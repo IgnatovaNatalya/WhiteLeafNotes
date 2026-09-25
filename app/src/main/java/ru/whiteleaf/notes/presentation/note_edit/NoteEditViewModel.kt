@@ -14,7 +14,7 @@ import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
-import ru.whiteleaf.notes.common.utils.highlightAllMatches
+import ru.whiteleaf.notes.common.utils.highlightNoteMatches
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
@@ -36,6 +36,7 @@ class NoteEditViewModel(
     private val noteId: String?,
     private val notebookPath: String?,
     private val searchQuery: String?,
+    contentPosition: Int,
     private val unlockNotebookUseCase: UnlockNotebookUseCase,
     private val settingsInteractor: SettingsInteractor,
     private val isNotebookProtectedUseCase: IsNotebookProtectedUseCase,
@@ -59,6 +60,7 @@ class NoteEditViewModel(
     private var notebookList: List<Notebook> = emptyList()
 
     private var currentSearchQuery: String? = searchQuery
+    private var startContentPosition: Int? = contentPosition
 
     init {
         viewModelScope.launch { loadNote() }
@@ -162,21 +164,76 @@ class NoteEditViewModel(
     }
 
     private fun performSearch(query: String) {
-        println("DEBUG: NoteEditVM: perfonm search")
+        println("DEBUG: NoteEditVM: perform search, query=query, startContent=$startContentPosition")
         val note = currentNote ?: return
-        val content = note.content
-        if (content.isEmpty()) {
+
+        if (note.title.isEmpty() && note.content.isEmpty()) {
             postNoteAndSearch(query, emptyList(), -1)
             return
         }
         currentSearchQuery = query
-        val (spannable, matches) = highlightAllMatches(content, query, 0)
-        val currentIndex = if (matches.isNotEmpty()) 0 else -1
-        postNoteAndSearch(query, matches, currentIndex)
+        val result = highlightNoteMatches(note.title, note.content, query, 0)
+
+        val currentIndex = when {
+            result.matches.isEmpty() -> -1
+
+            startContentPosition == -1 -> 0
+
+            (startContentPosition != null && startContentPosition!! >= 0) ->
+                resolveStartIndex(result.matches, startContentPosition)
+
+            else -> {
+                // без курсора — по умолчанию встаём на первое совпадение в контенте,
+                // если оно есть, иначе на первое вообще (в заголовке)
+                val contentFirst = result.matches.indexOfFirst {
+                    it.target == SearchMatchTarget.CONTENT
+                }
+                if (contentFirst >= 0) contentFirst else 0
+            }
+        }
+
+        postNoteAndSearch(query, result.matches, currentIndex)
     }
 
-    private fun postNoteAndSearch(query: String, matches: List<Pair<Int, Int>>, currentIndex: Int) {
+    private fun resolveStartIndex(matches: List<SearchMatch>, cursorPosition: Int?): Int {
+        if (cursorPosition == null) return -1
+        //0. обнуляем начальное положение вхождения, чтобы оно не повлияло на последюущие поиски
+        startContentPosition = null
+
+        if (matches.isEmpty()) return -1
+
+        if (cursorPosition == -1) return 0
+
+        // 1. Точное совпадение начала матча в контенте — это основной сценарий.
+        val exact = matches.indexOfFirst {
+            it.target == SearchMatchTarget.CONTENT && it.start == cursorPosition
+        }
+        if (exact >= 0) return exact
+
+        // 2. Курсор попал внутрь какого-то совпадения в контенте.
+        val containing = matches.indexOfFirst {
+            it.target == SearchMatchTarget.CONTENT &&
+                    cursorPosition in it.start until it.end
+        }
+        if (containing >= 0) return containing
+
+        // 3. Первое совпадение в контенте, начиная с позиции курсора.
+        val nextFromCursor = matches.indexOfFirst {
+            it.target == SearchMatchTarget.CONTENT && it.start >= cursorPosition
+        }
+        if (nextFromCursor >= 0) return nextFromCursor
+
+        // 4. Совпадений в контенте правее нет — начинаем с первого совпадения в контенте.
+        val firstContent = matches.indexOfFirst { it.target == SearchMatchTarget.CONTENT }
+        if (firstContent >= 0) return firstContent
+
+        // 5. Совпадений в контенте нет вообще — показываем первое (в заголовке).
+        return 0
+    }
+
+    private fun postNoteAndSearch(query: String, matches: List<SearchMatch>, currentIndex: Int) {
         val note = currentNote ?: return
+        println("DEBUG: NoteEditVM: postNoteAndSearch: matches:${matches.size}, currentIndex=$currentIndex")
         _noteEditState.postValue(
             NoteEditState.Success(
                 note = note,
@@ -335,7 +392,7 @@ class NoteEditViewModel(
                     unlockNotebookUseCase(notebookPath!!, context, reason = "Для экспорта")
                 else true
 
-                val note = currentNote?:return@launch
+                val note = currentNote ?: return@launch
 
                 if (unlocked)
                     _navigationEvent.postValue(

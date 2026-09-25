@@ -260,7 +260,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         val action = StartFragmentDirections.actionStartFragmentToNoteEditFragment(
             noteId = noteFound.id,
             notebookPath = noteFound.notebookPath,
-            contentPosition = noteFound.contentPosition ?: 0,
+            contentPosition = noteFound.contentPosition ?: -1,
             searchQuery = noteFound.query
         )
         findNavController().navigate(action)
@@ -350,7 +350,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             )
         }.show()
     }
-
 
     override fun onResume() {
         super.onResume()

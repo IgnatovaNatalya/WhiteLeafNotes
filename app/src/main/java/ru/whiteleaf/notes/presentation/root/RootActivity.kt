@@ -352,6 +352,8 @@ class RootActivity : AppCompatActivity() {
 
 
     override fun onSupportNavigateUp(): Boolean {
+        //todo надо сюда или в фрагменты добавить проверку как именно запущен поиск в текущем фрагменте или прежнем
+        println("DEBUG: RootActivity: onSupportNavigateUp: isSearchExpanded==${viewModel.isSearchExpanded.value}")
         if (viewModel.isSearchExpanded.value == true) {
             cancelSearch()
             return true
@@ -359,20 +361,11 @@ class RootActivity : AppCompatActivity() {
             return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-
     fun cancelSearch() {
+        println("DEBUG: RootActivity: search cancelled")
         viewModel.clearSearch()
         toggleSearchView(false)
         searchView.isIconified = true
         getCurrentSearchableFragment()?.onSearchCleared()
     }
-
-    fun hideSearch() {
-        viewModel.clearSearch()
-        toggleSearchView(false)
-        searchView.isIconified = true
-    }
-
-    fun restoreSearch() {} //todo а когда возворащаемся снвоа показывать поиск
-
 }

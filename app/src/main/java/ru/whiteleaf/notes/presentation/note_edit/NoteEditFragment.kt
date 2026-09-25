@@ -3,8 +3,6 @@ package ru.whiteleaf.notes.presentation.note_edit
 
 import android.os.Bundle
 import android.text.Spannable
-import android.text.SpannableString
-import android.text.Spanned
 import android.text.style.BackgroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
@@ -36,31 +34,27 @@ import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.TextWatcherScrollManager
 import ru.whiteleaf.notes.common.utils.formatDate
 import ru.whiteleaf.notes.common.utils.hideKeyboard
-import ru.whiteleaf.notes.common.utils.highlightAllMatches
+import ru.whiteleaf.notes.common.utils.highlightNoteMatches
 import ru.whiteleaf.notes.common.utils.showKeyboard
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
 import kotlin.getValue
-import kotlin.text.indexOf
 
 class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableFragment {
 
     private val viewModel: NoteEditViewModel by viewModel {
-        parametersOf(args.noteId, args.notebookPath, args.searchQuery)
+        parametersOf(args.noteId, args.notebookPath, args.searchQuery, args.contentPosition)
     }
+
     private val rootViewModel: RootViewModel by activityViewModel()
 
     private val args: NoteEditFragmentArgs by navArgs()
 
     private var isEditing = false
-    private var isRenderingSearch = false
     private var notSaveOnPause = false
     private var wasInterrupted = false
-
-    private var searchCursorPosition = -1
-    private var searchQuery: String? = null
 
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
@@ -103,14 +97,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         btnLockIndicator = requireActivity().findViewById(R.id.btn_lock_indicator)
         optionsButton = requireActivity().findViewById(R.id.btn_options_menu)
-        searchButton =  requireActivity().findViewById(R.id.search_view)
-
-        searchQuery = args.searchQuery
-        searchCursorPosition = args.contentPosition.takeIf { it != 0 } ?: -1
+        searchButton = requireActivity().findViewById(R.id.search_view)
 
         highlightColor = ContextCompat.getColor(requireContext(), R.color.blue_transparent)
 
-        if (searchQuery == null) (requireActivity() as RootActivity).cancelSearch()
+        if (args.searchQuery == null) (requireActivity() as RootActivity).cancelSearch()
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -213,7 +204,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private fun setupClickListeners() {
 
         noteScrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-            viewModel.rememberNoteScrollPosition(scrollY)   // или отдельный метод
+            viewModel.rememberNoteScrollPosition(scrollY)
         }
 
         binding.noteEditDate.setOnClickListener { changeNoteDate() }
@@ -259,7 +250,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun setupOptionsMenu() {
-        //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
 
         optionsButton.setOnClickListener {
             titleEditText.clearFocus()
@@ -343,39 +333,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 val searchState = state.searchState
 
                 if (searchState != null) {
-                    //Результаты поиска
+                    //результаты поиска
                     println("DEBUG: NoteEditFragment: rendering matches")
-                    isRenderingSearch = true
                     isEditing = false
-                    renderContentWithSearchResults(searchState)
-
-                    if (searchQuery != null) {
-                        val title = titleEditText.text.toString()
-                        val query = searchQuery ?: ""
-
-                        if (title.lowercase().contains(query)) {
-                            val spannable = SpannableString(title)
-                            val start = title.lowercase().indexOf(query.lowercase())
-                            spannable.setSpan(
-                                BackgroundColorSpan(highlightColor),
-                                start, start + query.length,
-                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                            )
-                            titleEditText.setText(spannable, TextView.BufferType.SPANNABLE)
-                            titleEditText.requestFocus()
-                            titleEditText.setSelection(start, start + query.length)
-                        }
-                        if (searchCursorPosition >= 0) {
-                            val start = searchCursorPosition
-                            val stop = searchCursorPosition + searchQuery!!.length
-                            println("DEBUG: NoteEditFragment: setting selection first time $start to $stop")
-                            contentEditText.requestFocus()
-                            contentEditText.post { contentEditText.setSelection(start, stop) }
-                        }
-                        searchQuery = null
-                    }
-                    isRenderingSearch = false
-
+                    renderSearchResults(searchState)
                 } else {
                     //Обычный вид
                     println("DEBUG: NoteEditFragment: rendering note no search")
@@ -383,7 +344,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
                     if (contentEditText.text.toString() != note.content) { //не трогаем если уже заполняли
                         println("DEBUG: NoteEditFragment: set content, scroll pos = ${state.scrollPosition}")
-                        isEditing = false        //не хотим чтоб сразу открылась клавиатура
+                        isEditing = false                        //не хотим чтоб сразу открылась клавиатура
                         contentEditText.setText(note.content)    //заполняем контент если его нет
                     }
                     noteScrollView.post { noteScrollView.scrollTo(0, state.scrollPosition) }
@@ -441,40 +402,46 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun clearHighlights() {
-        val text = contentEditText.text as? Spannable ?: return
-        val spans = text.getSpans(0, text.length, BackgroundColorSpan::class.java)
-        for (span in spans) text.removeSpan(span)
+        listOf(titleEditText, contentEditText).forEach { et ->
+            val text = et.text as? Spannable ?: return@forEach
+            text.getSpans(0, text.length, BackgroundColorSpan::class.java)
+                .forEach { text.removeSpan(it) }
+        }
     }
 
-    private fun renderContentWithSearchResults(searchState: SearchState) {
-        val content = viewModel.getNote()?.content ?: return
+    private fun renderSearchResults(state: SearchState) {
+        val note = viewModel.getNote() ?: return
 
-        val query = searchState.query
-        val matches = searchState.matches
-        val currentIndex = searchState.currentMatchIndex
+        val result = highlightNoteMatches(
+            title = note.title,
+            content = note.content,
+            query = state.query,
+            highlightColor = highlightColor
+        )
 
-        val (spannable, _) = highlightAllMatches(content, query, highlightColor)
+        titleEditText.setText(result.title, TextView.BufferType.SPANNABLE)
+        contentEditText.setText(result.content, TextView.BufferType.SPANNABLE)
 
-        contentEditText.post { contentEditText.setText(spannable, TextView.BufferType.SPANNABLE) }
-
-        // Если есть совпадения, устанавливаем курсор на текущее
-        if (matches.isNotEmpty() && currentIndex in matches.indices) {
-            val (start, end) = matches[currentIndex]
-            println("DEBUG: NoteEditFragment: Rendering matches currentIndex=$currentIndex start=$start end=$end")
-            contentEditText.requestFocus()
-            contentEditText.post { contentEditText.setSelection(start, end) }
-
-            // Прокручиваем к видимости этого совпадения (опционально)
+        val match = state.matches.getOrNull(state.currentMatchIndex)
+        if (match != null) {
+            val field = when (match.target) {
+                SearchMatchTarget.TITLE -> titleEditText
+                SearchMatchTarget.CONTENT -> contentEditText
+            }
+            field.requestFocus()
+            field.post { field.setSelection(match.start, match.end) }
         }
+
         buttonScroll.visibility = View.GONE
-        llMatchButtons.visibility = if (matches.size > 1) View.VISIBLE else View.GONE
-        prevButton.isEnabled = currentIndex > 0
-        nextButton.isEnabled = currentIndex < matches.lastIndex
+        llMatchButtons.visibility = if (state.matches.size > 1) View.VISIBLE else View.GONE
+        prevButton.isEnabled = state.currentMatchIndex > 0
+        nextButton.isEnabled = state.currentMatchIndex < state.matches.lastIndex
 
     }
 
     private fun renderEvent(event: NoteEditNavigationEvent?) {
         println("DEBUG: NoteEditFragment: renderEvent: event=$event")
+        if(event == null) return
         when (event) {
             NoteEditNavigationEvent.NavigateBack -> {
                 println("DEBUG: NoteEditFragment: NavigateBack")
@@ -502,8 +469,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 viewModel.unlockAndLoad(requireContext())
                 viewModel.clearEvent()
             }
-
-            null -> {}
         }
     }
 
@@ -528,18 +493,9 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     override fun onDestroyView() {
         clearListeners()
         super.onDestroyView()
-
     }
 
     private fun clearListeners() {
-        // 1. Удаляем слушатель с optionsButton (из Activity)
-        //val optionsButton = requireActivity().findViewById<ImageButton>(R.id.btn_options_menu)
-        //optionsButton?.setOnClickListener(null)
-
-        // 2. Удаляем слушатель с btnLockIndicator (из Activity)
-        //btnLockIndicator.setOnClickListener(null)
-
-        // 3. Удаляем OnWindowFocusChangeListener
         windowFocusListener?.let {
             binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
         }
