@@ -5,4 +5,5 @@ interface SearchableFragment {
     fun onSearchQuerySubmitted(query: String) // вызывается при нажатии "Поиск" на клавиатуре
     fun onSearchCleared()
     fun onSearchStarted()
+    fun onBackPressed(): Boolean
 }

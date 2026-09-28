@@ -52,6 +52,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
     private val args: NoteEditFragmentArgs by navArgs()
 
+    private var isExternalSearch = false
+
     private var isEditing = false
     private var notSaveOnPause = false
     private var wasInterrupted = false
@@ -101,7 +103,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         highlightColor = ContextCompat.getColor(requireContext(), R.color.blue_transparent)
 
-        if (args.searchQuery == null) (requireActivity() as RootActivity).cancelSearch()
+        if (args.searchQuery != null)  isExternalSearch = true
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -115,24 +117,36 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun setupSearchView() {
-        val searchView = (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
+        val searchView =
+            (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
         searchView.queryHint = "Поиск по заметке"
+    }
+
+    override fun onBackPressed(): Boolean {
+        println("DEBUG: NoteEditFragment: onBackPressed: isSearching=${rootViewModel.isSearching()}, external search query=${args.searchQuery}")
+        if (rootViewModel.isSearching()) {
+            if (isExternalSearch) {return false //Будет обработано в activity
+            } else {
+                (requireActivity() as RootActivity).cancelSearch()
+                isExternalSearch = false
+                return true  // событие обработано, навигацию не трогаем
+            }
+        } else {
+            return false
+        }
     }
 
     private fun setupBackCallback() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             println("DEBUG: NoteEditFragment: BackCallback: isSearching=${rootViewModel.isSearching()}, external search query=${args.searchQuery}")
             if (rootViewModel.isSearching()) {
-                if (args.searchQuery != null) {
-                    println("DEBUG: NoteEditFragment: navigated up")
+                if (isExternalSearch) {
                     findNavController().navigateUp()
-                }
-                else {
-                    println("DEBUG: NoteEditFragment:search cancelled in RootVM")
+                } else {
                     (requireActivity() as RootActivity).cancelSearch()
+                    isExternalSearch = false
                 }
             } else {
-                println("DEBUG: NoteEditFragment: navigated up")
                 findNavController().navigateUp()
             }
         }
@@ -237,6 +251,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     override fun onSearchCleared() {
         clearHighlights()
         viewModel.onSearchCleared()
+        isExternalSearch = false
     }
 
     override fun onSearchStarted() {}
@@ -344,7 +359,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
                     if (contentEditText.text.toString() != note.content) { //не трогаем если уже заполняли
                         println("DEBUG: NoteEditFragment: set content, scroll pos = ${state.scrollPosition}")
-                        isEditing = false                        //не хотим чтоб сразу открылась клавиатура
+                        isEditing = false        //не хотим чтоб сразу открылась клавиатура
                         contentEditText.setText(note.content)    //заполняем контент если его нет
                     }
                     noteScrollView.post { noteScrollView.scrollTo(0, state.scrollPosition) }
@@ -441,7 +456,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
     private fun renderEvent(event: NoteEditNavigationEvent?) {
         println("DEBUG: NoteEditFragment: renderEvent: event=$event")
-        if(event == null) return
+        if (event == null) return
         when (event) {
             NoteEditNavigationEvent.NavigateBack -> {
                 println("DEBUG: NoteEditFragment: NavigateBack")

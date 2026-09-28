@@ -14,11 +14,9 @@ import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -77,27 +75,26 @@ class RootActivity : AppCompatActivity() {
         setupToolbar()
         setupSearchView()
         setupNavigation()
-        setupBackCallback()
         setupNavigationListener()
         setupObservers()
     }
 
-    private fun setupBackCallback() {
-        onBackPressedDispatcher.addCallback(this) {
-            println("DEBUG: RootActivity: BackCallback ")
-            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                println("DEBUG: RootActivity: BackCallback: close drawer")
-                binding.drawerLayout.closeDrawer(GravityCompat.START)
-            } else if (viewModel.isSearchExpanded.value == true) {
-                println("DEBUG: RootActivity: BackCallback: cancel search")
-                cancelSearch()
-            } else {
-                println("DEBUG: RootActivity: BackCallback: call onBackPressed")
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-            }
-        }
-    }
+//    private fun setupBackCallback() {
+//        onBackPressedDispatcher.addCallback(this) {
+//            println("DEBUG: RootActivity: BackCallback ")
+//            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+//                println("DEBUG: RootActivity: BackCallback: close drawer")
+//                binding.drawerLayout.closeDrawer(GravityCompat.START)
+//            } else if (viewModel.isSearchExpanded.value == true) {
+//                println("DEBUG: RootActivity: BackCallback: cancel search")
+//                cancelSearch()
+//            } else {
+//                println("DEBUG: RootActivity: BackCallback: call onBackPressed")
+//                isEnabled = false
+//                onBackPressedDispatcher.onBackPressed()
+//            }
+//        }
+//    }
 
     private fun setupSearchView() {
 
@@ -352,13 +349,24 @@ class RootActivity : AppCompatActivity() {
 
 
     override fun onSupportNavigateUp(): Boolean {
-        //todo надо сюда или в фрагменты добавить проверку как именно запущен поиск в текущем фрагменте или прежнем
-        println("DEBUG: RootActivity: onSupportNavigateUp: isSearchExpanded==${viewModel.isSearchExpanded.value}")
+        println("DEBUG: RootActivity: Back: onSupportNavigateUp: isSearchExpanded==${viewModel.isSearchExpanded.value}")
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val current = navHostFragment.childFragmentManager.primaryNavigationFragment
+
         if (viewModel.isSearchExpanded.value == true) {
-            cancelSearch()
-            return true
-        } else
-            return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+            if (current is SearchableFragment && current.onBackPressed()) {
+                 return true //в текущем фрагменте проверили нужно ли сбросить поиск и вернули true-больше ничего не делаем
+            }
+
+            if (navController.currentDestination?.id == R.id.startFragment) {
+                cancelSearch()
+                return true
+            }
+        }
+
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+
     }
 
     fun cancelSearch() {

@@ -135,6 +135,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
 
     override fun onSearchStarted() = viewModel.prepareSearch()
 
+    override fun onBackPressed(): Boolean = false
+
     private fun renderEvent(event: StartNavigationEvent?) {
         if (event == null) return
 
