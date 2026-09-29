@@ -60,7 +60,7 @@ class NoteEditViewModel(
     private var notebookList: List<Notebook> = emptyList()
 
     private var currentSearchQuery: String? = searchQuery
-    private var startContentPosition: Int? = contentPosition
+    private var startContentPosition: Int? = contentPosition.takeIf { it != -1 }
 
     init {
         viewModelScope.launch { loadNote() }
@@ -182,14 +182,7 @@ class NoteEditViewModel(
             (startContentPosition != null && startContentPosition!! >= 0) ->
                 resolveStartIndex(result.matches, startContentPosition)
 
-            else -> {
-                // без курсора — по умолчанию встаём на первое совпадение в контенте,
-                // если оно есть, иначе на первое вообще (в заголовке)
-                val contentFirst = result.matches.indexOfFirst {
-                    it.target == SearchMatchTarget.CONTENT
-                }
-                if (contentFirst >= 0) contentFirst else 0
-            }
+            else -> 0
         }
 
         postNoteAndSearch(query, result.matches, currentIndex)
