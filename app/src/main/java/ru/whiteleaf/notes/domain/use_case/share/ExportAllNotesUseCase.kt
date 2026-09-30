@@ -48,7 +48,7 @@ class ExportAllNotesUseCase(
 
                 } else {
                     //если не зашифрованная
-                    notesToExport.addAll(noteRepository.getNotesList(notebook.path))
+                    notesToExport.addAll(noteRepository.getNotes(notebook.path))
                     noteBooksToExport.add(notebook)
                     println("DEBUG: ExportAllNotesUseCase: Open notebook ${notebook.path} added to export")
                 }

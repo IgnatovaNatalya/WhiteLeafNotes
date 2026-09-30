@@ -14,9 +14,11 @@ import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -75,26 +77,10 @@ class RootActivity : AppCompatActivity() {
         setupToolbar()
         setupSearchView()
         setupNavigation()
+        //setupBackCallback()
         setupNavigationListener()
         setupObservers()
     }
-
-//    private fun setupBackCallback() {
-//        onBackPressedDispatcher.addCallback(this) {
-//            println("DEBUG: RootActivity: BackCallback ")
-//            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//                println("DEBUG: RootActivity: BackCallback: close drawer")
-//                binding.drawerLayout.closeDrawer(GravityCompat.START)
-//            } else if (viewModel.isSearchExpanded.value == true) {
-//                println("DEBUG: RootActivity: BackCallback: cancel search")
-//                cancelSearch()
-//            } else {
-//                println("DEBUG: RootActivity: BackCallback: call onBackPressed")
-//                isEnabled = false
-//                onBackPressedDispatcher.onBackPressed()
-//            }
-//        }
-//    }
 
     private fun setupSearchView() {
 
@@ -250,6 +236,7 @@ class RootActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         navView.setNavigationItemSelectedListener { menuItem ->
+
             when (menuItem.itemId) {
                 R.id.menu_create_note -> {
                     viewModel.createNewNote()
@@ -265,10 +252,25 @@ class RootActivity : AppCompatActivity() {
                     true
                 }
 
+                R.id.notebooksFragment -> {
+                    navController.navigate(R.id.notebooksFragment)
+                    drawerLayout.closeDrawers()
+                    true
+                }
+
+                R.id.settingsFragment -> {
+                    navController.navigate(R.id.settingsFragment)
+                    drawerLayout.closeDrawers()
+                    true
+                }
+
                 else -> {
                     drawerLayout.closeDrawers()
-                    NavigationUI.onNavDestinationSelected(menuItem, navController)
+                    true
                 }
+//                    drawerLayout.closeDrawers()
+//                    NavigationUI.onNavDestinationSelected(menuItem, navController)
+//                }
             }
         }
     }
@@ -348,6 +350,46 @@ class RootActivity : AppCompatActivity() {
     }
 
 
+//    private fun setupBackCallback() { //todo ни один из вариантов не работает, а если иничего то при откытом меню жест назаl - выход
+//        onBackPressedDispatcher.addCallback(this) {
+//            println("DEBUG: RootActivity: BackCallback ")
+//            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+//                println("DEBUG: RootActivity: BackCallback: close drawer")
+//                binding.drawerLayout.closeDrawer(GravityCompat.START)
+//            } else if (viewModel.isSearchExpanded.value == true) {
+//                println("DEBUG: RootActivity: BackCallback: cancel search")
+//                cancelSearch()
+//            } else {
+//                println("DEBUG: RootActivity: BackCallback: call onBackPressed")
+//                isEnabled = false
+//                onBackPressedDispatcher.onBackPressed()
+//                //isEnabled = true
+//            }
+//        }
+//    }
+
+//    private fun setupBackCallback() {
+//        onBackPressedDispatcher.addCallback(this) {
+//            when {
+//                binding.drawerLayout.isDrawerOpen(GravityCompat.START) -> {
+//                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+//                }
+//
+//                onSupportNavigateUp() -> {
+//                    // обработано: поиск/навигация/смена экрана
+//                }
+//
+//                else -> {
+//                    // ничего не обработали — пусть система решает (обычно finish()).
+//                    // isEnabled выключаем только на время вызова, чтобы не было рекурсии.
+//                    isEnabled = false
+//                    onBackPressedDispatcher.onBackPressed()
+//                    isEnabled = true
+//                }
+//            }
+//        }
+//    }
+
     override fun onSupportNavigateUp(): Boolean {
         println("DEBUG: RootActivity: Back: onSupportNavigateUp: isSearchExpanded==${viewModel.isSearchExpanded.value}")
         val navHostFragment = supportFragmentManager
@@ -356,7 +398,7 @@ class RootActivity : AppCompatActivity() {
 
         if (viewModel.isSearchExpanded.value == true) {
             if (current is SearchableFragment && current.onBackPressed()) {
-                 return true //в текущем фрагменте проверили нужно ли сбросить поиск и вернули true-больше ничего не делаем
+                return true //в текущем фрагменте проверили нужно ли сбросить поиск и вернули true-больше ничего не делаем
             }
 
             if (navController.currentDestination?.id == R.id.startFragment) {
@@ -366,7 +408,6 @@ class RootActivity : AppCompatActivity() {
         }
 
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-
     }
 
     fun cancelSearch() {

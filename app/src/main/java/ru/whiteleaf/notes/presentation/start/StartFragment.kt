@@ -73,7 +73,7 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             onRecentNoteClicked = { recentNote -> navigateToRecentNote(recentNote) },
             onShowMoreRecent = { viewModel.showMoreRecent() },
 
-            onAllNotebooksClicked = { findNavController().navigate(StartFragmentDirections.actionGlobalNotebooksFragment()) },
+            onAllNotebooksClicked = { findNavController().navigate(StartFragmentDirections.actionStartFragmentToNotebooksFragment()) },
             onNotebookClicked = { notebook -> navigateToNotebook(notebook) },
             onShowMoreNotebooks = { viewModel.showMoreNotebooks() },
 

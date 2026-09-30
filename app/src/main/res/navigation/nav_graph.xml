@@ -18,6 +18,7 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
         <action
             android:id="@+id/action_startFragment_to_noteEditFragment"
             app:destination="@id/noteEditFragment"
@@ -25,13 +26,10 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
         <action
             android:id="@+id/action_startFragment_to_settingsFragment"
-            app:destination="@id/settingsFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
+            app:destination="@id/settingsFragment" />
 
         <action
             android:id="@+id/action_startFragment_to_notebooksFragment"
@@ -106,13 +104,6 @@
     </fragment>
 
     <!-- Глобальные действия -->
-    <action
-        android:id="@+id/action_global_notebooksFragment"
-        app:destination="@id/notebooksFragment"
-        app:enterAnim="@anim/slide_in_right"
-        app:exitAnim="@anim/slide_out_left"
-        app:popEnterAnim="@anim/slide_in_left"
-        app:popExitAnim="@anim/slide_out_right" />
 
     <action
         android:id="@+id/action_global_startFragment"
@@ -156,6 +147,7 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
     </fragment>
 
 </navigation>
