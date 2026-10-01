@@ -73,6 +73,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private lateinit var llMatchButtons: LinearLayout
 
     private var windowFocusListener: ViewTreeObserver.OnWindowFocusChangeListener? = null
+    private var focusObserver: ViewTreeObserver? = null
 
     private var highlightColor = 0
 
@@ -157,10 +158,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun setupWindowFocusChangeListener(view: View) {
-        windowFocusListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
+        val observer = view.viewTreeObserver
+        val listener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
             onFocusChanged(hasFocus)
         }
-        view.viewTreeObserver.addOnWindowFocusChangeListener(windowFocusListener)
+        focusObserver = observer
+        windowFocusListener = listener
+        observer.addOnWindowFocusChangeListener(listener)
     }
 
     fun onFocusChanged(hasFocus: Boolean) {
@@ -511,9 +515,12 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun clearListeners() {
-        windowFocusListener?.let {
-            binding.root.viewTreeObserver.removeOnWindowFocusChangeListener(it)
+        val observer = focusObserver
+        val listener = windowFocusListener
+        if (observer != null && listener != null && observer.isAlive) {
+            observer.removeOnWindowFocusChangeListener(listener)
         }
+        focusObserver = null
         windowFocusListener = null
     }
 }

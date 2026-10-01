@@ -71,30 +71,6 @@ class NoteEditViewModel(
         return if (notebookPath.isNullOrBlank()) false else isNotebookProtectedUseCase(notebookPath)
     }
 
-    private fun loadNotebooks() {
-        viewModelScope.launch {
-            try {
-                notebookList = getNotebooksUseCase()
-            } catch (e: Exception) {
-                println("DEBUG: NoteEditVm: loadNotebooks: Error loading notebooks: ${e.message}")
-            }
-        }
-    }
-
-    fun getAllNotebooks(): List<Notebook> = notebookList
-
-    fun reloadNotePosition() {
-        val note = currentNote ?: return
-        if (_noteEditState.value !is NoteEditState.Success) return
-
-        val state = _noteEditState.value as NoteEditState.Success
-        val searchState = state.searchState
-
-        if (searchState == null)
-            postNote(note)
-        else
-            postNoteAndSearch(searchState.query, searchState.matches, searchState.currentMatchIndex)
-    }
 
     private suspend fun loadNote() {
         if (noteId != null) {
@@ -122,6 +98,31 @@ class NoteEditViewModel(
                 _noteEditState.postValue(NoteEditState.Error(e.message ?: "Ошибка загрузки"))
             }
         }
+    }
+
+    private fun loadNotebooks() {
+        viewModelScope.launch {
+            try {
+                notebookList = getNotebooksUseCase()
+            } catch (e: Exception) {
+                println("DEBUG: NoteEditVm: loadNotebooks: Error loading notebooks: ${e.message}")
+            }
+        }
+    }
+
+    fun getAllNotebooks(): List<Notebook> = notebookList
+
+    fun reloadNotePosition() {
+        val note = currentNote ?: return
+        if (_noteEditState.value !is NoteEditState.Success) return
+
+        val state = _noteEditState.value as NoteEditState.Success
+        val searchState = state.searchState
+
+        if (searchState == null)
+            postNote(note)
+        else
+            postNoteAndSearch(searchState.query, searchState.matches, searchState.currentMatchIndex)
     }
 
     fun onSearchQuerySubmitted(query: String) {
