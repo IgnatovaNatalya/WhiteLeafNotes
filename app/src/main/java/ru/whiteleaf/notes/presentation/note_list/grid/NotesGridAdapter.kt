@@ -78,12 +78,12 @@ class NotesGridAdapter(
         val result = mutableListOf<PlannerItem>()
 
         // Группируем заметки по году и месяцу
-        val grouped = notes.sortedBy { it.modifiedAt }
+        val grouped = notes.sortedByDescending  { it.modifiedAt }
             .groupBy { note ->
                 val calendar = Calendar.getInstance().apply { timeInMillis = note.modifiedAt }
                 Pair(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH))
             }
-            .toSortedMap(compareBy<Pair<Int, Int>> { it.first }.thenBy { it.second })
+            .toSortedMap(compareByDescending<Pair<Int, Int>> { it.first }.thenByDescending { it.second })
 
         // Создаем список с хедерами и заметками
         grouped.forEach { (yearMonth, notesInMonth) ->

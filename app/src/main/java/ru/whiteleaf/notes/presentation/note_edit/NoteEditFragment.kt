@@ -336,7 +336,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 searchButton.visibility = View.VISIBLE
-                optionsButton.visibility = View.VISIBLE
+
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
                     btnLockIndicator.visibility = View.VISIBLE
@@ -353,11 +353,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
                 if (searchState != null) {
                     //результаты поиска
+                    optionsButton.visibility = View.GONE
                     println("DEBUG: NoteEditFragment: rendering matches")
                     isEditing = false
                     renderSearchResults(searchState)
                 } else {
                     //Обычный вид
+                    optionsButton.visibility = View.VISIBLE
                     println("DEBUG: NoteEditFragment: rendering note no search")
                     if (isEditing) showKeyboard(contentEditText)
 
@@ -455,7 +457,6 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         llMatchButtons.visibility = if (state.matches.size > 1) View.VISIBLE else View.GONE
         prevButton.isEnabled = state.currentMatchIndex > 0
         nextButton.isEnabled = state.currentMatchIndex < state.matches.lastIndex
-
     }
 
     private fun renderEvent(event: NoteEditNavigationEvent?) {

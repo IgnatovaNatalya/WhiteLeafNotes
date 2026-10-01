@@ -68,8 +68,8 @@ class NoteListViewModel(
     private val _noteListState = MutableLiveData<NoteListState>()
     val noteListState: LiveData<NoteListState> = _noteListState
 
-    private val _navigationEvent = MutableLiveData<NoteListNavigationEvent>()
-    val navigationEvent: LiveData<NoteListNavigationEvent> = _navigationEvent
+    private val _navigationEvent = MutableLiveData<NoteListNavigationEvent?>()
+    val navigationEvent: LiveData<NoteListNavigationEvent?> = _navigationEvent
 
     private val _isPlannerView = MutableLiveData(false)
 
@@ -115,7 +115,8 @@ class NoteListViewModel(
         if (notebookPath == null) return
         _isPlannerView.value = isPlanner
         preferencesInteractor.saveViewMode(notebookPath, isPlanner)
-        _navigationEvent.postValue(NoteListNavigationEvent.ReopenNotebook(notebookPath))///
+        loadNotes()
+        //_navigationEvent.postValue(NoteListNavigationEvent.ReopenNotebook(notebookPath))///
     }
 
     fun getViewMode(): Boolean {

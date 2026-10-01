@@ -56,7 +56,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private var isExternalSearch = false
 
     private lateinit var noteLinearAdapter: NotesLinearAdapter
-    private lateinit var plannerAdapter: NotesGridAdapter
+    private lateinit var notePlannerAdapter: NotesGridAdapter
     private lateinit var noteSearchAdapter: NoteSearchAdapter
 
     private lateinit var btnLockIndicator: ImageButton
@@ -179,7 +179,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
     private fun setupPlannerRecyclerView() {
 
-        plannerAdapter = NotesGridAdapter(
+        notePlannerAdapter = NotesGridAdapter(
             onNoteClickListener = { note -> viewModel.onNoteClicked(note.id) },
             contextActionHandler = this,
         )
@@ -190,8 +190,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         // Управляем шириной header'ов (они должны занимать всю ширину)
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
-                return when (plannerAdapter.getItemViewType(position)) {
-                    plannerAdapter.TYPE_HEADER -> spanCount // header на всю ширину
+                return when (notePlannerAdapter.getItemViewType(position)) {
+                    notePlannerAdapter.TYPE_HEADER -> spanCount // header на всю ширину
                     else -> 1 // заметка занимает 1 колонку
                 }
             }
@@ -199,7 +199,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
         binding.plannerRecyclerView.apply {
             this.layoutManager = layoutManager
-            adapter = plannerAdapter
+            adapter = notePlannerAdapter
         }
     }
 
@@ -401,7 +401,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 if (isPlannerView) {
                     binding.listRecyclerView.visibility = View.GONE
                     binding.plannerRecyclerView.visibility = View.VISIBLE
-                    plannerAdapter.submitList(state.notes)
+                    notePlannerAdapter.submitList(state.notes)
                 } else {
                     binding.listRecyclerView.visibility = View.VISIBLE
                     binding.plannerRecyclerView.visibility = View.GONE
