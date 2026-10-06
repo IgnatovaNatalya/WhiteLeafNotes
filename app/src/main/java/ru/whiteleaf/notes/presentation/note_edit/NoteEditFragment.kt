@@ -505,7 +505,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
             viewModel.updateNoteTitleIfChanged(titleEditText.text.toString())
             viewModel.saveNoteScrollPosition(noteScrollView.scrollY)
             viewModel.saveToRecent()
-            println("Debug: NoteEditFragment: Saved scroll and recent on pause title updated(if changed)")
+            //println("Debug: NoteEditFragment: Saved scroll and recent on pause title updated(if changed)")
         } else println("Debug: NoteEditFragment: Paused and not saved")
     }
 

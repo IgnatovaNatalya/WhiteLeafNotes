@@ -77,7 +77,7 @@ class RootActivity : AppCompatActivity() {
         setupToolbar()
         setupSearchView()
         setupNavigation()
-        //setupBackCallback()
+        setupBackCallback()
         setupNavigationListener()
         setupObservers()
     }
@@ -92,7 +92,7 @@ class RootActivity : AppCompatActivity() {
 
         searchView.setOnCloseListener {
             viewModel.clearSearch()
-            //toggleSearchView(false)
+            toggleSearchView(false)
             getCurrentSearchableFragment()?.onSearchCleared()
             false
         }
@@ -173,7 +173,7 @@ class RootActivity : AppCompatActivity() {
 
                 R.id.noteListFragment -> {
                     startHeader.visibility = View.GONE
-                    lockIndicatorButton.visibility = View.VISIBLE
+                    //lockIndicatorButton.visibility = View.VISIBLE
                     optionsButton.visibility = View.VISIBLE
                     searchView.visibility = View.VISIBLE
                 }
@@ -196,7 +196,7 @@ class RootActivity : AppCompatActivity() {
 
                 R.id.noteEditFragment -> {
                     startHeader.visibility = View.GONE
-                    lockIndicatorButton.visibility = View.VISIBLE
+                    //lockIndicatorButton.visibility = View.VISIBLE
                     optionsButton.visibility = View.VISIBLE
                     searchView.visibility = View.VISIBLE
                     supportActionBar?.subtitle = null
@@ -268,9 +268,6 @@ class RootActivity : AppCompatActivity() {
                     drawerLayout.closeDrawers()
                     true
                 }
-//                    drawerLayout.closeDrawers()
-//                    NavigationUI.onNavDestinationSelected(menuItem, navController)
-//                }
             }
         }
     }
@@ -304,9 +301,7 @@ class RootActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.isSearchExpanded.observe(this) { expanded ->
-            toggleSearchView(expanded)
-        }
+            // viewModel.isSearchExpanded.observe(this) {   }
     }
 
     private fun navigateToNotebook(notebook: Notebook) {
@@ -350,55 +345,51 @@ class RootActivity : AppCompatActivity() {
     }
 
 
-//    private fun setupBackCallback() { //todo ни один из вариантов не работает, а если иничего то при откытом меню жест назаl - выход
-//        onBackPressedDispatcher.addCallback(this) {
-//            println("DEBUG: RootActivity: BackCallback ")
-//            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//                println("DEBUG: RootActivity: BackCallback: close drawer")
-//                binding.drawerLayout.closeDrawer(GravityCompat.START)
-//            } else if (viewModel.isSearchExpanded.value == true) {
-//                println("DEBUG: RootActivity: BackCallback: cancel search")
-//                cancelSearch()
-//            } else {
-//                println("DEBUG: RootActivity: BackCallback: call onBackPressed")
-//                isEnabled = false
-//                onBackPressedDispatcher.onBackPressed()
-//                //isEnabled = true
-//            }
-//        }
-//    }
+    private fun setupBackCallback() {
+        onBackPressedDispatcher.addCallback(this) {
+            val navHostFragment = supportFragmentManager
+                .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+            val current = navHostFragment.childFragmentManager.primaryNavigationFragment
 
-//    private fun setupBackCallback() {
-//        onBackPressedDispatcher.addCallback(this) {
-//            when {
-//                binding.drawerLayout.isDrawerOpen(GravityCompat.START) -> {
-//                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-//                }
-//
-//                onSupportNavigateUp() -> {
-//                    // обработано: поиск/навигация/смена экрана
-//                }
-//
-//                else -> {
-//                    // ничего не обработали — пусть система решает (обычно finish()).
-//                    // isEnabled выключаем только на время вызова, чтобы не было рекурсии.
-//                    isEnabled = false
-//                    onBackPressedDispatcher.onBackPressed()
-//                    isEnabled = true
-//                }
-//            }
-//        }
-//    }
+            println("DEBUG: RootActivity: BackCallback ")
+
+            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                println("DEBUG: RootActivity: BackCallback: close drawer")
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+
+            } else if (viewModel.isSearchExpanded.value == true) {
+
+                if (current is SearchableFragment) current.onBackPressed()
+                //в текущем фрагменте проверили нужно ли сбросить поиск и вернули true-больше ничего не делаем
+
+                if (!viewModel.isSearching() || navController.currentDestination?.id == R.id.startFragment) {
+                    cancelSearch()
+                }
+
+            } else {
+                println("DEBUG: RootActivity: BackCallback: call onBackPressed")
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+                isEnabled = true
+            }
+        }
+    }
 
     override fun onSupportNavigateUp(): Boolean {
-        println("DEBUG: RootActivity: Back: onSupportNavigateUp: isSearchExpanded==${viewModel.isSearchExpanded.value}")
+        println("DEBUG: RootActivity: Back: onSupportNavigateUp: isSearchExpanded=${viewModel.isSearchExpanded.value}")
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val current = navHostFragment.childFragmentManager.primaryNavigationFragment
 
         if (viewModel.isSearchExpanded.value == true) {
+
             if (current is SearchableFragment && current.onBackPressed()) {
                 return true //в текущем фрагменте проверили нужно ли сбросить поиск и вернули true-больше ничего не делаем
+            }
+
+            if (!viewModel.isSearching()) {
+                cancelSearch()
+                return true
             }
 
             if (navController.currentDestination?.id == R.id.startFragment) {
@@ -406,8 +397,17 @@ class RootActivity : AppCompatActivity() {
                 return true
             }
         }
-
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    fun hideSearch() {
+        println("DEBUG: RootActivity: search hidden")
+        searchView.visibility = View.GONE
+    }
+
+    fun showSearch() {
+        println("DEBUG: RootActivity: search shown")
+        searchView.visibility = View.VISIBLE
     }
 
     fun cancelSearch() {

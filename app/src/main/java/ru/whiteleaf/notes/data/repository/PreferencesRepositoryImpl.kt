@@ -160,7 +160,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
     //Recent - notes
     override fun saveRecentNote(note: Note) {
         val entry = RecentNote.fromNote(note)
-        println("DEBUG: PreferencesRepositoryImpl saveNoteToRecent: entry: ${entry.printDebug()}")
+        //println("DEBUG: PreferencesRepositoryImpl saveNoteToRecent: entry: ${entry.printDebug()}")
 
         // Получаем текущий список
         val currentList = getRecentNotes().toMutableList()
@@ -231,7 +231,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
     }
 
     override fun removeRecentNote(noteId: String, notebookPath: String?) {
-        println("DEBUG: PreferencesRepositoryImpl removeRecentNote $noteId")
+        //println("DEBUG: PreferencesRepositoryImpl removeRecentNote $noteId")
         val currentList = getRecentNotes().toMutableList()
         val normalizedPath = notebookPath ?: ""
 
@@ -272,7 +272,7 @@ class PreferencesRepositoryImpl(private val prefs: SharedPreferences, private va
     }
 
     override fun removeRecentNotesByNotebookPath(notebookPath: String) {
-        println("DEBUG: PreferencesRepositoryImpl removeRecentNotesByNotebookPath $notebookPath")
+        //println("DEBUG: PreferencesRepositoryImpl removeRecentNotesByNotebookPath $notebookPath")
         val currentList = getRecentNotes().toMutableList()
         val removed = currentList.removeAll { it.notebookPath == notebookPath }
 

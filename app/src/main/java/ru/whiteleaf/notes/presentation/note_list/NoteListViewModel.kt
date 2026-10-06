@@ -84,7 +84,6 @@ class NoteListViewModel(
 
     init {
         isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
-
         loadViewMode()
         loadNotes()
         saveLastOpenedNotebook()
@@ -229,9 +228,7 @@ class NoteListViewModel(
                     println("DEBUG: NoteListViewmodel: InvalidKeyException ${e.message}")
                 } else
                     _noteListState.postValue(
-                        NoteListState.Error(
-                            e.message ?: "Ошибка загрузки"
-                        )
+                        NoteListState.Error(e.message ?: "Ошибка загрузки")
                     )
             } finally {
                 println("DEBUG: NoteListViewmodel: Окончание загрузки заметок")
@@ -432,9 +429,7 @@ class NoteListViewModel(
                         renameNotebookUseCase(notebookPath, newName)
                         postMessage("Название записной книжки изменено")
                         _navigationEvent.postValue(
-                            NoteListNavigationEvent.ReopenNotebook(
-                                newName
-                            )
+                            NoteListNavigationEvent.ReopenNotebook(newName)
                         )
                     } else postMessage("Ошибка переименования")
                 } catch (e: AuthenticationRequiredException) {
@@ -492,7 +487,7 @@ class NoteListViewModel(
                     deleteNotebookUseCase(notebookPath)
                     println("DEBUG: NoteListVM: notebuck deleted, go back")
                     _navigationEvent.postValue(NoteListNavigationEvent.NavigateBack)
-                   //postMessage("Записная книжка удалена")
+                    //postMessage("Записная книжка удалена")
 
                 } catch (e: Exception) {
                     postMessage("Ошибка удаления записной книжки: ${e.message}")

@@ -77,7 +77,10 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         navigateToNote = false
         notebookPath = args.notebookPath.toString()
 
-        searchQuery = args.searchQuery.also { isExternalSearch = true }
+        searchQuery = if (rootViewModel.isSearching()) args.searchQuery else null
+        if (searchQuery != null) isExternalSearch = true
+
+        println("DEBUG: NoteListFragment: onViewCreated: args searcQ=${args.searchQuery}, searchQuery=$searchQuery, isExternalSearch=$isExternalSearch")
 
         setupTitleAndViewMode()
         setupObservers()
@@ -100,6 +103,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         println("DEBUG: NoteListFragment: onBackPressed: isSearching=${rootViewModel.isSearching()}, isExternalSearch=$isExternalSearch, external search query=${args.searchQuery}")
         if (rootViewModel.isSearching()) {
             if (isExternalSearch) {
+                (requireActivity() as RootActivity).showSearch()
                 return false //Будет обработано в activity
             } else {
                 (requireActivity() as RootActivity).cancelSearch()
@@ -116,7 +120,8 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             println("DEBUG: NoteListFragment: BackCallback: isSearching=${rootViewModel.isSearching()}, isExternalSearch=$isExternalSearch, external search query=${args.searchQuery}")
             if (rootViewModel.isSearching()) {
                 if (isExternalSearch) {
-                     findNavController().navigateUp()
+                    (requireActivity() as RootActivity).showSearch()
+                    findNavController().navigateUp()
                 } else {
                     (requireActivity() as RootActivity).cancelSearch()
                     isExternalSearch = false
@@ -152,7 +157,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             (requireActivity() as AppCompatActivity).findViewById(R.id.btn_lock_indicator)
 
         isPlannerView = viewModel.getViewMode()
-        println("DEBUG: Fragment onViewCreated viewMode is planner = $isPlannerView")
+        //println("DEBUG: Fragment onViewCreated viewMode is planner=$isPlannerView")
 
         toggleSecurePreview(requireActivity(), viewModel.getEncryptionStatus())
     }
@@ -348,7 +353,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
         if (query.length >= 3) viewModel.onSearchQuerySubmitted(query)
     }
 
-    override fun onSearchCleared()  {
+    override fun onSearchCleared() {
         viewModel.loadNotes()
         isExternalSearch = false
     }
@@ -394,9 +399,11 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     }
 
     private fun renderState(state: NoteListState) {
-        println("DEBUG:👀 Fragment observed state: ${state.javaClass.simpleName}")
+        //println("DEBUG:👀 Fragment observed state: ${state.javaClass.simpleName}")
         when (state) {
             is NoteListState.Success -> {
+
+                if (isExternalSearch) (requireActivity() as RootActivity).hideSearch()
 
                 if (isPlannerView) {
                     binding.listRecyclerView.visibility = View.GONE
@@ -410,7 +417,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 binding.searchRecyclerView.visibility = View.GONE
                 binding.searchHeaderTitle.visibility = View.GONE
 
-                println("DEBUG:✅ Fragment showing ${state.notes.size} notes")
+                //println("DEBUG:✅ Fragment showing ${state.notes.size} notes")
                 binding.noteListProgressBar.visibility = View.GONE
                 binding.emptyList.visibility =
                     if (state.notes.isNotEmpty()) View.GONE else View.VISIBLE
@@ -501,12 +508,12 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun renderEvent(event: NoteListNavigationEvent?) {
         if (event == null) return
 
-        println("DEBUG: NoteListFragment: Rendering event ${event.javaClass.simpleName}")
+        //println("DEBUG: NoteListFragment: Rendering event ${event.javaClass.simpleName}")
         when (event) {
             is NoteListNavigationEvent.NavigateBack -> {
                 println("DEBUG: NoteListFragment: navigation back ")
                 val handled = findNavController().popBackStack()
-                println("DEBUG: NoteListFragment: navigateBack handled=$handled, current=${findNavController().currentDestination?.id}\"")
+                //println("DEBUG: NoteListFragment: navigateBack handled=$handled, current=${findNavController().currentDestination?.id}\"")
             }
 
             is NoteListNavigationEvent.ExportLink -> shareExportFile(event.uri)
@@ -517,6 +524,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
             )
 
             is NoteListNavigationEvent.NavigateToNote -> {
+                if (isExternalSearch) (requireActivity() as RootActivity).cancelSearch()
                 navigateToNote = true
                 navigateToNoteEdit(event.noteId)
             }
@@ -542,7 +550,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     override fun onResume() {
         super.onResume()
 
-        if (rootViewModel.isSearching()) {
+        if (rootViewModel.isSearching() && !isExternalSearch) {
             println("DEBUG: NoteListFragment: resume search")
             viewModel.resumeSearch()
         } else {
