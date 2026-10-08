@@ -62,7 +62,8 @@ class NoteListViewModel(
     private val getNotebooksUseCase: GetNotebooksUseCase,
     private val findNotesUseCase: FindNotesUseCase,
     private val getNoteUseCase: GetNoteUseCase,
-    private val notebookPath: String?
+    private val notebookPath: String?,
+    externalSearchQuery: String?
 ) : ViewModel() {
 
     private val _noteListState = MutableLiveData<NoteListState>()
@@ -82,10 +83,17 @@ class NoteListViewModel(
     private var searchDebounceJob: Job? = null
     var searchQuery: String? = null
 
+    private var isExternalSearch = externalSearchQuery != null
+    fun isExternalSearch() = isExternalSearch
+
+    fun clearExternalSearch() {
+        isExternalSearch = false
+    }
+
     init {
         isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
         loadViewMode()
-        loadNotes()
+            //loadNotes()
         saveLastOpenedNotebook()
         loadNotebooks()
     }
@@ -115,7 +123,6 @@ class NoteListViewModel(
         _isPlannerView.value = isPlanner
         preferencesInteractor.saveViewMode(notebookPath, isPlanner)
         loadNotes()
-        //_navigationEvent.postValue(NoteListNavigationEvent.ReopenNotebook(notebookPath))///
     }
 
     fun getViewMode(): Boolean {

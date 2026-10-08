@@ -65,7 +65,7 @@ val viewmodelModule = module {
         )
     }
 
-    viewModel { (notebookPath: String?) ->
+    viewModel { (notebookPath: String?, searchQuery: String?) ->
         NoteListViewModel(
             getNotesListUseCase = get(),
             deleteNoteUseCase = get(),
@@ -92,6 +92,7 @@ val viewmodelModule = module {
             findNotesUseCase = get(),
             getNoteUseCase = get(),
             notebookPath = notebookPath,
+            externalSearchQuery = searchQuery
         )
     }
 
