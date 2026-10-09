@@ -65,7 +65,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private lateinit var noteBlocked: LinearLayout
     private lateinit var noteBlockedUnsaved: LinearLayout
     private lateinit var btnLockIndicator: ImageButton
-    private lateinit var searchButton: SearchView
+    private lateinit var searchView: SearchView
     private lateinit var optionsButton: ImageButton
     private lateinit var progressBar: ProgressBar
     private lateinit var nextButton: ImageButton
@@ -100,11 +100,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         btnLockIndicator = requireActivity().findViewById(R.id.btn_lock_indicator)
         optionsButton = requireActivity().findViewById(R.id.btn_options_menu)
-        searchButton = requireActivity().findViewById(R.id.search_view)
-
+        searchView = requireActivity().findViewById(R.id.search_view)
         highlightColor = ContextCompat.getColor(requireContext(), R.color.blue_transparent)
 
-        if (args.searchQuery != null)  isExternalSearch = true
+        if (args.searchQuery != null) isExternalSearch = true
 
         setupSecurityPreview()
         setupWindowFocusChangeListener(view)
@@ -118,15 +117,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun setupSearchView() {
-        val searchView =
-            (requireActivity() as RootActivity).findViewById<SearchView>(R.id.search_view)
         searchView.queryHint = "Поиск по заметке"
     }
 
     override fun onBackPressed(): Boolean {
         println("DEBUG: NoteEditFragment: onBackPressed: isSearching=${rootViewModel.isSearching()}, external search query=${args.searchQuery}")
         if (rootViewModel.isSearching()) {
-            if (isExternalSearch) {return false //Будет обработано в activity
+            if (isExternalSearch) {
+                return false //Будет обработано в activity
             } else {
                 (requireActivity() as RootActivity).cancelSearch()
                 isExternalSearch = false
@@ -209,13 +207,14 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         contentEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             isEditing = hasFocus
+            if (hasFocus) if (rootViewModel.isSearchExpanded.value == true) searchView.clearFocus()
         }
 
         titleEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val textInput = titleEditText.text.toString()
                 viewModel.updateNoteTitleIfChanged(textInput)
-            }
+            } else if (rootViewModel.isSearchExpanded.value == true) searchView.clearFocus()
         }
     }
 
@@ -243,17 +242,20 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
     override fun onSearchQueryChanged(query: String) {
         //ничего не делаем пока не нажмет сабмит
+        titleEditText.clearFocus()
         contentEditText.clearFocus()
-        if (query == "") clearHighlights()
+        if (query == "") {
+            isExternalSearch = false
+            clearHighlights()
+        }
     }
 
     override fun onSearchQuerySubmitted(query: String) {
         viewModel.onSearchQuerySubmitted(query)
-        hideKeyboard(contentEditText)
     }
 
     override fun onSearchCleared() {
-        clearHighlights()
+        //clearHighlights()
         viewModel.onSearchCleared()
         isExternalSearch = false
     }
@@ -335,7 +337,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 progressBar.visibility = View.GONE
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
-                searchButton.visibility = View.VISIBLE
+                searchView.visibility = View.VISIBLE
 
                 if (state.isEncrypted) {
                     btnLockIndicator.setImageResource(R.drawable.ic_ind_unlocked)
@@ -380,7 +382,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
-                searchButton.visibility = View.GONE
+                searchView.visibility = View.GONE
                 optionsButton.visibility = View.GONE
                 llMatchButtons.visibility = View.GONE
             }
@@ -392,7 +394,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteBlocked.visibility = View.GONE
                 noteBlockedUnsaved.visibility = View.GONE
                 btnLockIndicator.visibility = View.GONE
-                searchButton.visibility = View.GONE
+                searchView.visibility = View.GONE
                 optionsButton.visibility = View.GONE
                 buttonScroll.visibility = View.GONE
                 renderMessage(state.message)
@@ -415,7 +417,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                 noteScrollView.visibility = View.GONE
                 btnLockIndicator.setImageResource(R.drawable.ic_ind_locked)
                 btnLockIndicator.visibility = View.VISIBLE
-                searchButton.visibility = View.GONE
+                searchView.visibility = View.GONE
                 optionsButton.visibility = View.GONE
                 llMatchButtons.visibility = View.GONE
             }
@@ -425,9 +427,11 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private fun clearHighlights() {
         listOf(titleEditText, contentEditText).forEach { et ->
             val text = et.text as? Spannable ?: return@forEach
+            println("DEBUG: clearHighlights: in ${text.take(10)} ")
             text.getSpans(0, text.length, BackgroundColorSpan::class.java)
                 .forEach { text.removeSpan(it) }
         }
+
     }
 
     private fun renderSearchResults(state: SearchState) {

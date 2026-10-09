@@ -106,8 +106,8 @@ class RootActivity : AppCompatActivity() {
 
             override fun onQueryTextSubmit(query: String?): Boolean {
                 viewModel.setSearchQuery(query)
-                getCurrentSearchableFragment()?.onSearchQuerySubmitted(query.orEmpty())
                 searchView.clearFocus()
+                getCurrentSearchableFragment()?.onSearchQuerySubmitted(query.orEmpty())
                 return true
             }
         })
