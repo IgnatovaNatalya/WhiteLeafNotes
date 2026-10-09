@@ -14,7 +14,6 @@ sealed class StartScreenState {
 }
 
 sealed class StartNavigationEvent {
-    object Idle : StartNavigationEvent()
     data class NavigateToCreatedNote(val note: Note) : StartNavigationEvent()
     data class NavigateToCreatedNotebook(val notebook: Notebook) : StartNavigationEvent()
     data class ShareUri(val uri: Uri?) : StartNavigationEvent()

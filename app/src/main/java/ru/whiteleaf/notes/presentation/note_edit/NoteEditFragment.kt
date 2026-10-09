@@ -241,17 +241,20 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     override fun onSearchQueryChanged(query: String) {
-        //ничего не делаем пока не нажмет сабмит
+        //не ищем пока не нажмет сабмит
         titleEditText.clearFocus()
         contentEditText.clearFocus()
+        clearHighlights()
+        viewModel.onSearchCleared()
+
         if (query == "") {
             isExternalSearch = false
-            clearHighlights()
         }
     }
 
     override fun onSearchQuerySubmitted(query: String) {
         viewModel.onSearchQuerySubmitted(query)
+        isExternalSearch = false
     }
 
     override fun onSearchCleared() {
@@ -464,8 +467,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun renderEvent(event: NoteEditNavigationEvent?) {
-        println("DEBUG: NoteEditFragment: renderEvent: event=$event")
         if (event == null) return
+
+        println("DEBUG: NoteEditFragment: renderEvent: event=$event")
+
         when (event) {
             NoteEditNavigationEvent.NavigateBack -> {
                 println("DEBUG: NoteEditFragment: NavigateBack")

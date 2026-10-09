@@ -138,7 +138,7 @@ class StartViewModel(
                 val items = mutableListOf<SearchListItem>()
 
                 val foundNotebooks =
-                    notebookList.filter { it.path.lowercase().contains(query) }.also { list ->
+                    notebookList.filter { it.path.lowercase().contains(query.lowercase()) }.also { list ->
                         list.forEach { items.add(SearchListItem.SearchNotebook(it, query)) }
                     }
 

@@ -141,8 +141,6 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
         if (event == null) return
 
         when (event) {
-            StartNavigationEvent.Idle -> {}
-
             is StartNavigationEvent.NavigateToCreatedNotebook -> {
                 val action = StartFragmentDirections.actionStartFragmentToNoteListFragment(
                     event.notebook.path
