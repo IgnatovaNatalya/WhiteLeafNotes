@@ -153,6 +153,97 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         }
     }
 
+    override suspend fun unlockNotebooks(
+        notebookPaths: List<String>,
+        context: Context,
+        title: String,
+        reason: String
+    ): Boolean {
+        if (notebookPaths.isEmpty()) return true
+
+        return suspendCancellableCoroutine { continuation ->
+
+            println("DEBUG: EncryptionRepo: all keys: ${getAllKeyAliases()}")
+
+            val activity = context as? FragmentActivity
+            if (activity == null) {
+                Log.e("DEBUG: EncryptionRepo", "Context is not FragmentActivity")
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
+            }
+
+            val biometricManager = BiometricManager.from(activity)
+            val canAuth = biometricManager.canAuthenticate(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG
+            )
+            if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
+                Log.e("DEBUG: EncryptionRepo", "Biometric not available: $canAuth")
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
+            }
+
+            val executor = ContextCompat.getMainExecutor(activity)
+            val isResumed = AtomicBoolean(false)
+
+            val biometricPrompt = BiometricPrompt(
+                activity,
+                executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        if (isResumed.compareAndSet(false, true)) {
+                            // Разблокируем сразу все переданные пути одним успешным сканом
+                            unlockedNotebooks.addAll(notebookPaths)
+                            continuation.resume(true)
+                        }
+                    }
+
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        if (isResumed.compareAndSet(false, true)) {
+                            Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
+                            continuation.resume(false)
+                        }
+                    }
+
+                    override fun onAuthenticationFailed() {
+                        // Не завершаем корутину: даём пользователю повторить попытку.
+                        // Если хотите завершать с первой неудачи — раскомментируйте блок ниже.
+                        //
+                        // if (isResumed.compareAndSet(false, true)) {
+                        //     biometricPrompt.cancelAuthentication()
+                        //     continuation.resume(false)
+                        // }
+                        Log.e("DEBUG: Biometric", "Неверный отпечаток, попробуйте снова")
+                    }
+                }
+            )
+
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle(title)
+                .setSubtitle("$reason подтвердите личность")
+                .setNegativeButtonText("Отмена")
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                .build()
+
+            // Отменяем диалог, если корутина отменена извне
+            continuation.invokeOnCancellation {
+                try {
+                    biometricPrompt.cancelAuthentication()
+                } catch (e: Exception) {
+                    Log.e("Biometric", "Error cancelling biometric", e)
+                }
+            }
+
+            try {
+                biometricPrompt.authenticate(promptInfo)
+            } catch (e: Exception) {
+                if (isResumed.compareAndSet(false, true)) {
+                    Log.e("Biometric", "Error starting biometric", e)
+                    continuation.resume(false)
+                }
+            }
+        }
+    }
+
     override fun clearUnlockedFlag(notebookPath: String) {
         unlockedNotebooks.remove(notebookPath)
     }

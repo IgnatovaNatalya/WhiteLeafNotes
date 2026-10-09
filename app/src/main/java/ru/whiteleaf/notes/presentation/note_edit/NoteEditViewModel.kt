@@ -427,20 +427,31 @@ class NoteEditViewModel(
 
         viewModelScope.launch {
             try {
-                val unlocked =
-                    if (isNotebookProtectedUseCase(targetNotebookPath)) unlockNotebookUseCase(
-                        targetNotebookPath, context, title = "Целевая записная книжка защищена",
-                        reason = "Для перемещения"
-                    ) else true
+                val pathsToUnlock = mutableListOf<String>()
+
+                listOf(notebookPath, targetNotebookPath).forEach {
+                    if (!it.isNullOrBlank() && isNotebookProtectedUseCase(it)) pathsToUnlock.add(it)
+                }
+
+                val unlocked = if (pathsToUnlock.isNotEmpty()) unlockNotebookUseCase(
+                    pathsToUnlock, context,
+                    title = if (pathsToUnlock.size > 1) "Записные книжки защищены"
+                    else if (pathsToUnlock[0] == notebookPath) "Записная книжка защищена" else "Записная книжка «${pathsToUnlock[0]}» защищена",
+                    reason = "Для перемещения"
+                ) else true
+
+                println("DEBUG: NoteEditVM: move note: unlocked=$unlocked")
 
                 if (unlocked) {
                     moveNoteUseCase(note, targetNotebookPath)
                     navigateBack()
                 } else {
-                    showMessage("Не удалось разблокировать целевую записную книжку")
+                    _noteEditState.postValue(NoteEditState.Blocked(false))
+                    showMessage("Не удалось разблокировать")
                 }
             } catch (e: AuthenticationRequiredException) {
-                showMessage("Не удалось разблокировать целевую записную книжку")
+                _noteEditState.postValue(NoteEditState.Blocked(false))
+                showMessage("Не удалось разблокировать")
                 println("DEBUG: NoteEditVM:  AuthenticationRequiredException ${e.message}")
             } catch (e: Exception) {
                 showMessage("Ошибка перемещения: ${e.message}")

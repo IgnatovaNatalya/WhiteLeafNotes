@@ -93,7 +93,7 @@ class NoteListViewModel(
     init {
         isEncrypted = isNotebookProtectedUseCase(notebookPath ?: "")
         loadViewMode()
-            //loadNotes()
+        //loadNotes()
         saveLastOpenedNotebook()
         loadNotebooks()
     }
@@ -360,30 +360,39 @@ class NoteListViewModel(
 
     fun moveNote(context: Context, note: Note, targetNotebookPath: String?) {
         viewModelScope.launch {
+            println("DEBUG: NoteListVM: move note: source path=$notebookPath, targetNotebookPath=$targetNotebookPath")
             try {
-                val unlocked =
-                    if (targetNotebookPath != null)
-                        if (isNotebookProtectedUseCase(targetNotebookPath)) unlockNotebookUseCase(
-                            targetNotebookPath,
-                            context,
-                            title = "Целевая записная книжка защищена",
-                            reason = "Для перемещения"
-                        ) else true
-                    else true
+                val pathsToUnlock = mutableListOf<String>()
+
+                listOf(notebookPath, targetNotebookPath).forEach {
+                    if (!it.isNullOrBlank() && isNotebookProtectedUseCase(it)) pathsToUnlock.add(it)
+                }
+
+                val unlocked = if (pathsToUnlock.isNotEmpty()) unlockNotebookUseCase(
+                    pathsToUnlock, context,
+                    title = if (pathsToUnlock.size > 1) "Записные книжки защищены"
+                    else if (pathsToUnlock[0] == notebookPath) "Записная книжка защищена" else "Записная книжка «${pathsToUnlock[0]}» защищена",
+                    reason = "Для перемещения"
+                ) else true
+
+                println("DEBUG: NoteListVM: move note: unlocked=$unlocked")
 
                 if (unlocked) {
+                    println("DEBUG: NoteListVM: move note: moving note")
                     moveNoteUseCase(note, targetNotebookPath)
                     loadNotes()
                 } else {
+                    println("DEBUG: NoteListVM: move note: not moving")
                     _noteListState.postValue(NoteListState.Blocked)
-                    postMessage("Отмена перемещения")
+                    postMessage("Не удалось разблокировать")
                 }
             } catch (e: AuthenticationRequiredException) {
                 _noteListState.postValue(NoteListState.Blocked)
-                postMessage("Ошибка разблокировки ${e.message}")
+                postMessage("Не удалось разблокировать")
                 println("DEBUG: NoteListVM: moveNote: AuthenticationRequiredException ${e.message}")
             } catch (e: Exception) {
-                postMessage("Ошибка перемещения заметки: ${e.message}")
+                println("DEBUG: NoteListVM: Ошибка перемещения заметки: ${e.message}")
+                postMessage("Ошибка перемещения: ${e.message}")
             }
         }
     }
