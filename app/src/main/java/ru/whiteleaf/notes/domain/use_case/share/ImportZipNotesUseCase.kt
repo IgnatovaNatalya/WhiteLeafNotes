@@ -8,19 +8,20 @@ import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import java.io.File
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.exception.ZipException
+import java.nio.charset.Charset
 
 class ImportZipNotesUseCase(
     private val notesRepository: NotesRepository,
     private val notebookRepository: NotebookRepository,
     private val context: Context
 ) {
-    suspend fun execute(zipFileUri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun execute(zipFileUri: Uri, password: String? = null): Result<Unit> = withContext(Dispatchers.IO) { //todo передавать сюда пароль для распаковки архива
         try {
             val tempDir = createTempDir(context)
             try {
-                unzip(zipFileUri, tempDir, context)
+                unzip(zipFileUri, tempDir, context, password)
                 processExtractedFiles(tempDir)
                 Result.success(Unit)
             } finally {
@@ -88,32 +89,36 @@ class ImportZipNotesUseCase(
         return file.extension.equals("txt", ignoreCase = true)
     }
 
-    private fun unzip(zipFileUri: Uri, targetDir: File, context: Context) {
-        context.contentResolver.openInputStream(zipFileUri)?.use { inputStream ->
-            ZipInputStream(inputStream).use { zipStream ->
-                var entry: ZipEntry? = zipStream.nextEntry
-
-                while (entry != null) {
-                    val file = File(targetDir, entry.name)
-
-                    if (entry.isDirectory) {
-                        file.mkdirs()
-                    } else {
-                        file.parentFile?.mkdirs()
-
-                        file.outputStream().use { outputStream ->
-                            zipStream.copyTo(outputStream)
-                        }
-                    }
-
-                    if (entry.time != -1L) {
-                        file.setLastModified(entry.time)
-                    }
-
-                    zipStream.closeEntry()
-                    entry = zipStream.nextEntry
+    private fun unzip(
+        zipFileUri: Uri,
+        targetDir: File,
+        context: Context,
+        password: String?
+    ) {
+        // 1. Копируем содержимое Uri во временный файл, т.к. zip4j.ZipFile требует File
+        val tempZipFile = File(context.cacheDir, "temp_import_${System.currentTimeMillis()}.zip")
+        try {
+            context.contentResolver.openInputStream(zipFileUri)?.use { inputStream ->
+                tempZipFile.outputStream().use { outputStream ->
+                    inputStream.copyTo(outputStream)
                 }
+            } ?: throw IllegalArgumentException("Cannot open ZIP file")
+
+            // 2. Используем zip4j для распаковки
+            val zipFile = if (password.isNullOrEmpty()) {
+                ZipFile(tempZipFile)
+            } else {
+                ZipFile(tempZipFile, password.toCharArray())
             }
-        } ?: throw IllegalArgumentException("Cannot open ZIP file")
+            zipFile.setCharset(Charset.forName("cp866"))
+
+            zipFile.extractAll(targetDir.absolutePath)
+        } catch (e: ZipException) {
+            // Оборачиваем ошибку zip4j в понятное исключение
+            throw IllegalArgumentException("Failed to extract ZIP: ${e.message}", e)
+        } finally {
+            // 3. Удаляем временный zip-файл
+            tempZipFile.delete()
+        }
     }
 }
