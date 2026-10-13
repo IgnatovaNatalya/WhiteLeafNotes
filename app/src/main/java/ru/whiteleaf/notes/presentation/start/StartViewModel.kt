@@ -217,13 +217,12 @@ class StartViewModel(
         val notebooksToShow = notebookList.take(visibleNotebooksCount)
         //println("DEBUG: StartVM: build start items, notebooks items count: ${notebookList.size} , showing ${notebooksToShow.size}")
 
-        items.add(StartListItem.HeaderNotebooks)
-
         if (notebooksToShow.isEmpty()) {
             items.add(StartListItem.DividerLineOnTransparentBg)
             items.add(StartListItem.CreateNotebook)
             items.add(StartListItem.DividerLineOnTransparentBg)
         } else {
+            items.add(StartListItem.HeaderNotebooks)
             items.add(StartListItem.DividerHeader)
             notebooksToShow.forEachIndexed { index, notebook ->
                 items.add(StartListItem.NotebookItem(notebook))
@@ -262,7 +261,10 @@ class StartViewModel(
 
             }
         }
-
+        else {
+            items.add(StartListItem.CreateNote)
+            items.add(StartListItem.DividerLineOnTransparentBg)
+        }
         _startScreenState.postValue(StartScreenState.Success(items))
     }
 

@@ -24,6 +24,7 @@ class StartAdapter(
     private val onNoteClicked: (Note) -> Unit,
     private val onShowMoreNotes: () -> Unit,
     private val onRootNotesClicked: () -> Unit,
+    private val onCreateNoteClicked: () -> Unit,
 
     private val contextNoteActionHandler: ContextNoteActionHandler,
     private val contextNotebookActionHandler: ContextNotebookActionHandler
@@ -42,11 +43,12 @@ class StartAdapter(
         private const val TYPE_HEADER_NOTES = 7
         private const val TYPE_NOTE = 8
         private const val TYPE_SHOW_MORE_NOTES = 9
+        private const val TYPE_CREATE_NOTE = 10
 
-        private const val TYPE_DIVIDER_HEADER = 10
-        private const val TYPE_DIVIDER_AFTER = 11
-        private const val TYPE_DIVIDER_LINE_ON_GREY_BG = 12
-        private const val TYPE_DIVIDER_LINE_ON_TRANSPARENT_BG = 13
+        private const val TYPE_DIVIDER_HEADER = 11
+        private const val TYPE_DIVIDER_AFTER = 12
+        private const val TYPE_DIVIDER_LINE_ON_GREY_BG = 13
+        private const val TYPE_DIVIDER_LINE_ON_TRANSPARENT_BG = 14
 
     }
 
@@ -65,6 +67,7 @@ class StartAdapter(
             is StartListItem.HeaderRootNotes -> TYPE_HEADER_NOTES
             is StartListItem.NoteItem -> TYPE_NOTE
             is StartListItem.ShowMoreNotes -> TYPE_SHOW_MORE_NOTES
+            is StartListItem.CreateNote -> TYPE_CREATE_NOTE
 
             StartListItem.DividerHeader -> TYPE_DIVIDER_HEADER
             StartListItem.DividerAfter -> TYPE_DIVIDER_AFTER
@@ -158,6 +161,14 @@ class StartAdapter(
                 )
             }
 
+            TYPE_CREATE_NOTE -> {
+                CreateNotebookViewHolder(
+                    LayoutInflater.from(parent.context)
+                        .inflate(R.layout.item_start_create_note, parent, false),
+                    onAddClicked = onCreateNoteClicked
+                )
+            }
+
             TYPE_DIVIDER_HEADER -> {
                 DividerHeaderViewHolder(
                     LayoutInflater.from(parent.context)
@@ -208,6 +219,7 @@ class StartAdapter(
 
             is StartListItem.NoteItem -> (holder as StartNoteViewHolder).bind(item.note)
             is StartListItem.ShowMoreNotes -> (holder as ShowMoreButtonViewHolder).bind()
+            StartListItem.CreateNote -> (holder as CreateNotebookViewHolder).bind()
 
             is StartListItem.DividerLineOnGreyBg -> (holder as DividerLineViewHolder).bind()
             StartListItem.DividerHeader -> (holder as DividerHeaderViewHolder).bind()

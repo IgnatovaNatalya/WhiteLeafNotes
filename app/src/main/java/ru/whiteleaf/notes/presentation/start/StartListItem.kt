@@ -18,7 +18,7 @@ sealed class StartListItem {
     object HeaderRootNotes : StartListItem()
     data class NoteItem(val note: Note) : StartListItem()
     object ShowMoreNotes : StartListItem()
-
+    object CreateNote : StartListItem()
 
     object DividerHeader : StartListItem()
     object DividerLineOnGreyBg : StartListItem()
@@ -39,10 +39,10 @@ sealed class StartListItem {
             ShowMoreNotebooks -> other is ShowMoreNotebooks
             CreateNotebook -> other is CreateNotebook
 
-
             HeaderRootNotes -> other is HeaderRootNotes
             is NoteItem -> this == other
             ShowMoreNotes -> other is ShowMoreNotes
+            CreateNote -> other is CreateNote
 
             DividerLineOnGreyBg -> other is DividerLineOnGreyBg
             DividerLineOnTransparentBg -> other is DividerLineOnTransparentBg

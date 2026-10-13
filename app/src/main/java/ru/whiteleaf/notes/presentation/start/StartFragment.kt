@@ -76,18 +76,19 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
             onAllNotebooksClicked = { findNavController().navigate(StartFragmentDirections.actionStartFragmentToNotebooksFragment()) },
             onNotebookClicked = { notebook -> navigateToNotebook(notebook) },
             onShowMoreNotebooks = { viewModel.showMoreNotebooks() },
-
-            onRootNotesClicked = { navigateToRootNotes() },
-            onNoteClicked = { note -> navigateToNote(note) },
-            onShowMoreNotes = { viewModel.showMoreNotes() },
-
-            contextNoteActionHandler = this,
-            contextNotebookActionHandler = this,
             onCreateNotebookClicked = {
                 createCreateNotebookDialog(requireContext()) { name ->
                     viewModel.createNotebook(name)
                 }.show()
             },
+
+            onRootNotesClicked = { navigateToRootNotes() },
+            onNoteClicked = { note -> navigateToNote(note) },
+            onShowMoreNotes = { viewModel.showMoreNotes() },
+            onCreateNoteClicked = { viewModel.createNewNote() },
+
+            contextNoteActionHandler = this,
+            contextNotebookActionHandler = this,
         )
 
         binding.startRecyclerView.adapter = adapter
