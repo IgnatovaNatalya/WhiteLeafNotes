@@ -218,7 +218,7 @@ class StartViewModel(
         //println("DEBUG: StartVM: build start items, notebooks items count: ${notebookList.size} , showing ${notebooksToShow.size}")
 
         if (notebooksToShow.isEmpty()) {
-            items.add(StartListItem.DividerLineOnTransparentBg)
+            if (recentToShow.isEmpty()) items.add(StartListItem.DividerLineOnTransparentBg)
             items.add(StartListItem.CreateNotebook)
             items.add(StartListItem.DividerLineOnTransparentBg)
         } else {
@@ -245,6 +245,11 @@ class StartViewModel(
         // Секция заметок
         val rootNotesToShow = rootNoteList.take(visibleNotesCount)
 
+        if (rootNotesToShow.isEmpty() && notebooksToShow.isEmpty() ) {
+            items.add(StartListItem.CreateNote)
+            items.add(StartListItem.DividerLineOnTransparentBg)
+        }
+
         if (rootNotesToShow.isNotEmpty()) {
             //println("DEBUG: StartVM: build start items, rootNotes items count: ${rootNoteList.size}, showing ${rootNotesToShow.size}")
 
@@ -261,10 +266,7 @@ class StartViewModel(
 
             }
         }
-        else {
-            items.add(StartListItem.CreateNote)
-            items.add(StartListItem.DividerLineOnTransparentBg)
-        }
+
         _startScreenState.postValue(StartScreenState.Success(items))
     }
 

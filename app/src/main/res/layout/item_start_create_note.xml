@@ -5,13 +5,13 @@
     android:gravity="center_vertical"
     android:paddingHorizontal="16dp">
 
-    <!--ImageView
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginEnd="10dp"
         android:importantForAccessibility="no"
-        android:src="@drawable/ic_folder" /-->
+        android:src="@drawable/ic_new_note" />
 
     <TextView
         style="@style/StartScreenItemTitle"
