@@ -54,6 +54,11 @@ class ExportAllNotesUseCase(
                 }
             }
 
+            //корневые заметки
+            progressCallback?.onNotebookExportStarted("Корневые заметки")
+            notesToExport.addAll(noteRepository.getNotes(null))
+            println("DEBUG: ExportAllNotesUseCase: Root notes added to export")
+
             val result =
                 exportRepository.createExportZip(notesToExport, noteBooksToExport, password)
 
