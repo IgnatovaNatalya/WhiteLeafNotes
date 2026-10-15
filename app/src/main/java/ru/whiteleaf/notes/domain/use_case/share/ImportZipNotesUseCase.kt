@@ -17,20 +17,21 @@ class ImportZipNotesUseCase(
     private val notebookRepository: NotebookRepository,
     private val context: Context
 ) {
-    suspend fun execute(zipFileUri: Uri, password: String? = null): Result<Unit> = withContext(Dispatchers.IO) { //todo передавать сюда пароль для распаковки архива
-        try {
-            val tempDir = createTempDir(context)
+    suspend fun execute(zipFileUri: Uri, password: String? = null): Result<Unit> =
+        withContext(Dispatchers.IO) { //todo передавать сюда пароль для распаковки архива
             try {
-                unzip(zipFileUri, tempDir, context, password)
-                processExtractedFiles(tempDir)
-                Result.success(Unit)
-            } finally {
-                tempDir.deleteRecursively()
+                val tempDir = createTempDir(context)
+                try {
+                    unzip(zipFileUri, tempDir, context, password)
+                    processExtractedFiles(tempDir)
+                    Result.success(Unit)
+                } finally {
+                    tempDir.deleteRecursively()
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
-    }
 
     private fun createTempDir(context: Context): File {
         return File(context.cacheDir, "temp_import_${System.currentTimeMillis()}").apply {
@@ -48,7 +49,7 @@ class ImportZipNotesUseCase(
     }
 
     private suspend fun processNotebookDirectory(directory: File) {
-        var notebookPath =  directory.name
+        var notebookPath = directory.name
         var counter = 1
 
         while (notebookRepository.notebookExist(notebookPath))
@@ -105,16 +106,24 @@ class ImportZipNotesUseCase(
             } ?: throw IllegalArgumentException("Cannot open ZIP file")
 
             // 2. Используем zip4j для распаковки
-            val zipFile = if (password.isNullOrEmpty()) {
-                ZipFile(tempZipFile)
-            } else {
-                ZipFile(tempZipFile, password.toCharArray())
-            }
-            zipFile.setCharset(Charset.forName("cp866"))
+
+            //сначала узнаем используется ли UTF-8
+            val zipFileForEncoding = if (password.isNullOrEmpty()) ZipFile(tempZipFile)
+            else ZipFile(tempZipFile, password.toCharArray())
+
+            val isUtf8Encoded = zipFileForEncoding.fileHeaders.firstOrNull()?.isFileNameUTF8Encoded ?: false
+            println("DEBUG: ImportNotesUseCase: isUtf8Encoded=$isUtf8Encoded")
+
+            // сама распаковка
+            val zipFile = if (password.isNullOrEmpty()) ZipFile(tempZipFile)
+            else ZipFile(tempZipFile, password.toCharArray())
+
+            if (!isUtf8Encoded) zipFile.setCharset(Charset.forName("cp866"))
 
             zipFile.extractAll(targetDir.absolutePath)
         } catch (e: ZipException) {
             // Оборачиваем ошибку zip4j в понятное исключение
+            println("DEBUG: ImportNotesUseCase: Failed to extract ZIP: ${e.message}")
             throw IllegalArgumentException("Failed to extract ZIP: ${e.message}", e)
         } finally {
             // 3. Удаляем временный zip-файл
