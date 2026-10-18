@@ -245,6 +245,7 @@ class NoteEditViewModel(
     fun updateNoteTitleIfChanged(newTitle: String) {
         val note = currentNote ?: return
         if (newTitle == note.title) return
+        //currentNote = note.copy(title = newTitle)
 
         viewModelScope.launch {
             try {
@@ -261,6 +262,7 @@ class NoteEditViewModel(
     fun updateNoteContent(content: String) {
         println("DEBUG: NoteEditVM: Updating note content, current note: ${currentNote?.printDebug()}")
         val note = currentNote ?: return
+        currentNote = note.copy(content = content)
         viewModelScope.launch {
             try {
                 saveNoteContentUseCase(note.copy(content = content))
