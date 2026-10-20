@@ -28,7 +28,7 @@
 
     <string name="dialog_create_notebook_title">Новая записная\nкнижка</string>
     <string name="dialog_create_notebook_subtitle">Дайте название папке, в которой будут группироваться ваши заметки</string>
-    <string name="dialog_create_notebook_hint">Введите название, например: Работа</string>
+    <string name="dialog_create_notebook_hint">Введите название</string>
 
     <string name="dialog_move_note_title">Перемещение\nзаметки</string>
     <string name="dialog_move_note_subtitle">Выберите записную книжку или создайте новую</string>

@@ -173,9 +173,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
             contentEditText.clearFocus() //снимаем фокус с контента, чтобы клавитура могла включиться потом
+            println("DEBUG: NoteEditFragment: contentEditText focus cleared")
         } else if (wasInterrupted) {
             wasInterrupted = false
-            //println("DEBUG: NoteEditFragment: Window focus received")
+            println("DEBUG: NoteEditFragment: Window focus received")
             viewModel.reloadNotePosition()
         }
     }

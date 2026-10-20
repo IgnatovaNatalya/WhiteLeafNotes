@@ -254,7 +254,7 @@ object DialogHelper {
 
         val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_title)
         newTitleEditText.setText(currentTitle)
-        newTitleEditText.setSelection(currentTitle.lastIndex)
+        if (currentTitle.isNotBlank()) newTitleEditText.setSelection(currentTitle.lastIndex)
 
         val dialog = builder
             .setPositiveButton("Переименовать") { _, _ ->

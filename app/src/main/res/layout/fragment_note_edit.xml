@@ -7,7 +7,6 @@
     android:fitsSystemWindows="true"
     tools:context=".presentation.note_edit.NoteEditFragment">
 
-
     <ru.whiteleaf.notes.common.classes.CustomNestedScrollView
 
         android:id="@+id/note_edit_scroll_view"
@@ -25,7 +24,7 @@
             android:orientation="vertical"
             android:paddingTop="0dp">
 
-            <EditText
+            <ru.whiteleaf.notes.common.classes.BackSpaceFixEditText
                 android:id="@+id/note_edit_title"
                 style="@style/NoteEditTitle"
                 android:layout_width="match_parent"
@@ -54,7 +53,7 @@
                 android:textColor="?attr/android:textColorSecondary"
                 tools:text="27 ноября 2025" />
 
-            <EditText
+            <ru.whiteleaf.notes.common.classes.BackSpaceFixEditText
                 android:id="@+id/note_edit_text"
                 style="@style/NoteEditText"
                 android:layout_width="match_parent"
@@ -65,7 +64,7 @@
                 android:gravity="start|top"
                 android:imeOptions="actionDone"
                 android:importantForAutofill="no"
-                android:inputType="textMultiLine|textCapSentences"
+                android:inputType="textMultiLine"
                 android:minHeight="400dp"
                 android:paddingBottom="100dp"
                 android:textColor="?attr/android:textColorPrimary"
