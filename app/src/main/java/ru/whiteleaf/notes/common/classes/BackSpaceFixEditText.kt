@@ -27,7 +27,7 @@ class BackSpaceFixEditText @JvmOverloads constructor(
                     val cursor = selectionStart
                     if (editable != null && cursor > 0) {
                         editable.delete(cursor - 1, cursor)
-                        Log.e("IME_DEBUG", "delete symbol")
+                        Log.e("IME_DEBUG", "delete symbol(s)")
                         return true // Событие обработано, дальше не передаем
                     }
                 }
@@ -39,6 +39,15 @@ class BackSpaceFixEditText @JvmOverloads constructor(
                 return super.deleteSurroundingText(beforeLength, afterLength)
             }
 
+//            override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
+//                Log.e("IME_DEBUG","deleteSurroundingText: before=$beforeLength, after=$afterLength" )
+//                if (beforeLength == 1 && afterLength == 0) {
+//                    if (handleBackspace()) return true
+//                } else
+//                    if (selectionStart == selectionEnd) if (handleBackspace()) return true
+//
+//                return super.deleteSurroundingText(beforeLength, afterLength)
+//            }
             override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
                 Log.e("IME_DEBUG", "commitText: text='$text'")
                 return super.commitText(text, newCursorPosition)

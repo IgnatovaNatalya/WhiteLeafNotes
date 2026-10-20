@@ -7,9 +7,12 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.StyleSpan
+import android.util.Log
+import android.view.KeyEvent
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageButton
 import androidx.appcompat.widget.SearchView
 import android.widget.TextView
@@ -84,6 +87,28 @@ class RootActivity : AppCompatActivity() {
 
     private fun setupSearchView() {
 
+        val searchEditText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+
+        searchEditText?.setOnKeyListener { v, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_DEL && event.action == KeyEvent.ACTION_DOWN) {
+                Log.e("IME_DEBUG", "searchView sendKeyEvent: keyCode=${event.keyCode}, action=${event.action}")
+                val editText = v as EditText
+                val text = editText.text
+                val start = editText.selectionStart
+                val end = editText.selectionEnd
+
+                if (text != null) {
+                    if (start != end) {
+                        text.delete(start, end)
+                    } else if (start > 0) {
+                        text.delete(start - 1, start)
+                    }
+                    Log.e("IME_DEBUG", "searchView delete symbol(s)")
+                    return@setOnKeyListener true // Событие обработано
+                }
+            }
+            return@setOnKeyListener false
+        }
         searchView.setOnSearchClickListener {
             viewModel.setSearchExpanded(true)
             getCurrentSearchableFragment()?.onSearchStarted()
