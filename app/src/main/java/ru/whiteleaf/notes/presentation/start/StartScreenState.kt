@@ -3,6 +3,7 @@ package ru.whiteleaf.notes.presentation.start
 import android.net.Uri
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
+import ru.whiteleaf.notes.presentation.note_list.NoteListNavigationEvent
 import ru.whiteleaf.notes.presentation.search.SearchListItem
 
 sealed class StartScreenState {
@@ -18,4 +19,5 @@ sealed class StartNavigationEvent {
     data class NavigateToCreatedNotebook(val notebook: Notebook) : StartNavigationEvent()
     data class ShareUri(val uri: Uri?) : StartNavigationEvent()
     data class ShowMessage(val msg: String) : StartNavigationEvent()
+    object ShowDeviceNotSecure: StartNavigationEvent()
 }

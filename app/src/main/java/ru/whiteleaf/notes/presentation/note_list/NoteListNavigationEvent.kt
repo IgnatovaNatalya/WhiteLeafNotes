@@ -1,6 +1,7 @@
 package ru.whiteleaf.notes.presentation.note_list
 
 import android.net.Uri
+import android.provider.ContactsContract
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.presentation.note_list.UnlockTarget.ToCreate
 import ru.whiteleaf.notes.presentation.note_list.UnlockTarget.ToLoad
@@ -15,6 +16,7 @@ sealed class NoteListNavigationEvent {
     data class ShareNote(val note: Note) : NoteListNavigationEvent()
     data class ShowBiometric(val unlockTarget: UnlockTarget) : NoteListNavigationEvent()
     data class ShowMessage(val msg:String) : NoteListNavigationEvent()
+    object ShowDeviceNotSecure: NoteListNavigationEvent()
     data class NavigateToNoteFound(val noteId: String, val contentPosition: Int, val query: String?) :
         NoteListNavigationEvent()
 }

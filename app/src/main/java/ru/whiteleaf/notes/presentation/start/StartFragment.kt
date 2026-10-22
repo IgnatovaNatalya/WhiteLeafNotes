@@ -173,6 +173,8 @@ class StartFragment : BindingFragment<FragmentStartBinding>(), ContextNoteAction
                 Toast.makeText(requireContext(), event.msg, Toast.LENGTH_SHORT).show()
                 viewModel.clearEvent()
             }
+
+            StartNavigationEvent.ShowDeviceNotSecure -> DialogHelper.createDeviceNotSecureDialog(requireContext()).show()
         }
     }
 

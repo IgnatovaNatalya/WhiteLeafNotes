@@ -23,6 +23,7 @@ import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.model.printDebug
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
+import ru.whiteleaf.notes.domain.repository.UnlockResult
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DeleteKeyForNotebookUseCase
@@ -252,7 +253,7 @@ class NoteListViewModel(
             viewModelScope.launch {
                 val unlocked =
                     unlockNotebookUseCase(notebookPath, context, reason = target.toMessage())
-                if (unlocked) {
+                if (unlocked == UnlockResult.Success) {
                     println("DEBUG: unlock notebook: success")
                     when (target) {
                         UnlockTarget.ToCreate -> createNewNote()
@@ -284,12 +285,21 @@ class NoteListViewModel(
                     notebookPath, context, "Защита записной книжки", "Для защиты"
                 )
 
-                if (locked) {
-                    createKeyForNotebookUseCase(notebookPath)
-                    encryptNotebookUseCase(notebookPath)
-                    loadNotes()
-                    postMessage("Записная книжка защищена")
-                } else postMessage("Отмена установки защиты")
+                when (locked) {
+                    UnlockResult.Success -> {
+                        createKeyForNotebookUseCase(notebookPath)
+                        encryptNotebookUseCase(notebookPath)
+                        loadNotes()
+                        postMessage("Записная книжка защищена")
+                    }
+
+                    UnlockResult.DeviceNotSecure -> _navigationEvent.postValue(
+                        NoteListNavigationEvent.ShowDeviceNotSecure
+                    )
+
+                    is UnlockResult.Error -> postMessage("Ошибка установки защиты ${locked.message}")
+                    UnlockResult.UserCancelled -> postMessage("Отмена установки защиты")
+                }
 
             } catch (e: AuthenticationRequiredException) {
                 _noteListState.value =
@@ -316,9 +326,8 @@ class NoteListViewModel(
                 val unlocked =
                     unlockNotebookUseCase(notebookPath, context, reason = "Для снятия защиты")
 
-                if (!unlocked) {
-                    _noteListState.value =
-                        NoteListState.Error("Не удалось подтвердить личность")
+                if (unlocked != UnlockResult.Success) {
+                    _noteListState.value = NoteListState.Error("Не удалось подтвердить личность")
                     return@launch
                 }
                 decryptNotebookUseCase(notebookPath)
@@ -377,7 +386,7 @@ class NoteListViewModel(
 
                 println("DEBUG: NoteListVM: move note: unlocked=$unlocked")
 
-                if (unlocked) {
+                if (unlocked == UnlockResult.Success) {
                     println("DEBUG: NoteListVM: move note: moving note")
                     moveNoteUseCase(note, targetNotebookPath)
                     loadNotes()
@@ -427,16 +436,15 @@ class NoteListViewModel(
         if (notebookPath != null)
             viewModelScope.launch {
                 try {
-                    val unlocked =
-                        if (isEncrypted) {
-                            unlockNotebookUseCase(
-                                notebookPath,
-                                context,
-                                reason = "Для переименования"
-                            )
-                        } else true
+                    val unlocked = if (isEncrypted) {
+                        unlockNotebookUseCase(
+                            notebookPath,
+                            context,
+                            reason = "Для переименования"
+                        )
+                    } else UnlockResult.Success
 
-                    if (!unlocked) {
+                    if (unlocked != UnlockResult.Success) {
                         postMessage("Не удалось подтвердить личность")
                         return@launch
                     }
@@ -494,7 +502,7 @@ class NoteListViewModel(
                         val unlocked =
                             unlockNotebookUseCase(notebookPath, context, reason = "Для удаления")
 
-                        if (!unlocked) {
+                        if (unlocked != UnlockResult.Success) {
                             postMessage("Не удалось подтвердить личность")
                             return@launch
                         }

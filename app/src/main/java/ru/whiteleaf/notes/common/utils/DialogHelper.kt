@@ -1,7 +1,11 @@
 package ru.whiteleaf.notes.common.utils
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -9,8 +13,10 @@ import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
+import androidx.biometric.BiometricManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -414,6 +420,44 @@ object DialogHelper {
             .create()
     }
 
+
+    fun createDeviceNotSecureDialog(context: Context): AlertDialog {
+        println("DEBUG: createDeviceNotSecureDialog")
+        val builder = MaterialAlertDialogBuilder(context, R.style.WhiteLeafDialogTheme)
+        val dialogView: View =
+            LayoutInflater.from(context).inflate(R.layout.dialog_device_not_secure, null)
+
+        builder.setView(dialogView)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            builder.setPositiveButton(
+                "Открыть настройки"
+            ) { _, _ -> openBiometricSettings(context) }
+                .setNegativeButton("Позже", null)
+        } else {
+            builder.setNegativeButton("Понятно", null)
+        }
+
+        return builder.create()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun openBiometricSettings(context: Context) {
+        try {
+            val intent = Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
+                putExtra(
+                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG
+                )
+            }
+            context.startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            // На некоторых устройствах этого экрана может не быть —
+            // открываем общие настройки безопасности.
+            context.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
+        }
+    }
+
     fun createChangeDateDialog(
         currentDate: Long,
         onDateSelected: (Long) -> Unit
@@ -450,4 +494,6 @@ object DialogHelper {
         }
         return datePicker
     }
+
+
 }

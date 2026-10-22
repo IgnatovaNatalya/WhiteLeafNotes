@@ -1,6 +1,7 @@
 package ru.whiteleaf.notes.data.repository
 
 import android.content.Context
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.security.keystore.UserNotAuthenticatedException
@@ -13,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.suspendCancellableCoroutine
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
+import ru.whiteleaf.notes.domain.repository.UnlockResult
 import java.io.ByteArrayOutputStream
 import java.security.InvalidKeyException
 import java.security.KeyStore
@@ -84,7 +86,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         context: Context,
         title: String,
         reason: String
-    ): Boolean {
+    ): UnlockResult {
         return suspendCancellableCoroutine { continuation ->
 
             println("DEBUG: EncryptionRepo: all keys:  ${getAllKeyAliases()}")
@@ -92,17 +94,25 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             val activity = context as? FragmentActivity
             if (activity == null) {
                 Log.e("DEBUG: EncryptionRepo", "Context is not FragmentActivity")
-                continuation.resume(false)
+                continuation.resume(UnlockResult.Error(-1, "Context is not FragmentActivity"))
                 return@suspendCancellableCoroutine
             }
 
-            // Проверка наличия биометрии
+            // Для API 30+ разрешаем биометрию и device credential.
+            // Для API 29 (и ниже) эта комбинация не поддерживается — см. часть 2.
+            val allowedAuthenticators = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            } else {
+                BiometricManager.Authenticators.BIOMETRIC_STRONG
+            }
+
             val biometricManager = BiometricManager.from(activity)
-            val canAuth =
-                biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            val canAuth = biometricManager.canAuthenticate(allowedAuthenticators)
+
             if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
-                Log.e("DEBUG: EncryptionRepo", "Biometric not available: $canAuth")
-                continuation.resume(false)
+                Log.e("DEBUG: EncryptionRepo", "Защита не настроена на устройстве: $canAuth")
+                continuation.resume(UnlockResult.DeviceNotSecure)
                 return@suspendCancellableCoroutine
             }
 
@@ -111,28 +121,49 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             val isResumed = AtomicBoolean(false)
 
             val biometricPrompt = BiometricPrompt(
-                activity,
-                executor,
+                activity, executor,
                 object : BiometricPrompt.AuthenticationCallback() {
+
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         if (isResumed.compareAndSet(false, true)) {
                             unlockedNotebooks.add(notebookPath)
-                            continuation.resume(true)
+                            continuation.resume(UnlockResult.Success)
                         }
                     }
 
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                         if (isResumed.compareAndSet(false, true)) {
-                            Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
-                            continuation.resume(false)
+
+                            when (errorCode) {
+                                BiometricPrompt.ERROR_NEGATIVE_BUTTON,
+                                BiometricPrompt.ERROR_USER_CANCELED,
+                                BiometricPrompt.ERROR_CANCELED -> {
+                                    Log.e("DEBUG: Biometric", "Отмена пользователем: $errString")
+                                    continuation.resume(UnlockResult.UserCancelled)
+                                }
+
+                                BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> {
+                                    Log.e(
+                                        "DEBUG: Biometric",
+                                        "Не настроена защита $errorCode: $errString"
+                                    )
+                                    // Нет PIN / графического ключа / пароля
+                                    continuation.resume(UnlockResult.DeviceNotSecure)
+                                }
+
+                                else -> {
+                                    Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
+                                    continuation.resume(UnlockResult.Error(errorCode, errString))
+                                }
+                            }
                         }
                     }
 
                     override fun onAuthenticationFailed() {
-                        if (isResumed.compareAndSet(false, true)) {
-                            Log.e("DEBUG: Biometric", "Неверный отпечаток")
-                            continuation.resume(false)
-                        }
+                        Log.e("DEBUG: Biometric", "Неверный отпечаток")
+//                        if (isResumed.compareAndSet(false, true)) {
+//                            continuation.resume(UnlockResult.UserCancelled)
+//                        }
                     }
                 }
             )
@@ -140,15 +171,24 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
                 .setSubtitle("$reason подтвердите личность")
-                .setNegativeButtonText("Отмена")
-                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                //.setNegativeButtonText("Отмена")
+                .setAllowedAuthenticators(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                )
                 .build()
+
+            continuation.invokeOnCancellation {
+                try {
+                    biometricPrompt.cancelAuthentication()
+                } catch (_: Exception) {
+                }
+            }
 
             try {
                 biometricPrompt.authenticate(promptInfo)
             } catch (e: Exception) {
                 Log.e("Biometric", "Error starting biometric", e)
-                continuation.resume(false)
+                continuation.resume(UnlockResult.Error(-1, e.message ?: "Ошибка запуска биометрии"))
             }
         }
     }
@@ -158,8 +198,8 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
         context: Context,
         title: String,
         reason: String
-    ): Boolean {
-        if (notebookPaths.isEmpty()) return true
+    ): UnlockResult {
+        if (notebookPaths.isEmpty()) return UnlockResult.Success
 
         return suspendCancellableCoroutine { continuation ->
 
@@ -168,17 +208,25 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             val activity = context as? FragmentActivity
             if (activity == null) {
                 Log.e("DEBUG: EncryptionRepo", "Context is not FragmentActivity")
-                continuation.resume(false)
+                continuation.resume(UnlockResult.Error(-1, "Context is not FragmentActivity"))
                 return@suspendCancellableCoroutine
             }
 
-            val biometricManager = BiometricManager.from(activity)
-            val canAuth = biometricManager.canAuthenticate(
+            // Для API 30+ разрешаем биометрию и device credential.
+            // Для API 29 (и ниже) эта комбинация не поддерживается — см. часть 2.
+            val allowedAuthenticators = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            } else {
                 BiometricManager.Authenticators.BIOMETRIC_STRONG
-            )
+            }
+
+            val biometricManager = BiometricManager.from(activity)
+            val canAuth = biometricManager.canAuthenticate(allowedAuthenticators)
+
             if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
-                Log.e("DEBUG: EncryptionRepo", "Biometric not available: $canAuth")
-                continuation.resume(false)
+                Log.e("DEBUG: EncryptionRepo", "Защита не настроена на устройстве: $canAuth")
+                continuation.resume(UnlockResult.DeviceNotSecure)
                 return@suspendCancellableCoroutine
             }
 
@@ -186,33 +234,45 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             val isResumed = AtomicBoolean(false)
 
             val biometricPrompt = BiometricPrompt(
-                activity,
-                executor,
+                activity, executor,
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         if (isResumed.compareAndSet(false, true)) {
                             // Разблокируем сразу все переданные пути одним успешным сканом
                             unlockedNotebooks.addAll(notebookPaths)
-                            continuation.resume(true)
+                            continuation.resume(UnlockResult.Success)
                         }
                     }
 
                     override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                         if (isResumed.compareAndSet(false, true)) {
                             Log.e("DEBUG: Biometric", "Error $errorCode: $errString")
-                            continuation.resume(false)
+                            when (errorCode) {
+                                BiometricPrompt.ERROR_NEGATIVE_BUTTON,
+                                BiometricPrompt.ERROR_USER_CANCELED,
+                                BiometricPrompt.ERROR_CANCELED -> {
+                                    continuation.resume(UnlockResult.UserCancelled)
+                                }
+
+                                BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> {
+                                    // Нет PIN / графического ключа / пароля
+                                    continuation.resume(UnlockResult.DeviceNotSecure)
+                                }
+
+                                else -> {
+                                    continuation.resume(
+                                        UnlockResult.Error(errorCode, errString)
+                                    )
+                                }
+                            }
                         }
                     }
 
                     override fun onAuthenticationFailed() {
-                        // Не завершаем корутину: даём пользователю повторить попытку.
-                        // Если хотите завершать с первой неудачи — раскомментируйте блок ниже.
-                        //
-                        // if (isResumed.compareAndSet(false, true)) {
-                        //     biometricPrompt.cancelAuthentication()
-                        //     continuation.resume(false)
-                        // }
-                        Log.e("DEBUG: Biometric", "Неверный отпечаток, попробуйте снова")
+                        Log.e("DEBUG: Biometric", "Неверный отпечаток")
+//                        if (isResumed.compareAndSet(false, true)) {
+//                            continuation.resume(UnlockResult.UserCancelled)
+//                        }
                     }
                 }
             )
@@ -220,8 +280,10 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
                 .setSubtitle("$reason подтвердите личность")
-                .setNegativeButtonText("Отмена")
-                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                //.setNegativeButtonText("Отмена")
+                .setAllowedAuthenticators(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                )
                 .build()
 
             // Отменяем диалог, если корутина отменена извне
@@ -238,7 +300,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
             } catch (e: Exception) {
                 if (isResumed.compareAndSet(false, true)) {
                     Log.e("Biometric", "Error starting biometric", e)
-                    continuation.resume(false)
+                    continuation.resume(UnlockResult.Error(-1, e.message ?: "Ошибка запуска биометрии"))
                 }
             }
         }
@@ -330,7 +392,7 @@ class EncryptionRepositoryImpl(private val keyStore: KeyStore) : EncryptionRepos
     fun getAllKeyAliases(): List<String> {
         return try {
             keyStore.aliases().toList().filter { alias ->
-                alias.startsWith(NOTEBOOK_KEY_ALIAS_PREFIX ) && keyStore.isKeyEntry(alias)
+                alias.startsWith(NOTEBOOK_KEY_ALIAS_PREFIX) && keyStore.isKeyEntry(alias)
             }
         } catch (e: Exception) {
             emptyList()

@@ -8,6 +8,7 @@ import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.ExportRepository
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
+import ru.whiteleaf.notes.domain.repository.UnlockResult
 
 class ExportNotebookUseCase(
     private val noteRepository: NotesRepository,
@@ -40,7 +41,7 @@ class ExportNotebookUseCase(
                 "Для экспорта"
             ) else true
 
-        return if (unlocked) {
+        return if (unlocked != UnlockResult.Success) {
             notesToExport.addAll(noteRepository.getNotes(notebookPath))
 
 //            println("DEBUG: ExportNotebookUseCase: added notes to export: ${notesToExport.size} notes")

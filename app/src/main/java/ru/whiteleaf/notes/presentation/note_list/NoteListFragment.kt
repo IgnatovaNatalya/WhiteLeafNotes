@@ -558,6 +558,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                 Toast.makeText(requireContext(), event.msg, Toast.LENGTH_SHORT).show()
 
             NoteListNavigationEvent.Idle -> {}
+            NoteListNavigationEvent.ShowDeviceNotSecure -> DialogHelper.createDeviceNotSecureDialog(requireContext()).show()
         }
         viewModel.clearEvent()
     }

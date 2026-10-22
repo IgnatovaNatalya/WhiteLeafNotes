@@ -14,6 +14,7 @@ import ru.whiteleaf.notes.domain.use_case.share.ExportNotebookUseCase
 import kotlinx.coroutines.launch
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
+import ru.whiteleaf.notes.domain.repository.UnlockResult
 import ru.whiteleaf.notes.domain.use_case.encryption.CreateKeyForNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DecryptNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.DeleteKeyForNotebookUseCase
@@ -101,7 +102,7 @@ class NotebooksViewModel(
                     )
                 } else true
 
-                if (!unlocked) {
+                if (unlocked != UnlockResult.Success) {
                     postMessage("Не удалось подтвердить личность")
                     return@launch
                 }
@@ -124,22 +125,28 @@ class NotebooksViewModel(
         viewModelScope.launch {
             try {
                 if (isNotebookProtectedUseCase(notebook.path)) {
-                    postMessage("Записная книжка уже защищищена")
+                    postMessage("Записная книжка уже защищена")
                     return@launch
                 }
                 val locked = unlockNotebookUseCase(
-                    notebook.path,
-                    context,
-                    title = "Защита записной книжки",
-                    reason = "Для защиты"
+                    notebook.path, context,
+                    title = "Защита записной книжки", reason = "Для защиты"
                 )
-                if (locked) {
-                    createKeyForNotebookUseCase(notebook.path)
-                    encryptNotebookUseCase(notebook.path)
-                    loadData()
-                    postMessage("Записная книжка защищена")
-                } else postMessage("Отмена установки защиты")
+                when (locked) {
+                    UnlockResult.Success -> {
+                        createKeyForNotebookUseCase(notebook.path)
+                        encryptNotebookUseCase(notebook.path)
+                        loadData()
+                        postMessage("Записная книжка защищена")
+                    }
 
+                    UnlockResult.UserCancelled -> postMessage("Отмена установки защиты")
+                    is UnlockResult.Error -> postMessage("Ошибка установки защиты ${locked.message}")
+
+                    UnlockResult.DeviceNotSecure -> _navigationEvent.postValue(
+                        NotebooksNavigationEvent.ShowDeviceNotSecure
+                    )
+                }
             } catch (e: AuthenticationRequiredException) {
                 postMessage("Не удалось зашифровать записную книжку: ${e.message}")
                 println("DEBUG: NotebooksVM fail encrypt notebook: ${e.message}")
@@ -159,7 +166,7 @@ class NotebooksViewModel(
                 }
                 val unlocked =
                     unlockNotebookUseCase(notebook.path, context, reason = "Для снятия защиты")
-                if (!unlocked) {
+                if (unlocked != UnlockResult.Success) {
                     postMessage("Не удалось подтвердить личность")
                     return@launch
                 }
@@ -200,7 +207,7 @@ class NotebooksViewModel(
                 } else
                     true
 
-                if (unlocked) {
+                if (unlocked != UnlockResult.Success) {
                     deleteNotebookUseCase(notebook.path)
                     loadData()
                     postMessage("Записная книжка удалена")

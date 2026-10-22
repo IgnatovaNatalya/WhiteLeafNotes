@@ -19,14 +19,14 @@ interface EncryptionRepository {
         context: Context,
         title: String,
         reason: String
-    ): Boolean
+    ): UnlockResult
 
     suspend fun unlockNotebooks(
         notebookPaths: List<String>,
         context: Context,
         title: String,
         reason: String
-    ): Boolean
+    ): UnlockResult
 
     fun clearUnlockedFlag(notebookPath: String)
     fun lockAllNotebooks()

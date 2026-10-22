@@ -18,6 +18,7 @@ import ru.whiteleaf.notes.common.utils.highlightNoteMatches
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
+import ru.whiteleaf.notes.domain.repository.UnlockResult
 import ru.whiteleaf.notes.domain.use_case.encryption.IsNotebookProtectedUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
@@ -68,7 +69,7 @@ class NoteEditViewModel(
     }
 
     fun getEncryptionStatus(): Boolean {
-        return if (notebookPath.isNullOrBlank()) false else isNotebookProtectedUseCase(notebookPath)
+        return !notebookPath.isNullOrBlank() && isNotebookProtectedUseCase(notebookPath)
     }
 
 
@@ -127,7 +128,7 @@ class NoteEditViewModel(
 
     fun onSearchQuerySubmitted(query: String) {
         println("DEBUG: NoteEditVM: search with query=$query")
-        if (!query.isEmpty()) { //>=3
+        if (query.isNotEmpty()) { //>=3
             performSearch(query)
         }
     }
@@ -291,7 +292,7 @@ class NoteEditViewModel(
                 notebookPath, context, title = "Заметка защищена", reason = "Для разблокирования"
             ) else true
 
-            if (unlocked) loadNote()
+            if (unlocked == UnlockResult.Success) loadNote()
             else _noteEditState.postValue(NoteEditState.Blocked(false))
         }
     }
@@ -306,7 +307,7 @@ class NoteEditViewModel(
                     notebookPath, context, reason = "Для редактирования"
                 ) else true
 
-                if (unlocked) {
+                if (unlocked == UnlockResult.Success) {
                     val newContent = pendingSaveContent
 
                     if (newContent != null) {
@@ -390,7 +391,7 @@ class NoteEditViewModel(
 
                 val note = currentNote ?: return@launch
 
-                if (unlocked)
+                if (unlocked == UnlockResult.Success)
                     _navigationEvent.postValue(
                         NoteEditNavigationEvent.ShareNote(note)
                     )
@@ -412,7 +413,7 @@ class NoteEditViewModel(
 
                 val file = shareNoteFileUseCase(note)
 
-                if (unlocked)
+                if (unlocked == UnlockResult.Success)
                     _navigationEvent.postValue(
                         NoteEditNavigationEvent.ShareFile(file)
                     )
@@ -444,7 +445,7 @@ class NoteEditViewModel(
 
                 println("DEBUG: NoteEditVM: move note: unlocked=$unlocked")
 
-                if (unlocked) {
+                if (unlocked == UnlockResult.Success) {
                     moveNoteUseCase(note, targetNotebookPath)
                     navigateBack()
                 } else {

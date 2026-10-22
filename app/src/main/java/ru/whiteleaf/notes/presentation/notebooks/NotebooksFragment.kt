@@ -120,6 +120,8 @@ class NotebooksFragment : BindingFragment<FragmentNotebooksBinding>(),
                     viewModel.clearEvent()
                 }
             }
+
+            NotebooksNavigationEvent.ShowDeviceNotSecure -> DialogHelper.createDeviceNotSecureDialog(requireContext()).show()
         }
     }
 

@@ -2,6 +2,7 @@ package ru.whiteleaf.notes.domain.use_case.encryption
 
 import android.content.Context
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
+import ru.whiteleaf.notes.domain.repository.UnlockResult
 
 class UnlockNotebookUseCase(
     private val encryptionRepository: EncryptionRepository
@@ -11,7 +12,7 @@ class UnlockNotebookUseCase(
         context: Context,
         title: String = "Записная книжка защищена",
         reason: String = "Для просмотра"
-    ): Boolean {
+    ): UnlockResult {
         return encryptionRepository.unlockNotebook(notebookPath, context, title,  reason)
     }
     suspend operator fun invoke(
@@ -19,7 +20,7 @@ class UnlockNotebookUseCase(
         context: Context,
         title: String = "Записные книжки защищены",
         reason: String = "Для просмотра"
-    ): Boolean = encryptionRepository.unlockNotebooks(
+    ): UnlockResult = encryptionRepository.unlockNotebooks(
         notebookPaths, context, title, reason
     )
 }

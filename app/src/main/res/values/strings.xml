@@ -115,6 +115,8 @@
     <string name="plus_note">+ Заметка</string>
     <string name="plus_notebook">+ Записная книжка</string>
     <string name="all_notebooks">Все записные книжки</string>
+    <string name="device_not_secure_title">Защита не настроена</string>
+    <string name="device_not_secure_dialog_text">Чтобы защитить записную книжку, сначала настройте блокировку экрана на устройстве: добавьте отпечаток пальца, лицо, графический ключ, PIN-код или пароль.</string>
 
 </resources>
 
