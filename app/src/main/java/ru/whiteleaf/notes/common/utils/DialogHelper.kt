@@ -260,7 +260,9 @@ object DialogHelper {
 
         val newTitleEditText = renameDialogView.findViewById<EditText>(R.id.new_title)
         newTitleEditText.setText(currentTitle)
-        if (currentTitle.isNotBlank()) newTitleEditText.setSelection(currentTitle.lastIndex)
+//        newTitleEditText.requestFocus()
+//        newTitleEditText.selectAll()
+        //if (currentTitle.isNotBlank()) newTitleEditText.setSelection(0,currentTitle.lastIndex)
 
         val dialog = builder
             .setPositiveButton("Переименовать") { _, _ ->
@@ -358,23 +360,18 @@ object DialogHelper {
 
             editText.addTextChangedListener(object : android.text.TextWatcher {
                 override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
+                    s: CharSequence?, start: Int, count: Int, after: Int
                 ) {
                 }
 
                 override fun onTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    before: Int,
-                    count: Int
+                    s: CharSequence?, start: Int, before: Int, count: Int
                 ) {
                 }
 
                 override fun afterTextChanged(s: android.text.Editable?) {
                     positiveButton.isEnabled = !s.isNullOrBlank()
+                    chips.forEach { if (it.text != s.toString()) it.isChecked = false }
                 }
             })
 
@@ -410,7 +407,8 @@ object DialogHelper {
 
         dialogTitle.text = "Переименование записной книжки"
         newTitleEditText.setText(currentName)
-        newTitleEditText.selectAll()
+//        newTitleEditText.requestFocus()
+//        newTitleEditText.selectAll()
 
         return builder
             .setPositiveButton("Переименовать") { _, _ ->
