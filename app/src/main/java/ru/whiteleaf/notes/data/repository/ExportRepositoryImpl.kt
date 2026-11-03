@@ -7,6 +7,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import ru.whiteleaf.notes.common.AppConstants.DEFAULT_DIR
 import ru.whiteleaf.notes.common.AppConstants.EXPORT_ZIP_PREFIX
+import ru.whiteleaf.notes.common.utils.ImageStorageUtils
 import ru.whiteleaf.notes.data.datasource.FileNoteDataSource
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.model.Notebook
@@ -82,6 +83,18 @@ class ExportRepositoryImpl(
                 }"
             )
 
+            // Копируем изображения заметки
+            val imageFilenames = ImageStorageUtils.extractImageFilenames(note.content)
+            if (imageFilenames.isNotEmpty()) {
+                val imagesDir = File(tempDir, "${note.notebookPath}/images")
+                imagesDir.mkdirs()
+                imageFilenames.forEach { filename ->
+                    val srcFile = ImageStorageUtils.getImageFile(context, note.id, filename, note.notebookPath)
+                    if (srcFile.exists()) {
+                        srcFile.copyTo(File(imagesDir, filename), overwrite = true)
+                    }
+                }
+            }
         }
     }
 

@@ -53,7 +53,7 @@
                 android:textColor="?attr/android:textColorSecondary"
                 tools:text="27 ноября 2025" />
 
-            <ru.whiteleaf.notes.common.classes.BackSpaceFixEditText
+            <ru.whiteleaf.notes.presentation.note_edit.RichContentEditText
                 android:id="@+id/note_edit_text"
                 style="@style/NoteEditText"
                 android:layout_width="match_parent"

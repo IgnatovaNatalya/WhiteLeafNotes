@@ -18,17 +18,24 @@ import ru.whiteleaf.notes.domain.use_case.notebooks.PinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.RenameNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.UnpinNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.CreateNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.AddColumnUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.AddRowUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.CreateTableUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.DeleteColumnUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.DeleteRowUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.FindNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNotesListUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNotesUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.InsertImageUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.InsertNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.UpdateTableCellUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.GetRecentNotesUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
@@ -89,6 +96,15 @@ val domainModule = module {
     factory { UnpinNotebookUseCase(get()) }
 
     factory { ClearScrollPositionsUseCase(get(), get()) }
+
+    // Image and Table use cases
+    factory { InsertImageUseCase(get(), get()) }
+    factory { CreateTableUseCase() }
+    factory { UpdateTableCellUseCase() }
+    factory { AddRowUseCase() }
+    factory { DeleteRowUseCase() }
+    factory { AddColumnUseCase() }
+    factory { DeleteColumnUseCase() }
 
     //interactor
     factory { SettingsInteractor(get()) }

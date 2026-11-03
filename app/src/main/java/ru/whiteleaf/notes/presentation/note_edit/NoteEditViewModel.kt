@@ -1,19 +1,27 @@
 package ru.whiteleaf.notes.presentation.note_edit
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import ru.whiteleaf.notes.domain.model.Note
+import ru.whiteleaf.notes.domain.use_case.notes.CreateTableUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.DeleteColumnUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.DeleteNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.DeleteRowUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.GetNoteUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.InsertImageUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.MoveNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.RenameNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.SaveNoteContentUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.UpdateTableCellUseCase
 import ru.whiteleaf.notes.domain.use_case.share.ShareNoteFileUseCase
 import kotlinx.coroutines.launch
+import ru.whiteleaf.notes.common.utils.TableParser
+import ru.whiteleaf.notes.common.utils.TextOrTableBlock
 import ru.whiteleaf.notes.common.utils.highlightNoteMatches
 import ru.whiteleaf.notes.domain.interactor.SettingsInteractor
 import ru.whiteleaf.notes.domain.model.Notebook
@@ -24,6 +32,8 @@ import ru.whiteleaf.notes.domain.use_case.recent.RemoveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.AddColumnUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.AddRowUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
 
 class NoteEditViewModel(
@@ -44,6 +54,13 @@ class NoteEditViewModel(
     private val saveRecentNoteUseCase: SaveRecentNoteUseCase,
     private val removeRecentNoteUseCase: RemoveRecentNoteUseCase,
     private val getNotebooksUseCase: GetNotebooksUseCase,
+    private val insertImageUseCase: InsertImageUseCase,
+    private val createTableUseCase: CreateTableUseCase,
+    private val updateTableCellUseCase: UpdateTableCellUseCase,
+    private val addRowUseCase: AddRowUseCase,
+    private val deleteRowUseCase: DeleteRowUseCase,
+    private val addColumnUseCase: AddColumnUseCase,
+    private val deleteColumnUseCase: DeleteColumnUseCase,
 ) : ViewModel() {
 
     private val _noteEditState = MutableLiveData<NoteEditState>()
@@ -475,6 +492,110 @@ class NoteEditViewModel(
                 showMessage("Ошибка удаления: ${e.message}")
             }
         }
+    }
+
+    // === Методы для изображений ===
+
+    fun insertImage(context: Context, imageUri: Uri) {
+        val note = currentNote ?: return
+        viewModelScope.launch {
+            try {
+                val updatedNote = insertImageUseCase(note, imageUri)
+                currentNote = updatedNote
+                updateNoteContent(updatedNote.content)
+            } catch (e: Exception) {
+                showMessage("Ошибка вставки изображения: ${e.message}")
+            }
+        }
+    }
+
+    // === Методы для таблиц ===
+
+    fun insertTable(context: Context, rows: Int, cols: Int) {
+        val note = currentNote ?: return
+        val table = createTableUseCase(rows, cols)
+        val markdown = table.toMarkdown()
+        val updatedNote = note.copy(content = note.content + "\n\n$markdown")
+        currentNote = updatedNote
+        updateNoteContent(updatedNote.content)
+    }
+
+    fun updateTableCell(table: ru.whiteleaf.notes.domain.model.TableBlock, row: Int, col: Int, text: String) {
+        val note = currentNote ?: return
+        val updatedTable = updateTableCellUseCase(table, row, col, text)
+        val markdown = updatedTable.toMarkdown()
+        // Заменяем старую таблицу в контенте на новую
+        val updatedContent = replaceTableInContent(note.content, markdown)
+        val updatedNote = note.copy(content = updatedContent)
+        currentNote = updatedNote
+        updateNoteContent(updatedContent)
+    }
+
+    fun addTableRow(table: ru.whiteleaf.notes.domain.model.TableBlock, rowIndex: Int = -1, isHeader: Boolean = false) {
+        val note = currentNote ?: return
+        val updatedTable = addRowUseCase(table, rowIndex, isHeader)
+        val markdown = updatedTable.toMarkdown()
+        val updatedContent = replaceTableInContent(note.content, markdown)
+        val updatedNote = note.copy(content = updatedContent)
+        currentNote = updatedNote
+        updateNoteContent(updatedContent)
+    }
+
+    fun deleteTableRow(table: ru.whiteleaf.notes.domain.model.TableBlock, rowIndex: Int) {
+        val note = currentNote ?: return
+        val updatedTable = deleteRowUseCase(table, rowIndex)
+        val markdown = updatedTable.toMarkdown()
+        val updatedContent = replaceTableInContent(note.content, markdown)
+        val updatedNote = note.copy(content = updatedContent)
+        currentNote = updatedNote
+        updateNoteContent(updatedContent)
+    }
+
+    fun addTableColumn(table: ru.whiteleaf.notes.domain.model.TableBlock, colIndex: Int = -1) {
+        val note = currentNote ?: return
+        val updatedTable = addColumnUseCase(table, colIndex)
+        val markdown = updatedTable.toMarkdown()
+        val updatedContent = replaceTableInContent(note.content, markdown)
+        val updatedNote = note.copy(content = updatedContent)
+        currentNote = updatedNote
+        updateNoteContent(updatedContent)
+    }
+
+    fun deleteTableColumn(table: ru.whiteleaf.notes.domain.model.TableBlock, colIndex: Int) {
+        val note = currentNote ?: return
+        val updatedTable = deleteColumnUseCase(table, colIndex)
+        val markdown = updatedTable.toMarkdown()
+        val updatedContent = replaceTableInContent(note.content, markdown)
+        val updatedNote = note.copy(content = updatedContent)
+        currentNote = updatedNote
+        updateNoteContent(updatedContent)
+    }
+
+    /**
+     * Заменяет таблицу в контенте на новую версию
+     */
+    private fun replaceTableInContent(content: String, newMarkdown: String): String {
+        val blocks = TableParser.splitContentIntoBlocks(content)
+        val updatedBlocks = blocks.map { block ->
+            when (block) {
+                is TextOrTableBlock.TableBlockData -> {
+                    block.copy(table = ru.whiteleaf.notes.domain.model.TableBlock(
+                        List(newMarkdown.lines().size) { rowIndex ->
+                            newMarkdown.lines()[rowIndex]
+                                .split('|')
+                                .map { cellText ->
+                                    ru.whiteleaf.notes.domain.model.TableCell(
+                                        text = cellText.trim(),
+                                        isHeader = rowIndex == 0
+                                    )
+                                }
+                        }
+                    ))
+                }
+                else -> block
+            }
+        }
+        return TableParser.reconstructContent(updatedBlocks)
     }
 
     fun saveNoteScrollPosition(scrollPosition: Int) {

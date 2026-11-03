@@ -2,6 +2,7 @@ package ru.whiteleaf.notes.presentation.note_edit
 
 import android.text.SpannableString
 import ru.whiteleaf.notes.domain.model.Note
+import ru.whiteleaf.notes.domain.model.TableBlock
 
 sealed class NoteEditState {
     object Loading : NoteEditState()
@@ -15,6 +16,15 @@ sealed class NoteEditState {
     data class Error(val message: String) : NoteEditState()
     data class Blocked(val hasUnsavedChanges: Boolean) : NoteEditState()
 }
+
+/**
+ * Состояние редактирования ячейки таблицы
+ */
+data class TableEditing(
+    val table: TableBlock,
+    val row: Int,
+    val col: Int
+)
 
 data class SearchState(
     val query: String,                      // текущий поисковый запрос

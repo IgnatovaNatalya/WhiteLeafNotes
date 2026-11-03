@@ -86,6 +86,8 @@ object ContextMenuHelper {
             createMenuItem(context, R.id.options_move_note),
             createMenuItem(context, R.id.options_share_note),
             createMenuItem(context, R.id.options_share_note_file),
+            createMenuItem(context, R.id.options_insert_image),
+            createMenuItem(context, R.id.options_insert_table),
             createMenuItem(context, R.id.options_delete_note)
         )
     }

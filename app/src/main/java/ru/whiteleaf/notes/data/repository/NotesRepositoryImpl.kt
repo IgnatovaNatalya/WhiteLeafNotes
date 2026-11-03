@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.whiteleaf.notes.common.utils.FileUtils.generateNoteId
 import ru.whiteleaf.notes.common.utils.FileUtils.sanitizeFileName
+import ru.whiteleaf.notes.common.utils.ImageStorageUtils
 import ru.whiteleaf.notes.domain.model.NoteFound
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.AuthenticationRequiredException
@@ -188,6 +189,37 @@ class NoteRepositoryImpl(
             } catch (e: Exception) {
                 Log.e("NoteRepositoryImpl", "Ошибка удаления заметки: ${e.message}")
                 throw IOException("Ошибка удаления заметки: ${e.message}")
+            }
+        }
+    }
+
+    override suspend fun deleteNoteImages(note: Note) {
+        withContext(Dispatchers.IO) {
+            try {
+                ImageStorageUtils.deleteNoteImages(context, note.id, note.notebookPath)
+            } catch (e: Exception) {
+                Log.w("NoteRepositoryImpl", "Ошибка удаления изображений заметки ${note.id}: ${e.message}")
+            }
+        }
+    }
+
+    override suspend fun renameNoteImages(oldNote: Note, newNoteId: String): Map<String, String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                ImageStorageUtils.renameNoteImages(context, oldNote.id, newNoteId, oldNote.notebookPath)
+            } catch (e: Exception) {
+                Log.w("NoteRepositoryImpl", "Ошибка переименования изображений ${oldNote.id}: ${e.message}")
+                emptyMap()
+            }
+        }
+    }
+
+    override suspend fun moveNoteImages(note: Note, targetNotebookPath: String?) {
+        withContext(Dispatchers.IO) {
+            try {
+                ImageStorageUtils.moveNoteImages(context, note.id, note.notebookPath, targetNotebookPath)
+            } catch (e: Exception) {
+                Log.w("NoteRepositoryImpl", "Ошибка перемещения изображений ${note.id}: ${e.message}")
             }
         }
     }

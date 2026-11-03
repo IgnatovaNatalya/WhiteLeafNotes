@@ -21,7 +21,15 @@ class GetSharedContentUseCase(
 
             intent.hasExtra(Intent.EXTRA_STREAM) -> {
                 val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)!!
-                loadFromUri(uri)
+                val mimeType = contentResolver.getType(uri)
+                if (mimeType?.startsWith("image/") == true) {
+                    val fileName = getFileName(uri)
+                    SharedContentResult.Success(
+                        SharedContent.ImageContent(uri, fileName ?: "image")
+                    )
+                } else {
+                    loadFromUri(uri)
+                }
             }
 
             intent.hasExtra(Intent.EXTRA_TEXT) -> {

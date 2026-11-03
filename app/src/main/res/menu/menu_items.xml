@@ -98,6 +98,12 @@
     <item android:id="@+id/options_share_note_file"
         android:title="@string/share_file" />
 
+    <item android:id="@+id/options_insert_image"
+        android:title="Вставить изображение" />
+
+    <item android:id="@+id/options_insert_table"
+        android:title="Вставить таблицу" />
+
     <item android:id="@+id/options_delete_note"
         android:title="@string/delete" />
 

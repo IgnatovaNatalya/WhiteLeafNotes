@@ -75,6 +75,7 @@ class ShareReceiverActivity : AppCompatActivity() {
                 when (content) {
                     is SharedContent.FileContent -> showContent(content.name, content.text)
                     is SharedContent.TextContent -> showContent(content.text)
+                    is SharedContent.ImageContent -> showImageContent(content)
                 }
             }.onError { message ->
                 showError(message)
@@ -144,6 +145,15 @@ class ShareReceiverActivity : AppCompatActivity() {
     }
 
     private fun showContent(sharedText: String) = showContent(null, sharedText)
+
+    private fun showImageContent(imageContent: SharedContent.ImageContent) {
+        binding.noteEditContainer.noteEditTitle.setText("Изображение")
+        binding.noteEditContainer.noteEditDate.text = formatDate(System.currentTimeMillis())
+        // Вставляем маркер изображения в контент
+        val marker = "[IMG:${imageContent.name}]"
+        binding.noteEditContainer.noteEditText.setText(marker)
+        viewModel.setImageUri(imageContent.uri)
+    }
 
     private fun showError(error: String) {
         Toast.makeText(this, error, Toast.LENGTH_SHORT).show()

@@ -11,6 +11,9 @@ interface NotesRepository {
     suspend fun getNote(noteId: String, notebookPath: String?): Note
     suspend fun saveNote(note: Note)
     suspend fun deleteNote(note: Note)
+    suspend fun deleteNoteImages(note: Note)
+    suspend fun renameNoteImages(oldNote: Note, newNoteId: String): Map<String, String>
+    suspend fun moveNoteImages(note: Note, targetNotebookPath: String?)
     suspend fun moveNote(note: Note, targetNotebookPath: String?)
     suspend fun renameNote(note: Note, newName: String): Note
     suspend fun shareNoteFile(note: Note): Uri?

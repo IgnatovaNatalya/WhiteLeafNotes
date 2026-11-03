@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.whiteleaf.notes.common.utils.ImageStorageUtils
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import ru.whiteleaf.notes.domain.repository.NotesRepository
@@ -58,8 +59,21 @@ class ImportZipNotesUseCase(
         notebookRepository.createNotebook(notebookPath)
 
         directory.listFiles()?.forEach { file ->
-            if (file.isFile && isTxtFile(file)) {
-                processNoteFile(file, notebookPath)
+            when {
+                file.isFile && isTxtFile(file) -> processNoteFile(file, notebookPath)
+                file.isDirectory && file.name == "images" -> processImagesDirectory(file, notebookPath)
+            }
+        }
+    }
+
+    private fun processImagesDirectory(imagesDir: File, notebookPath: String?) {
+        imagesDir.listFiles()?.forEach { imageFile ->
+            try {
+                val targetImageDir = ImageStorageUtils.getImageDir(context, notebookPath)
+                targetImageDir.mkdirs()
+                imageFile.copyTo(File(targetImageDir, imageFile.name), overwrite = true)
+            } catch (e: Exception) {
+                println("DEBUG: ImportZipNotesUseCase: Failed to copy image ${imageFile.name}: ${e.message}")
             }
         }
     }

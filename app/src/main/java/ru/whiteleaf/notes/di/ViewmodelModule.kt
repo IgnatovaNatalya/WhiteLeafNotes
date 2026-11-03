@@ -115,6 +115,13 @@ val viewmodelModule = module {
             saveRecentNoteUseCase = get(),
             removeRecentNoteUseCase = get(),
             getNotebooksUseCase = get(),
+            insertImageUseCase = get(),
+            createTableUseCase = get(),
+            updateTableCellUseCase = get(),
+            addRowUseCase = get(),
+            deleteRowUseCase = get(),
+            addColumnUseCase = get(),
+            deleteColumnUseCase = get(),
         )
     }
 
@@ -130,6 +137,7 @@ val viewmodelModule = module {
         ShareReceiverViewModel(
             getSharedContent = get(),
             insertNoteUseCase = get(),
+            context = get(),
         )
     }
 }
