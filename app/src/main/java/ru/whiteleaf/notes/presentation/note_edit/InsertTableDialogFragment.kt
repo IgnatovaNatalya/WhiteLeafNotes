@@ -50,7 +50,6 @@ class InsertTableDialogFragment : DialogFragment() {
 
     override fun onResume() {
         super.onResume()
-        // Закрыть диалог при тапе вне его
         dialog?.setCanceledOnTouchOutside(true)
     }
 }

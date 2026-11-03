@@ -18,7 +18,7 @@ import androidx.appcompat.widget.AppCompatEditText
 class RichContentEditText @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = androidx.appcompat.R.attr.editTextStyle
 ) : AppCompatEditText(context, attrs, defStyleAttr) {
 
     private var plainText: String = ""

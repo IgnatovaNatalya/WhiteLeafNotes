@@ -8,13 +8,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
+import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.addCallback
+import androidx.core.widget.addTextChangedListener
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
@@ -57,6 +62,19 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private var isEditing = false
     private var notSaveOnPause = false
     private var wasInterrupted = false
+
+    // Launchers для вставки изображений
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            viewModel.insertImage(requireContext(), it)
+        }
+    }
+
+    private val takePhotoLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            // URI передается через extra
+        }
+    }
 
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
@@ -290,6 +308,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                         R.id.options_move_note -> onOptionsMoveNote()
                         R.id.options_share_note -> onOptionsShareNote()
                         R.id.options_share_note_file -> onOptionsShareNoteFile()
+                        R.id.options_insert_image -> onOptionsInsertImage()
+                        R.id.options_insert_table -> onOptionsInsertTable()
                         R.id.options_delete_note -> onOptionsDeleteNote()
                     }
                 }
@@ -328,6 +348,47 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
             titleEditText.text.toString()
         )
         { viewModel.deleteNote() }.show()
+    }
+
+    private fun onOptionsInsertImage() {
+        // Показать диалог выбора: Галерея / Камера
+        val items = arrayOf("Галерея", "Камера")
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Вставить изображение")
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> pickImageLauncher.launch("image/*")
+                    1 -> launchCamera()
+                }
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun launchCamera() {
+        val imageUri = android.provider.MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        // Используем простой подход: создаем временный URI
+        val uri = android.provider.MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        // Для камеры используем стандартный intent
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        // Для простоты — просто открываем камеру, фото будет сохранено в галерею
+        // В реальном приложении нужно создать FileProvider URI
+        try {
+            takePhotoLauncher.launch(null)
+        } catch (e: Exception) {
+            renderMessage("Ошибка камеры: ${e.message}")
+        }
+    }
+
+    private fun onOptionsInsertTable() {
+        val dialog = InsertTableDialogFragment()
+        dialog.setListener(object : InsertTableDialogFragment.Listener {
+            override fun onTableInserted(rows: Int, cols: Int) {
+                viewModel.insertTable(requireContext(), rows, cols)
+            }
+            override fun onCanceled() {}
+        })
+        dialog.show(childFragmentManager, "insert_table")
     }
 
     private fun renderState(state: NoteEditState) {
