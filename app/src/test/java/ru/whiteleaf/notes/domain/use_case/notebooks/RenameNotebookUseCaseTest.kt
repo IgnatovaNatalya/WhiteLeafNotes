@@ -1,6 +1,5 @@
 package ru.whiteleaf.notes.domain.use_case.notebooks
 
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,10 +44,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should call repository renameNotebook`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(false)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(false)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -57,10 +56,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should check if notebook is protected`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(true)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -69,10 +68,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should decrypt notes when notebook is protected`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(true)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -81,10 +80,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should delete encryption key when decrypting`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(true)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -93,10 +92,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should create new encryption key when re-encrypting`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(true)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -105,10 +104,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should re-encrypt notes with new name`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(true)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -117,10 +116,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should call preferences updateNotebookPathInRecent`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(true)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -129,10 +128,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should call preferences updateNotebookPreferences`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(true)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -141,10 +140,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should not decrypt when notebook is not protected`() = runTest {
-        val oldPath = "/old/notebook"
+        val oldPath = "Old Notebook"
         val newName = "New Notebook"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(false)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(false)
 
         renameNotebookUseCase(oldPath, newName)
 
@@ -156,10 +155,10 @@ class RenameNotebookUseCaseTest {
 
     @Test
     fun `RenameNotebookUseCase should handle russian notebook name`() = runTest {
-        val oldPath = "/old"
+        val oldPath = "old"
         val newName = "Рабочие заметки"
 
-        `whenever`(encryptionRepository.hasKey(oldPath)).thenReturn(false)
+        whenever(encryptionRepository.hasKey(oldPath)).thenReturn(false)
 
         renameNotebookUseCase(oldPath, newName)
 

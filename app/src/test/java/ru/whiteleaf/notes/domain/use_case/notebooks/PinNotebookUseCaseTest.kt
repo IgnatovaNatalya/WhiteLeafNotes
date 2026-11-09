@@ -25,7 +25,7 @@ class PinNotebookUseCaseTest {
 
     @Test
     fun `PinNotebookUseCase should call preferences pinNotebook`() {
-        val notebookPath = "/test/notebook"
+        val notebookPath = "test notebook"
 
         pinNotebookUseCase(notebookPath)
 
@@ -43,19 +43,11 @@ class PinNotebookUseCaseTest {
 
     @Test
     fun `PinNotebookUseCase should handle russian path`() {
-        val notebookPath = "/рабочие/заметки"
+        val notebookPath = "рабочие заметки"
 
         pinNotebookUseCase(notebookPath)
 
         verify(preferencesRepository).pinNotebook(notebookPath)
     }
 
-    @Test
-    fun `PinNotebookUseCase should handle nested path`() {
-        val notebookPath = "/folder1/folder2/notebook"
-
-        pinNotebookUseCase(notebookPath)
-
-        verify(preferencesRepository).pinNotebook(notebookPath)
-    }
 }

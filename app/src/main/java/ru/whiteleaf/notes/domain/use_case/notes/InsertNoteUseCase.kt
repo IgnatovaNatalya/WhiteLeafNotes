@@ -24,7 +24,7 @@ class InsertNoteUseCase(private val repository: NotesRepository) {
 
         val note = Note(
             id = noteId,
-            title = noteId,
+            title = noteTitle?:"",
             content = noteContent,
             modifiedAt = System.currentTimeMillis(),
             notebookPath = notebookPath

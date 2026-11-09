@@ -14,6 +14,8 @@ import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import kotlinx.coroutines.test.runTest
+import org.mockito.Mockito
+import org.mockito.kotlin.verifyBlocking
 
 @RunWith(MockitoJUnitRunner::class)
 class DeleteNotebookByPathUseCaseTest {
@@ -33,7 +35,7 @@ class DeleteNotebookByPathUseCaseTest {
 
     @Test
     fun `DeleteNotebookUseCase should call preferences removeRecentNotesByNotebookPath`() = runTest {
-        val path = "/test/notebook"
+        val path = "notebook"
 
         deleteNotebookUseCase(path)
 
@@ -42,7 +44,7 @@ class DeleteNotebookByPathUseCaseTest {
 
     @Test
     fun `DeleteNotebookUseCase should call preferences removeNotebookPreferences`() = runTest {
-        val path = "/test/notebook"
+        val path = "notebook"
 
         deleteNotebookUseCase(path)
 
@@ -51,7 +53,7 @@ class DeleteNotebookByPathUseCaseTest {
 
     @Test
     fun `DeleteNotebookUseCase should call repository deleteNotebook when notebook exists`() = runTest {
-        val path = "/test/notebook"
+        val path = "notebook"
         val notebook = Notebook(path, System.currentTimeMillis())
 
         `whenever`(notebookRepository.getNotebookByPath(path)).thenReturn(notebook)
@@ -63,19 +65,20 @@ class DeleteNotebookByPathUseCaseTest {
 
     @Test
     fun `DeleteNotebookUseCase should not delete when notebook not found`() = runTest {
-        val path = "/nonexistent"
+        val path = "nonexistent"
 
         `whenever`(notebookRepository.getNotebookByPath(path)).thenReturn(null)
 
         deleteNotebookUseCase(path)
 
-        verify(notebookRepository, never()).deleteNotebook(any())
+        //verifyBlocking(notebookRepository, never()) { deleteNotebook(any()) }
+        verify(notebookRepository, never()).deleteNotebook(any<Notebook>())
     }
 
     @Test
     fun `DeleteNotebookUseCase should call repository renameNotebook`() = runTest {
-        val oldPath = "/old/notebook"
-        val newPath = "/new/notebook"
+        val oldPath = "old notebook"
+
         val notebook = Notebook(oldPath, System.currentTimeMillis())
 
         `whenever`(notebookRepository.getNotebookByPath(oldPath)).thenReturn(notebook)
@@ -87,7 +90,7 @@ class DeleteNotebookByPathUseCaseTest {
 
     @Test
     fun `DeleteNotebookUseCase should handle russian notebook path`() = runTest {
-        val path = "/рабочие/заметки"
+        val path = "рабочие заметки"
 
         `whenever`(notebookRepository.getNotebookByPath(path)).thenReturn(null)
 

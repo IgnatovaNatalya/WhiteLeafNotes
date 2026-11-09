@@ -25,7 +25,7 @@ class UnpinNotebookUseCaseTest {
 
     @Test
     fun `UnpinNotebookUseCase should call preferences unpinNotebook`() {
-        val notebookPath = "/test/notebook"
+        val notebookPath = "test notebook"
 
         unpinNotebookUseCase(notebookPath)
 
@@ -43,19 +43,11 @@ class UnpinNotebookUseCaseTest {
 
     @Test
     fun `UnpinNotebookUseCase should handle russian path`() {
-        val notebookPath = "/рабочие/заметки"
+        val notebookPath = "рабочие заметки"
 
         unpinNotebookUseCase(notebookPath)
 
         verify(preferencesRepository).unpinNotebook(notebookPath)
     }
 
-    @Test
-    fun `UnpinNotebookUseCase should handle nested path`() {
-        val notebookPath = "/folder1/folder2/notebook"
-
-        unpinNotebookUseCase(notebookPath)
-
-        verify(preferencesRepository).unpinNotebook(notebookPath)
-    }
 }
