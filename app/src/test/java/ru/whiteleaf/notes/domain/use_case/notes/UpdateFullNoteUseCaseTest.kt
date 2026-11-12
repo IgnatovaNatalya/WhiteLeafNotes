@@ -10,8 +10,6 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.eq
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
@@ -39,7 +37,7 @@ class UpdateFullNoteUseCaseTest {
         val newTitle = "New Title"
         val newContent = "New Content"
 
-        `whenever`(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle))
+        whenever(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle))
 
         updateFullNoteUseCase(oldNote, newTitle, newContent)
 
@@ -54,7 +52,7 @@ class UpdateFullNoteUseCaseTest {
 
         updateFullNoteUseCase(oldNote, title, content)
 
-        verify(repository, never()).renameNote(any(), any())
+        verify(repository, never()).renameNote(oldNote, title)
     }
 
     @Test
@@ -62,12 +60,13 @@ class UpdateFullNoteUseCaseTest {
         val oldNote = Note("note_123", "Old Title", "Old Content", System.currentTimeMillis())
         val newTitle = "New Title"
         val newContent = "New Content"
+        val newNote = oldNote.copy(title = newTitle, content = newContent)
 
-        `whenever`(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle, content = newContent))
+        whenever(repository.renameNote(oldNote, newTitle)).thenReturn(newNote)
 
         updateFullNoteUseCase(oldNote, newTitle, newContent)
 
-        verify(repository).saveNote(any())
+        verify(repository).saveNote(newNote)
     }
 
     @Test
@@ -75,12 +74,13 @@ class UpdateFullNoteUseCaseTest {
         val oldNote = Note("note_123", "Old Title", "Old Content", System.currentTimeMillis())
         val newTitle = "New Title"
         val newContent = "New Content"
+        val newNote = oldNote.copy(title = newTitle, content = newContent)
 
-        `whenever`(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle, content = newContent))
+        whenever(repository.renameNote(oldNote, newTitle)).thenReturn(newNote)
 
         updateFullNoteUseCase(oldNote, newTitle, newContent)
 
-        verify(preferencesRepository).updateRecentEntry(eq(oldNote), any())
+        verify(preferencesRepository).updateRecentEntry(oldNote, newNote)
     }
 
     @Test
@@ -90,7 +90,7 @@ class UpdateFullNoteUseCaseTest {
         val newContent = "New Content"
         val updatedNote = oldNote.copy(title = newTitle, content = newContent)
 
-        `whenever`(repository.renameNote(oldNote, newTitle)).thenReturn(updatedNote)
+        whenever(repository.renameNote(oldNote, newTitle)).thenReturn(updatedNote)
 
         val result = updateFullNoteUseCase(oldNote, newTitle, newContent)
 
@@ -114,7 +114,7 @@ class UpdateFullNoteUseCaseTest {
         val newTitle = "New Title"
         val newContent = "New Content"
 
-        `whenever`(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle, content = newContent))
+        whenever(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle, content = newContent))
 
         val result = updateFullNoteUseCase(oldNote, newTitle, newContent)
 
@@ -123,14 +123,14 @@ class UpdateFullNoteUseCaseTest {
 
     @Test
     fun `UpdateFullNoteUseCase should preserve notebook path when updating`() = runTest {
-        val oldNote = Note("note_123", "Old Title", "Old Content", System.currentTimeMillis(), "/test/notebook")
+        val oldNote = Note("note_123", "Old Title", "Old Content", System.currentTimeMillis(), "test notebook")
         val newTitle = "New Title"
         val newContent = "New Content"
 
-        `whenever`(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle, content = newContent))
+        whenever(repository.renameNote(oldNote, newTitle)).thenReturn(oldNote.copy(title = newTitle, content = newContent))
 
         val result = updateFullNoteUseCase(oldNote, newTitle, newContent)
 
-        assertEquals("/test/notebook", result.notebookPath)
+        assertEquals("test notebook", result.notebookPath)
     }
 }
