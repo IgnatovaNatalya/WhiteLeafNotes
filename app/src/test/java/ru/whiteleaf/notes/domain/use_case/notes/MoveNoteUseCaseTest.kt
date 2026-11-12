@@ -1,22 +1,19 @@
 package ru.whiteleaf.notes.domain.use_case.notes
 
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.argThat
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.eq
 import ru.whiteleaf.notes.domain.model.Note
 import ru.whiteleaf.notes.domain.repository.NotesRepository
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import kotlinx.coroutines.test.runTest
+import org.mockito.ArgumentMatchers.anyString
 
 @RunWith(MockitoJUnitRunner::class)
 class MoveNoteUseCaseTest {
@@ -36,56 +33,81 @@ class MoveNoteUseCaseTest {
 
     @Test
     fun `MoveNoteUseCase should call repository moveNote`() = runTest {
-        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "/old/path")
+        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "old path")
 
-        moveNoteUseCase(note, "/new/path")
+        moveNoteUseCase(note, "new path")
 
-        verify(repository).moveNote(note, "/new/path")
+        verify(repository).moveNote(note, "new path")
     }
 
     @Test
     fun `MoveNoteUseCase should call preferences saveRecentNote when update fails`() = runTest {
-        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "/old/path")
+        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "old path")
 
-        `whenever`(preferencesRepository.updateRecentNoteNotebookPath("note_123", "/old/path", "/new/path"))
+        whenever(
+            preferencesRepository.updateRecentNoteNotebookPath(
+                "note_123",
+                "old path",
+                "new path"
+            )
+        )
             .thenReturn(false)
 
-        moveNoteUseCase(note, "/new/path")
+        moveNoteUseCase(note, "new path")
 
-        verify(preferencesRepository).saveRecentNote(argThat { notebookPath == "/new/path" })
+        verify(preferencesRepository).saveRecentNote(argThat { notebookPath == "new path" })
     }
 
     @Test
     fun `MoveNoteUseCase should call preferences updateNoteScrollPosition`() = runTest {
-        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "/old/path")
+        val oldNote = Note("note_123", "Title", "Content", System.currentTimeMillis(), "old path")
+        val newNote = oldNote.copy(notebookPath = "new path")
 
-        `whenever`(preferencesRepository.updateRecentNoteNotebookPath(any(), any(), any())).thenReturn(true)
+        whenever(
+            preferencesRepository.updateRecentNoteNotebookPath(
+                anyString(),
+                anyString(),
+                anyString()
+            )
+        ).thenReturn(true)
 
-        moveNoteUseCase(note, "/new/path")
+        moveNoteUseCase(oldNote, "new path")
 
-        verify(preferencesRepository).updateNoteScrollPosition(eq(note), any())
+        verify(preferencesRepository).updateNoteScrollPosition(oldNote, newNote)
     }
 
     @Test
     fun `MoveNoteUseCase should handle null target notebook path`() = runTest {
-        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "/old/path")
+        val oldNote = Note("note_123", "Title", "Content", System.currentTimeMillis(), "old path")
 
-        `whenever`(preferencesRepository.updateRecentNoteNotebookPath(any(), any(), isNull())).thenReturn(false)
+        whenever(
+            preferencesRepository.updateRecentNoteNotebookPath(
+                oldNote.id,
+                oldNote.notebookPath,
+                null
+            )
+        ).thenReturn(false)
 
-        moveNoteUseCase(note, null)
+        moveNoteUseCase(oldNote, null)
 
-        verify(repository).moveNote(note, null)
+        verify(repository).moveNote(oldNote, null)
     }
 
     @Test
     fun `MoveNoteUseCase should not call saveRecentNote when update succeeds`() = runTest {
-        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "/old/path")
-
-        `whenever`(preferencesRepository.updateRecentNoteNotebookPath("note_123", "/old/path", "/new/path"))
+        val note = Note("note_123", "Title", "Content", System.currentTimeMillis(), "old path")
+        val newNote = note.copy(notebookPath = "new path")
+        whenever(
+            preferencesRepository.updateRecentNoteNotebookPath(
+                "note_123",
+                "old path",
+                "new path"
+            )
+        )
             .thenReturn(true)
 
-        moveNoteUseCase(note, "/new/path")
+        moveNoteUseCase(note, "new path")
 
-        verify(preferencesRepository, never()).saveRecentNote(any())
+        verify(preferencesRepository, never()).saveRecentNote(newNote)
     }
 }
