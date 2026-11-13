@@ -1,12 +1,11 @@
 package ru.whiteleaf.notes.domain.use_case.notes
 
-import org.junit.Assert.*
+
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import ru.whiteleaf.notes.domain.model.Note
@@ -41,7 +40,7 @@ class UpdateNoteDateUseCaseTest {
         val note = Note("note_123", "Title", "Content", System.currentTimeMillis())
         val newDate = 9876543210L
 
-        `whenever`(repository.updateNoteDate(note, newDate)).then { null }
+        whenever(repository.updateNoteDate(note, newDate)).then { null }
 
         updateNoteDateUseCase(note, newDate)
 

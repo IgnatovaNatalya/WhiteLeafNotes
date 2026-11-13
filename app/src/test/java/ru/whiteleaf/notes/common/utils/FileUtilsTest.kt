@@ -4,8 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.Before
-import java.util.concurrent.TimeUnit
 
 class FileUtilsTest {
 
@@ -169,6 +167,7 @@ class FileUtilsTest {
     @Test
     fun `generateNoteId should generate multiple unique ids`() {
         val ids = (1..100).map {
+            Thread.sleep((1..3).random().toLong())
             FileUtils.generateNoteId()
         }
         val uniqueIds = ids.distinct()

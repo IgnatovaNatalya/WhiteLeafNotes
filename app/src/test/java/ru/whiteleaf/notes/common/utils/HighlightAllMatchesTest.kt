@@ -53,7 +53,7 @@ class HighlightAllMatchesTest {
         val query = "hello"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, ignoreCase = false)
+        val (_, matches) = highlightAllMatches(text, query, color, ignoreCase = false)
 
         assertEquals(1, matches.size)
         assertEquals(12 to 17, matches[0])
@@ -65,7 +65,7 @@ class HighlightAllMatchesTest {
         val query = "hello"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color)
+        val (_, matches) = highlightAllMatches(text, query, color)
 
         assertEquals(3, matches.size)
     }
@@ -76,7 +76,7 @@ class HighlightAllMatchesTest {
         val query = "aa"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         // Should find non-overlapping matches: positions 0-2 and 2-4
         assertEquals(2, matches.size)
@@ -88,7 +88,7 @@ class HighlightAllMatchesTest {
         val query = "brown"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
         assertEquals(10 to 15, matches[0])
@@ -100,7 +100,7 @@ class HighlightAllMatchesTest {
         val query = "Hello"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
         assertEquals(0 to 5, matches[0])
@@ -112,7 +112,7 @@ class HighlightAllMatchesTest {
         val query = "World"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
         assertEquals(6 to 11, matches[0])
@@ -124,7 +124,7 @@ class HighlightAllMatchesTest {
         val query = "Hello"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
         assertEquals(0 to 5, matches[0])
@@ -148,7 +148,7 @@ class HighlightAllMatchesTest {
         val query = "o"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(2, matches.size)
     }
@@ -159,7 +159,7 @@ class HighlightAllMatchesTest {
         val query = "Line"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(3, matches.size)
     }
@@ -170,7 +170,7 @@ class HighlightAllMatchesTest {
         val query = "привет"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, ignoreCase = true)
+        val (_, matches) = highlightAllMatches(text, query, color, ignoreCase = true)
 
         assertEquals(2, matches.size)
     }
@@ -181,7 +181,7 @@ class HighlightAllMatchesTest {
         val query = "привет"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, ignoreCase = true)
+        val (_, matches) = highlightAllMatches(text, query, color, ignoreCase = true)
 
         assertEquals(2, matches.size)
     }
@@ -192,7 +192,7 @@ class HighlightAllMatchesTest {
         val query = "World"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (spannable, _) = highlightAllMatches(text, query, color, true)
 
         assertNotNull(spannable)
         assertEquals(text, spannable.toString())
@@ -216,7 +216,7 @@ class HighlightAllMatchesTest {
         val query = "World"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
         assertEquals(8 to 13, matches[0])
@@ -228,7 +228,7 @@ class HighlightAllMatchesTest {
         val query = "123"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
     }
@@ -252,7 +252,7 @@ class HighlightAllMatchesTest {
         val query = "test"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(2, matches.size)
         assertEquals(0 to 4, matches[0])
@@ -265,7 +265,7 @@ class HighlightAllMatchesTest {
         val query = "World"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
     }
@@ -276,7 +276,7 @@ class HighlightAllMatchesTest {
         val query = "Hello"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
         assertEquals(0 to 5, matches[0])
@@ -291,7 +291,7 @@ class HighlightAllMatchesTest {
         val (spannable, matches) = highlightAllMatches(text, query, color, true)
 
         // Should find non-overlapping matches
-        assertTrue(matches.size > 0)
+        assertTrue(matches.isNotEmpty())
         assertEquals(text, spannable.toString())
     }
 
@@ -313,7 +313,7 @@ class HighlightAllMatchesTest {
         val query = "   "
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertEquals(1, matches.size)
     }
@@ -324,7 +324,7 @@ class HighlightAllMatchesTest {
         val query = "test"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         assertTrue(matches is List<Pair<Int, Int>>)
     }
@@ -335,7 +335,7 @@ class HighlightAllMatchesTest {
         val query = "Hello"
         val color = 0xFFFF0000.toInt()
 
-        val (spannable, matches) = highlightAllMatches(text, query, color, true)
+        val (_, matches) = highlightAllMatches(text, query, color, true)
 
         matches.forEach { (start, end) ->
             assertTrue(start >= 0)
