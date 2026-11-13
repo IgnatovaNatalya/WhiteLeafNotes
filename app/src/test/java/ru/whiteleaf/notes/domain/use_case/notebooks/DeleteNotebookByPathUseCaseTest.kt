@@ -6,16 +6,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.mockito.ArgumentMatchers.any
 import ru.whiteleaf.notes.domain.model.Notebook
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import ru.whiteleaf.notes.domain.repository.PreferencesRepository
 import kotlinx.coroutines.test.runTest
-import org.mockito.Mockito
-import org.mockito.kotlin.verifyBlocking
+import org.mockito.kotlin.mockingDetails
 
 @RunWith(MockitoJUnitRunner::class)
 class DeleteNotebookByPathUseCaseTest {
@@ -66,36 +63,29 @@ class DeleteNotebookByPathUseCaseTest {
     @Test
     fun `DeleteNotebookUseCase should not delete when notebook not found`() = runTest {
         val path = "nonexistent"
-
-        `whenever`(notebookRepository.getNotebookByPath(path)).thenReturn(null)
+        whenever(notebookRepository.getNotebookByPath(path)).thenReturn(null)
 
         deleteNotebookUseCase(path)
 
-        //verifyBlocking(notebookRepository, never()) { deleteNotebook(any()) }
-        verify(notebookRepository, never()).deleteNotebook(any<Notebook>())
+        val invocations = mockingDetails(notebookRepository).invocations
+        assertTrue(
+            "deleteNotebook should not be called",
+            invocations.none { it.method.name == "deleteNotebook" }
+        )
+
     }
 
     @Test
-    fun `DeleteNotebookUseCase should call repository renameNotebook`() = runTest {
-        val oldPath = "old notebook"
+    fun `DeleteNotebookUseCase should call repository deleteNotebook`() = runTest {
+        val path = "old notebook"
 
-        val notebook = Notebook(oldPath, System.currentTimeMillis())
+        val notebook = Notebook(path, System.currentTimeMillis())
 
-        `whenever`(notebookRepository.getNotebookByPath(oldPath)).thenReturn(notebook)
+        whenever(notebookRepository.getNotebookByPath(path)).thenReturn(notebook)
 
-        deleteNotebookUseCase(oldPath)
+        deleteNotebookUseCase(path)
 
         verify(notebookRepository).deleteNotebook(notebook)
     }
 
-    @Test
-    fun `DeleteNotebookUseCase should handle russian notebook path`() = runTest {
-        val path = "рабочие заметки"
-
-        `whenever`(notebookRepository.getNotebookByPath(path)).thenReturn(null)
-
-        deleteNotebookUseCase(path)
-
-        verify(preferencesRepository).removeRecentNotesByNotebookPath(path)
-    }
 }

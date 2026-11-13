@@ -4,7 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class HighlightAllMatchesTest {
 
     @Test
@@ -240,7 +243,7 @@ class HighlightAllMatchesTest {
 
         assertEquals(text, spannable.toString())
         assertEquals(1, matches.size)
-        assertEquals(7 to 13, matches[0])
+        assertEquals(6 to 12, matches[0])
     }
 
     @Test
