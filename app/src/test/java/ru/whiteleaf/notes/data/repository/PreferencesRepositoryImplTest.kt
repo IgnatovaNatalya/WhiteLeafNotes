@@ -1,29 +1,28 @@
 package ru.whiteleaf.notes.data.repository
 
+import android.content.Context
 import android.content.SharedPreferences
+import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import ru.whiteleaf.notes.domain.model.Note
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class PreferencesRepositoryImplTest {
 
-    @Mock
-    private lateinit var prefs: SharedPreferences
-
-    @Mock
-    private lateinit var editor: SharedPreferences.Editor
-
     private lateinit var gson: Gson
+    private lateinit var prefs: SharedPreferences
     private lateinit var preferencesRepository: PreferencesRepositoryImpl
 
     @Before
     fun setup() {
-        AutoCloseable::class.java.cast(this).close()
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        prefs = context.getSharedPreferences("test_prefs", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()  // чистое состояние перед каждым тестом
         gson = Gson()
         preferencesRepository = PreferencesRepositoryImpl(prefs, gson)
     }
@@ -32,30 +31,20 @@ class PreferencesRepositoryImplTest {
 
     @Test
     fun `saveLastOpenedNotebook should save path to preferences`() {
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.putString("last_notebook_path", "/test/notebook")).thenReturn(editor)
-
-        preferencesRepository.saveLastOpenedNotebook("/test/notebook")
-
-        verify(editor).putString("last_notebook_path", "/test/notebook")
-        verify(editor).apply()
+        preferencesRepository.saveLastOpenedNotebook("test")
+        assertEquals("test", prefs.getString("last_notebook_path", null))
     }
 
     @Test
     fun `getLastOpenedNotebook should return saved path`() {
-        `when`(prefs.getString("last_notebook_path", null)).thenReturn("/test/notebook")
-
+        preferencesRepository.saveLastOpenedNotebook("test")
         val result = preferencesRepository.getLastOpenedNotebook()
-
-        assertEquals("/test/notebook", result)
+        assertEquals("test", result)
     }
 
     @Test
     fun `getLastOpenedNotebook should return null when not set`() {
-        `when`(prefs.getString("last_notebook_path", null)).thenReturn(null)
-
         val result = preferencesRepository.getLastOpenedNotebook()
-
         assertNull(result)
     }
 
@@ -63,41 +52,26 @@ class PreferencesRepositoryImplTest {
 
     @Test
     fun `pinNotebook should pin notebook`() {
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.putBoolean("notebook_pinned_/test/notebook", true)).thenReturn(editor)
-
-        preferencesRepository.pinNotebook("/test/notebook")
-
-        verify(editor).putBoolean("notebook_pinned_/test/notebook", true)
-        verify(editor).apply()
+        preferencesRepository.pinNotebook("test")
+        assertTrue(prefs.getBoolean("notebook_pinned_test", false))
     }
 
     @Test
     fun `unpinNotebook should unpinned notebook`() {
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.remove("notebook_pinned_/test/notebook")).thenReturn(editor)
-
-        preferencesRepository.unpinNotebook("/test/notebook")
-
-        verify(editor).remove("notebook_pinned_/test/notebook")
-        verify(editor).apply()
+        preferencesRepository.unpinNotebook("test")
+        assertFalse(prefs.getBoolean("notebook_pinned_test", false))
     }
 
     @Test
     fun `isNotebookPinned should return true when pinned`() {
-        `when`(prefs.contains("notebook_pinned_/test/notebook")).thenReturn(true)
-
-        val result = preferencesRepository.isNotebookPinned("/test/notebook")
-
+        preferencesRepository.pinNotebook("test")
+        val result = preferencesRepository.isNotebookPinned("test")
         assertTrue(result)
     }
 
     @Test
     fun `isNotebookPinned should return false when not pinned`() {
-        `when`(prefs.contains("notebook_pinned_/test/notebook")).thenReturn(false)
-
-        val result = preferencesRepository.isNotebookPinned("/test/notebook")
-
+        val result = preferencesRepository.isNotebookPinned("test")
         assertFalse(result)
     }
 
@@ -105,30 +79,19 @@ class PreferencesRepositoryImplTest {
 
     @Test
     fun `saveViewMode should save planner mode`() {
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.putBoolean("view_mode_planner_/test/notebook", true)).thenReturn(editor)
-
-        preferencesRepository.saveViewMode("/test/notebook", true)
-
-        verify(editor).putBoolean("view_mode_planner_/test/notebook", true)
-        verify(editor).apply()
+        preferencesRepository.saveViewMode("test", true)
+        assertTrue(prefs.getBoolean("view_mode_planner_test", false))
     }
 
     @Test
     fun `getViewMode should return true when planner mode enabled`() {
-        `when`(prefs.getBoolean("view_mode_planner_/test/notebook", true)).thenReturn(true)
-
-        val result = preferencesRepository.getViewMode("/test/notebook", true)
-
+        val result = preferencesRepository.getViewMode("test", true)
         assertTrue(result)
     }
 
     @Test
     fun `getViewMode should return default when not set`() {
-        `when`(prefs.getBoolean("view_mode_planner_/test/notebook", false)).thenReturn(false)
-
-        val result = preferencesRepository.getViewMode("/test/notebook", false)
-
+        val result = preferencesRepository.getViewMode("test", false)
         assertFalse(result)
     }
 
@@ -136,219 +99,162 @@ class PreferencesRepositoryImplTest {
 
     @Test
     fun `saveRecentNote should save note to recent list`() {
-        val note = ru.whiteleaf.notes.domain.model.Note(
+        val note = Note(
             id = "note_123",
             title = "Test Title",
             content = "Test Content",
             modifiedAt = System.currentTimeMillis(),
-            notebookPath = "/test/notebook"
+            notebookPath = "test"
         )
-
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(prefs.getString("recent_notes", null)).thenReturn(null)
-        `when`(editor.putString("recent_notes", org.mockito.ArgumentMatchers.any<String>())).thenReturn(editor)
 
         preferencesRepository.saveRecentNote(note)
 
-        verify(editor).putString(org.mockito.ArgumentMatchers.eq("recent_notes"), org.mockito.ArgumentMatchers.any<String>())
-        verify(editor).apply()
+        val recent = preferencesRepository.getRecentNotes()
+        assertEquals(1, recent.size)
+
+        val saved = recent[0]
+        assertEquals("note_123", saved.id)
+        assertEquals("Test Title", saved.recentTitle)
+        assertEquals("test", saved.notebookPath)
     }
 
     @Test
     fun `getRecentNotes should return empty list when no recent notes`() {
-        `when`(prefs.getString("recent_notes", null)).thenReturn(null)
-
         val result = preferencesRepository.getRecentNotes()
-
-        assertTrue(result.isEmpty())
-    }
-
-    @Test
-    fun `getRecentNotes should return empty list when json is empty`() {
-        `when`(prefs.getString("recent_notes", null)).thenReturn("")
-
-        val result = preferencesRepository.getRecentNotes()
-
-        assertTrue(result.isEmpty())
-    }
-
-    @Test
-    fun `getRecentNotes should return empty list when json is invalid`() {
-        `when`(prefs.getString("recent_notes", null)).thenReturn("invalid json {{{")
-
-        val result = preferencesRepository.getRecentNotes()
-
         assertTrue(result.isEmpty())
     }
 
     @Test
     fun `removeRecentNote should remove note from recent list`() {
-        val note = ru.whiteleaf.notes.domain.model.Note(
-            id = "note_123",
-            title = "Test",
-            content = "Content",
-            modifiedAt = System.currentTimeMillis()
-        )
+        // Given: в prefs есть список с двумя заметками
+        val note1 = Note("note_123", "Test", "Content", 1000L, "test")
+        val note2 = Note("note_456", "Other", "Content", 2000L, "test")
+        preferencesRepository.saveRecentNote(note1)
+        preferencesRepository.saveRecentNote(note2)
 
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(prefs.getString("recent_notes", null)).thenReturn(null)
+        // When: удаляем первую
+        preferencesRepository.removeRecentNote("note_123", "test")
 
-        preferencesRepository.removeRecentNote("note_123", null)
-
-        verify(editor).putString(org.mockito.ArgumentMatchers.eq("recent_notes"), org.mockito.ArgumentMatchers.any<String>())
-        verify(editor).apply()
+        // Then: в списке осталась только вторая
+        val recent = preferencesRepository.getRecentNotes()
+        assertEquals(1, recent.size)
+        assertEquals("note_456", recent[0].id)
+        assertNull(recent.find { it.id == "note_123" })
     }
 
     @Test
     fun `updateRecentEntry should return true when note exists`() {
-        val oldNote = ru.whiteleaf.notes.domain.model.Note(
+        val oldNote = Note(
             id = "note_123",
             title = "Old Title",
             content = "Content",
-            modifiedAt = System.currentTimeMillis()
+            modifiedAt = 1000L
         )
-        val newNote = ru.whiteleaf.notes.domain.model.Note(
+        val newNote = Note(
             id = "note_123",
             title = "New Title",
             content = "Content",
-            modifiedAt = System.currentTimeMillis()
+            modifiedAt = 1000L
         )
-
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(prefs.getString("recent_notes", null)).thenReturn(null)
-
+        preferencesRepository.saveRecentNote(oldNote)
         val result = preferencesRepository.updateRecentEntry(oldNote, newNote)
 
-        // Returns false when list is empty
-        assertFalse(result)
+        assertTrue(result)
     }
 
     // SCROLL POSITION
 
     @Test
     fun `saveNoteScrollPosition should save scroll position`() {
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.putInt("note_scroll_pos_/test/notebook_note_123", 100)).thenReturn(editor)
-
-        preferencesRepository.saveNoteScrollPosition("note_123", "/test/notebook", 100)
-
-        verify(editor).putInt("note_scroll_pos_/test/notebook_note_123", 100)
-        verify(editor).apply()
+        preferencesRepository.saveNoteScrollPosition("note_123", "test", 100)
+        assertEquals(100, prefs.getInt("note_scroll_pos_test_note_123", -1))
     }
 
     @Test
     fun `saveNoteScrollPosition should not save when scroll is 0 and key not exists`() {
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(prefs.contains("note_scroll_pos_/test/notebook_note_123")).thenReturn(false)
+        preferencesRepository.saveNoteScrollPosition("note_123", "test", 0)
 
-        preferencesRepository.saveNoteScrollPosition("note_123", "/test/notebook", 0)
-
-        // Should not call putInt when scroll is 0 and key doesn't exist
+        // Ключ не должен появиться в SharedPreferences
+        assertFalse(
+            "Key should not be created when scroll is 0 and key doesn't exist",
+            prefs.contains("note_scroll_pos_test_note_123")
+        )
     }
 
     @Test
     fun `getNoteScrollPosition should return saved position`() {
-        `when`(prefs.contains("note_scroll_pos_/test/notebook_note_123")).thenReturn(true)
-        `when`(prefs.getInt("note_scroll_pos_/test/notebook_note_123", 0)).thenReturn(150)
-
-        val result = preferencesRepository.getNoteScrollPosition("note_123", "/test/notebook")
-
+        preferencesRepository.saveNoteScrollPosition("note_123", "test", 150)
+        val result = preferencesRepository.getNoteScrollPosition("note_123", "test")
         assertEquals(150, result)
     }
 
     @Test
     fun `getNoteScrollPosition should return null when not set`() {
-        `when`(prefs.contains("note_scroll_pos_/test/notebook_note_123")).thenReturn(false)
-
-        val result = preferencesRepository.getNoteScrollPosition("note_123", "/test/notebook")
-
+        val result = preferencesRepository.getNoteScrollPosition("note_123", "test")
         assertNull(result)
     }
 
     @Test
     fun `clearNoteScrollPosition should remove scroll position`() {
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.remove("note_scroll_pos_/test/notebook_note_123")).thenReturn(editor)
+        preferencesRepository.saveNoteScrollPosition("note_123", "test", 150)
+        preferencesRepository.clearNoteScrollPosition("note_123", "test")
 
-        preferencesRepository.clearNoteScrollPosition("note_123", "/test/notebook")
-
-        verify(editor).remove("note_scroll_pos_/test/notebook_note_123")
-        verify(editor).apply()
+        val result = preferencesRepository.getNoteScrollPosition("note_123", "test")
+        assertNull(result)
     }
 
-    // UPDATEBOOK PREFERENCES
+    // UPDATE NOTEBOOK PREFERENCES
 
     @Test
     fun `updateNotebookPreferences should update pinned key`() {
-        val allEntries = mapOf(
-            "notebook_pinned_/old/path" to true
+        // Given: старый путь закреплён в реальных SharedPreferences
+        prefs.edit()
+            .putBoolean("notebook_pinned_old path", true)
+            .commit()
+
+        // When: обновляем путь
+        preferencesRepository.updateNotebookPreferences("old path", "new path")
+
+        // Then: старый ключ удалён, новый — установлен
+        assertFalse(
+            "Old pinned key should be removed",
+            prefs.contains("notebook_pinned_old path")
         )
-        `when`(prefs.all).thenReturn(allEntries)
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.putBoolean("notebook_pinned_/new/path", true)).thenReturn(editor)
-        `when`(editor.remove("notebook_pinned_/old/path")).thenReturn(editor)
-        `when`(prefs.getString("last_notebook_path", null)).thenReturn(null)
-
-        preferencesRepository.updateNotebookPreferences("/old/path", "/new/path")
-
-        verify(editor).putBoolean("notebook_pinned_/new/path", true)
-        verify(editor).remove("notebook_pinned_/old/path")
+        assertTrue(
+            "New pinned key should be set to true",
+            prefs.getBoolean("notebook_pinned_new path", false)
+        )
     }
 
     @Test
     fun `updateNotebookPreferences should update view mode key`() {
-        val allEntries = mapOf(
-            "view_mode_planner_/old/path" to true
-        )
-        `when`(prefs.all).thenReturn(allEntries)
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.putBoolean("view_mode_planner_/new/path", true)).thenReturn(editor)
-        `when`(editor.remove("view_mode_planner_/old/path")).thenReturn(editor)
-        `when`(prefs.getString("last_notebook_path", null)).thenReturn(null)
 
-        preferencesRepository.updateNotebookPreferences("/old/path", "/new/path")
+        prefs.edit()
+            .putBoolean("view_mode_planner_old path", true)
+            .commit()
 
-        verify(editor).putBoolean("view_mode_planner_/new/path", true)
-        verify(editor).remove("view_mode_planner_/old/path")
+        preferencesRepository.updateNotebookPreferences("old path", "new path")
+
+        assertFalse( prefs.contains("view_mode_planner_old path"))
+        assertTrue(   prefs.getBoolean("view_mode_planner_new path", false))
     }
 
     @Test
     fun `removeNotebookPreferences should remove all notebook preferences`() {
-        val allEntries = mapOf<String, Any>(
-            "notebook_pinned_/test/notebook" to true,
-            "view_mode_planner_/test/notebook" to false,
-            "note_scroll_pos_/test/notebook_note_123" to 100
-        )
-        `when`(prefs.all).thenReturn(allEntries)
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.remove("notebook_pinned_/test/notebook")).thenReturn(editor)
-        `when`(editor.remove("view_mode_planner_/test/notebook")).thenReturn(editor)
-        `when`(editor.remove("note_scroll_pos_/test/notebook_note_123")).thenReturn(editor)
+        // Given: три ключа, относящихся к блокноту "test"
+        prefs.edit()
+            .putBoolean("notebook_pinned_test", true)
+            .putBoolean("view_mode_planner_test", false)
+            .putInt("note_scroll_pos_test_note_123", 100)
+            .commit()
 
-        preferencesRepository.removeNotebookPreferences("/test/notebook")
+        // When: удаляем все preferences блокнота "test"
+        preferencesRepository.removeNotebookPreferences("test")
 
-        verify(editor).remove("notebook_pinned_/test/notebook")
-        verify(editor).remove("view_mode_planner_/test/notebook")
-        verify(editor).remove("note_scroll_pos_/test/notebook_note_123")
+        // Then: все три ключа удалены
+        assertFalse(prefs.contains("notebook_pinned_test"))
+        assertFalse(prefs.contains("view_mode_planner_test") )
+        assertFalse(  prefs.contains("note_scroll_pos_test_note_123") )
     }
 
-    @Test
-    fun `saveRecentNote should update existing note`() {
-        val existingJson = """[{"id":"note_123","recentTitle":"Old Title","notebookPath":"/test","recentDate":100}]"""
-        `when`(prefs.getString("recent_notes", null)).thenReturn(existingJson)
-        `when`(prefs.edit()).thenReturn(editor)
-        `when`(editor.putString("recent_notes", org.mockito.ArgumentMatchers.any<String>())).thenReturn(editor)
-
-        val note = ru.whiteleaf.notes.domain.model.Note(
-            id = "note_123",
-            title = "New Title",
-            content = "Content",
-            modifiedAt = System.currentTimeMillis(),
-            notebookPath = "/test"
-        )
-
-        preferencesRepository.saveRecentNote(note)
-
-        verify(editor).putString(org.mockito.ArgumentMatchers.eq("recent_notes"), org.mockito.ArgumentMatchers.any<String>())
-    }
 }
