@@ -8,7 +8,6 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.mockito.ArgumentMatchers.any
 import ru.whiteleaf.notes.domain.repository.EncryptionRepository
 import ru.whiteleaf.notes.domain.repository.NotebookRepository
 import ru.whiteleaf.notes.domain.repository.NotesRepository
@@ -81,11 +80,11 @@ class RenameNotebookUseCaseTest {
     @Test
     fun `RenameNotebookUseCase should delete encryption key when decrypting`() = runTest {
         val oldPath = "Old Notebook"
-        val newName = "New Notebook"
+        val newPath = "New Notebook"
 
         whenever(encryptionRepository.hasKey(oldPath)).thenReturn(true)
 
-        renameNotebookUseCase(oldPath, newName)
+        renameNotebookUseCase(oldPath, newPath)
 
         verify(encryptionRepository).deleteKeyForNotebook(oldPath)
     }
@@ -147,10 +146,10 @@ class RenameNotebookUseCaseTest {
 
         renameNotebookUseCase(oldPath, newName)
 
-        verify(notesRepository, never()).decryptAllNotes(any())
-        verify(encryptionRepository, never()).deleteKeyForNotebook(any())
-        verify(encryptionRepository, never()).createKeyForNotebook(any())
-        verify(notesRepository, never()).encryptAllNotes(any())
+        verify(notesRepository, never()).decryptAllNotes(oldPath)
+        verify(encryptionRepository, never()).deleteKeyForNotebook(oldPath)
+        verify(encryptionRepository, never()).createKeyForNotebook(oldPath)
+        verify(notesRepository, never()).encryptAllNotes(oldPath)
     }
 
     @Test

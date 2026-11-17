@@ -235,8 +235,8 @@ class PreferencesRepositoryImplTest {
 
         preferencesRepository.updateNotebookPreferences("old path", "new path")
 
-        assertFalse( prefs.contains("view_mode_planner_old path"))
-        assertTrue(   prefs.getBoolean("view_mode_planner_new path", false))
+        assertFalse(prefs.contains("view_mode_planner_old path"))
+        assertTrue(prefs.getBoolean("view_mode_planner_new path", false))
     }
 
     @Test
@@ -253,8 +253,7 @@ class PreferencesRepositoryImplTest {
 
         // Then: все три ключа удалены
         assertFalse(prefs.contains("notebook_pinned_test"))
-        assertFalse(prefs.contains("view_mode_planner_test") )
-        assertFalse(  prefs.contains("note_scroll_pos_test_note_123") )
+        assertFalse(prefs.contains("view_mode_planner_test"))
+        assertFalse(prefs.contains("note_scroll_pos_test_note_123"))
     }
-
 }

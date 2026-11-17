@@ -134,8 +134,7 @@ class FormatDateTest {
 
     @Test
     fun `formatDateNoteList should contain correct year`() {
-        // November 5, 2026
-        val timestamp = 1762320000000L
+        val timestamp = 1793856000000L  // 2026-11-05T00:00:00Z
         val result = formatDateNoteList(timestamp)
         
         assertTrue(result.contains("2026"))
@@ -297,10 +296,10 @@ class FormatDateTest {
         val january = DateHelper.getMonthName(Month.JANUARY)
         assertEquals("января", january)
         
-        val july = DateHelper.getMonthName(kotlinx.datetime.Month.JULY)
+        val july = DateHelper.getMonthName(Month.JULY)
         assertEquals("июля", july)
         
-        val december = DateHelper.getMonthName(kotlinx.datetime.Month.DECEMBER)
+        val december = DateHelper.getMonthName(Month.DECEMBER)
         assertEquals("декабря", december)
     }
 }

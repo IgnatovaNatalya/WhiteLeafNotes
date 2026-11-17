@@ -25,15 +25,15 @@ fun formatDateRecent(timestamp: Long): String {
 
     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 
-    return when {
+    return when (date.year) {
         // Сегодня
-        date.year == now.year && date.dayOfYear == now.dayOfYear -> "Cегодня"
+        now.year if date.dayOfYear == now.dayOfYear -> "Сегодня"
 
         // Вчера
-        date.year == now.year && date.dayOfYear == now.dayOfYear - 1 -> " Вчера"
+        now.year if date.dayOfYear == now.dayOfYear - 1 -> "Вчера"
 
         // Текущий год - "день месяц"
-        date.year == now.year -> "${date.day} ${DateHelper.getMonthName(date.month)}"
+        now.year -> "${date.day} ${DateHelper.getMonthName(date.month)}"
 
         // Прошлые годы - "dd.mm.yyyy"
         else -> {
