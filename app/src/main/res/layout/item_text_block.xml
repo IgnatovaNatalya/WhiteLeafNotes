@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ru.whiteleaf.notes.common.classes.BackSpaceFixEditText xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_text_block_edit_text"
+    style="@style/NoteEditText"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@null"
+    android:gravity="start|top"
+    android:imeOptions="actionNext"
+    android:inputType="textMultiLine|textCapSentences"
+    android:minHeight="48dp"
+    android:textColor="?attr/android:textColorPrimary"
+    android:textColorHighlight="@color/accent_blue"
+    tools:text="Текст абзаца..." />
