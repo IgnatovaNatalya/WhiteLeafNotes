@@ -53,23 +53,16 @@
                 android:textColor="?attr/android:textColorSecondary"
                 tools:text="27 ноября 2025" />
 
-            <ru.whiteleaf.notes.common.classes.BackSpaceFixEditText
-                android:id="@+id/note_edit_text"
-                style="@style/NoteEditText"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/note_edit_recycler"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/marginHorizontal"
                 android:layout_marginTop="32dp"
-                android:background="@null"
-                android:gravity="start|top"
-                android:imeOptions="actionDone"
-                android:importantForAutofill="no"
-                android:inputType="textMultiLine|textCapSentences"
-                android:minHeight="400dp"
+                android:clipToPadding="false"
+                android:descendantFocusability="afterDescendants"
                 android:paddingBottom="100dp"
-                android:textColor="?attr/android:textColorPrimary"
-                android:textColorHighlight="@color/accent_blue"
-                tools:text="Текст заметки..." />
+                tools:listitem="@layout/item_text_block" />
 
         </LinearLayout>
 

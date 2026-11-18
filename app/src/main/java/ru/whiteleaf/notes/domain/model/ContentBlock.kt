@@ -35,12 +35,6 @@ sealed class ContentBlock {
         
         val rowCount: Int
             get() = if (rows.isEmpty()) 0 else rows.size - 1 // минус заголовок
-        
-        init {
-            require(rows.isEmpty() || rows.all { it.size == columnCount }) {
-                "Все строки таблицы должны иметь одинаковое количество ячеек: $columnCount"
-            }
-        }
     }
 
     /** Является ли блок текстовым */

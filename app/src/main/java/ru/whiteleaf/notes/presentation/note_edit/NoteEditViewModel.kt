@@ -263,11 +263,12 @@ class NoteEditViewModel(
     fun updateNoteContent(content: String) {
         println("DEBUG: NoteEditVM: Updating note content, current note: ${currentNote?.printDebug()}")
         val note = currentNote ?: return
-        //currentNote = note.copy(content = content)
+        val updatedNote = note.copy(content = content)
+        
         viewModelScope.launch {
             try {
-                saveNoteContentUseCase(note.copy(content = content))
-                currentNote = note.copy(content = content)
+                saveNoteContentUseCase(updatedNote)
+                currentNote = updatedNote
             } catch (e: AuthenticationRequiredException) {
                 pendingSaveContent = content
                 _noteEditState.postValue(NoteEditState.Blocked(false))

@@ -6,15 +6,18 @@ import ru.whiteleaf.notes.domain.model.ContentBlock
  * Парсер, который преобразует обычный текст заметки в список ContentBlock.
  * 
  * Правила парсинга:
- * - Пустые строки → игнорируются
+ * - 2+ пустых строки подряд → разделитель блоков
  * - Строки, начинающиеся с http:// или https:// → ImageBlock
- * - Строки, содержащие разделитель (,;|) → TableBlock (попытка распарсить таблицу)
- * - Остальное → TextBlock
+ * - Остальное → TextBlock (включая строки с разделителями | , ;)
+ * 
+ * Таблицы создаются явно через меню вставки блока,
+ * а не автоматически из текста.
  */
 object ContentBlockParser {
 
     /**
      * Парсит текст заметки в список блоков.
+     * Блок заканчивается при встрече 2+ пустых строк подряд.
      */
     fun parse(content: String): List<ContentBlock> {
         if (content.isBlank()) return emptyList()
@@ -22,8 +25,8 @@ object ContentBlockParser {
         val lines = content.lines()
         val blocks = mutableListOf<ContentBlock>()
         val textBuffer = mutableListOf<String>()
+        var emptyCount = 0
         var order = 0
-        var i = 0
 
         fun flushTextBuffer() {
             if (textBuffer.isNotEmpty()) {
@@ -32,44 +35,30 @@ object ContentBlockParser {
             }
         }
 
-        while (i < lines.size) {
-            val line = lines[i]
+        for (line in lines) {
             val trimmed = line.trim()
             
             when {
                 trimmed.isEmpty() -> {
-                    flushTextBuffer()
-                    i++
+                    emptyCount++
+                    if (emptyCount >= 2) {
+                        // 2+ пустых строки подряд → конец блока
+                        flushTextBuffer()
+                        emptyCount = 0
+                    }
+                    // 1 пустая строка → продолжение блока, добавляем как пробел
+                    else {
+                        textBuffer.add("")
+                    }
                 }
                 isImageUrl(trimmed) -> {
                     flushTextBuffer()
+                    emptyCount = 0
                     blocks.add(ContentBlock.image(trimmed, order = order++))
-                    i++
-                }
-                isTableLine(trimmed) -> {
-                    flushTextBuffer()
-                    // Собираем все строки таблицы
-                    val tableLines = mutableListOf<String>()
-                    while (i < lines.size) {
-                        val currentLine = lines[i].trim()
-                        if (currentLine.isEmpty()) break
-                        if (currentLine.contains(",") || currentLine.contains(";") || currentLine.contains("|")) {
-                            tableLines.add(lines[i])
-                            i++
-                        } else {
-                            break
-                        }
-                    }
-                    if (tableLines.isNotEmpty()) {
-                        val table = parseTable(tableLines)
-                        if (table != null) {
-                            blocks.add(table)
-                        }
-                    }
                 }
                 else -> {
+                    emptyCount = 0
                     textBuffer.add(line)
-                    i++
                 }
             }
         }
@@ -97,33 +86,6 @@ object ContentBlockParser {
     private fun isImageUrl(line: String): Boolean {
         return line.startsWith("http://") || line.startsWith("https://") ||
                line.startsWith("file://") || line.startsWith("content://")
-    }
-
-    /**
-     * Проверяет, содержит ли строка признаки таблицы (разделители ячеек).
-     */
-    private fun isTableLine(line: String): Boolean {
-        val trimmed = line.trim()
-        return trimmed.contains(",") || trimmed.contains(";") || trimmed.contains("|")
-    }
-
-    /**
-     * Парсит строки таблицы в ContentBlock.Table.
-     */
-    private fun parseTable(lines: List<String>): ContentBlock.Table? {
-        if (lines.isEmpty()) return null
-        
-        val rows = lines.map { line ->
-            val trimmed = line.trim()
-            when {
-                trimmed.contains("|") -> trimmed.split("\\|".toRegex()).dropLastWhile { it.isEmpty() }.map { it.trim() }
-                trimmed.contains(",") -> trimmed.split(",").map { it.trim() }
-                trimmed.contains(";") -> trimmed.split(";").map { it.trim() }
-                else -> listOf(trimmed)
-            }
-        }
-        
-        return ContentBlock.Table(rows)
     }
 
     /**

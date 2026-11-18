@@ -127,13 +127,15 @@ class ContentBlockTest {
         assertTrue(block.rows.isEmpty())
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `Table block should throw when rows have different column counts`() {
+    @Test
+    fun `Table block should allow rows with different column counts`() {
         val rows = listOf(
             listOf("A", "B"),
-            listOf("C") // Only 1 column, should throw
+            listOf("C") // Only 1 column
         )
-        ContentBlock.Table(rows)
+        val table = ContentBlock.Table(rows)
+        assertEquals(2, table.columnCount) // Uses first row's count
+        assertEquals(2, table.rowCount)
     }
 
     @Test

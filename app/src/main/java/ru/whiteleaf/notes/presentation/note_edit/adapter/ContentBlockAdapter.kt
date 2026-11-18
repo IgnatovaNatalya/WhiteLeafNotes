@@ -2,6 +2,7 @@ package ru.whiteleaf.notes.presentation.note_edit.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
@@ -9,13 +10,12 @@ import ru.whiteleaf.notes.domain.model.ContentBlock
 
 /**
  * Основной адаптер для RecyclerView с блоками контента.
- * Использует DiffUtil для эффективных точечных обновлений
- * (notifyItemInserted, notifyItemRemoved и т.д.) вместо notifyDataSetChanged().
+ * Использует точечные обновления вместо полной перерисовки.
  */
-class ContentBlockAdapter(
-    private var items: MutableList<ContentBlock> = mutableListOf()
-) : RecyclerView.Adapter<BlockViewHolder>() {
+class ContentBlockAdapter :
+    RecyclerView.Adapter<BlockViewHolder>() {
 
+    private val items: MutableList<ContentBlock> = mutableListOf()
     private var onTextChanged: ((Int, String) -> Unit)? = null
 
     fun setOnTextChanged(listener: (Int, String) -> Unit) {
@@ -24,16 +24,45 @@ class ContentBlockAdapter(
 
     /**
      * Обновляет список блоков с помощью DiffUtil.
-     * Рассчитывает разницу и применяет точечные обновления.
      */
     fun submitList(newList: List<ContentBlock>) {
         val oldList = items.toList()
         val diffCallback = BlockDiffCallback(oldList, newList)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
         
-        items = newList.toMutableList()
+        items.clear()
+        items.addAll(newList)
         diffResult.dispatchUpdatesTo(this)
     }
+
+    /**
+     * Обновляет данные блока без перерисовки ViewHolder.
+     * Используется в onPause для сбора актуального текста.
+     */
+    fun updateDataOnly(position: Int, text: String) {
+        if (position >= items.size) return
+        
+        val oldBlock = items[position]
+        val newBlock = when (oldBlock) {
+            is ContentBlock.Text -> oldBlock.copy(text = text)
+            is ContentBlock.Image -> oldBlock.copy(caption = text)
+            is ContentBlock.Table -> oldBlock
+        }
+        
+        items[position] = newBlock
+    }
+
+    /**
+     * Точечное обновление текста блока с перерисовкой ViewHolder.
+     * Используется при потере фокуса EditText.
+     */
+    fun updateTextAt(position: Int, text: String) {
+        updateDataOnly(position, text)
+        notifyItemChanged(position)
+    }
+
+    val currentList: List<ContentBlock>
+        get() = items.toList()
 
     fun getItem(position: Int): ContentBlock = items[position]
 
@@ -50,7 +79,8 @@ class ContentBlockAdapter(
             VIEW_TYPE_TEXT -> {
                 val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_text_block, parent, false)
-                TextBlockViewHolder(view)
+                val editText = view.findViewById<EditText>(R.id.item_text_block_edit_text)
+                TextBlockViewHolder(editText)
             }
             VIEW_TYPE_IMAGE -> {
                 val view = LayoutInflater.from(parent.context)
@@ -65,14 +95,15 @@ class ContentBlockAdapter(
             else -> {
                 val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_text_block, parent, false)
-                TextBlockViewHolder(view)
+                val editText = view.findViewById<EditText>(R.id.item_text_block_edit_text)
+                TextBlockViewHolder(editText)
             }
         }
     }
 
     override fun onBindViewHolder(holder: BlockViewHolder, position: Int) {
         val block = items[position]
-        holder.bind(block, onTextChanged?.let { { text: String -> it(position, text) } })
+        holder.bind(block, null) // onTextChanged обрабатывается через updateTextAt
     }
 
     override fun getItemCount(): Int = items.size

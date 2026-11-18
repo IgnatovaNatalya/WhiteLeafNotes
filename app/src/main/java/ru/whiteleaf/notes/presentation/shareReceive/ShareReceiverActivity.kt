@@ -9,12 +9,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.databinding.ActivityShareRecieverBinding
+import ru.whiteleaf.notes.domain.model.ContentBlock
 import ru.whiteleaf.notes.domain.model.SharedContent
 import ru.whiteleaf.notes.domain.model.onError
 import ru.whiteleaf.notes.domain.model.onSuccess
+import ru.whiteleaf.notes.presentation.note_edit.adapter.ContentBlockAdapter
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -27,6 +30,7 @@ import kotlin.time.ExperimentalTime
 class ShareReceiverActivity : AppCompatActivity() {
     private lateinit var binding: ActivityShareRecieverBinding
     private val viewModel: ShareReceiverViewModel by viewModel()
+    private lateinit var blockAdapter: ContentBlockAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,20 +47,33 @@ class ShareReceiverActivity : AppCompatActivity() {
 
         viewModel.processIntent(intent)
 
+        setupBlockAdapter()
         setupObservers()
         setupNavigationListener()
         setupOptionsMenu()
     }
 
+    private fun setupBlockAdapter() {
+        blockAdapter = ContentBlockAdapter()
+        binding.noteEditContainer.noteEditRecycler.layoutManager = LinearLayoutManager(this)
+        binding.noteEditContainer.noteEditRecycler.adapter = blockAdapter
+    }
 
     private fun setupNavigationListener() {
         binding.shareReceiverToolbar.setNavigationOnClickListener { saveNote() }
     }
 
     private fun saveNote() {
+        val content = blockAdapter.currentList.joinToString("\n\n") { block ->
+            when (block) {
+                is ContentBlock.Text -> block.text
+                is ContentBlock.Image -> block.imagePath
+                is ContentBlock.Table -> block.rows.joinToString("\n") { it.joinToString("|") }
+            }
+        }
         viewModel.insertNote(
             binding.noteEditContainer.noteEditTitle.text.toString(),
-            binding.noteEditContainer.noteEditText.text.toString()
+            content
         )
     }
 
@@ -140,12 +157,12 @@ class ShareReceiverActivity : AppCompatActivity() {
     private fun showContent(sharedTitle: String?, sharedText: String) {
         if (!sharedTitle.isNullOrEmpty()) binding.noteEditContainer.noteEditTitle.setText(sharedTitle)
         binding.noteEditContainer.noteEditDate.text = formatDate(System.currentTimeMillis())
-        binding.noteEditContainer.noteEditText.setText(sharedText)
+        blockAdapter.submitList(listOf(ContentBlock.Text(sharedText)))
     }
 
     private fun showContent(sharedText: String) = showContent(null, sharedText)
 
     private fun showError(error: String) {
-        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, error, Toast.LENGTH_LONG).show()
     }
 }

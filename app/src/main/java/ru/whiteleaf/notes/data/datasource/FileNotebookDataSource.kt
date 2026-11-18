@@ -30,7 +30,7 @@ class FileNotebookDataSource(private val context: Context) {
     fun getAllNotebooks(): List<File> {
         return try {
             baseDir.listFiles()?.filter { file ->
-                file.isDirectory && !file.isHidden && file.name != ".trashed"
+                file.isDirectory && !file.isHidden && file.name != ".trashed" && file.name != "images"
             } ?: emptyList()
         } catch (e: SecurityException) {
             Log.e("FileNotebookDataSource", "Нет доступа к директории: ${e.message}")
