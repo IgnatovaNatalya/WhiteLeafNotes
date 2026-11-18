@@ -2,14 +2,15 @@ package ru.whiteleaf.notes.presentation.note_edit.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.domain.model.ContentBlock
 
 /**
  * Основной адаптер для RecyclerView с блоками контента.
- * Использует обычный RecyclerView.Adapter вместо ListAdapter,
- * чтобы избежать зависимости от Android Looper в unit-тестах.
+ * Использует DiffUtil для эффективных точечных обновлений
+ * (notifyItemInserted, notifyItemRemoved и т.д.) вместо notifyDataSetChanged().
  */
 class ContentBlockAdapter(
     private var items: MutableList<ContentBlock> = mutableListOf()
@@ -21,9 +22,17 @@ class ContentBlockAdapter(
         onTextChanged = listener
     }
 
+    /**
+     * Обновляет список блоков с помощью DiffUtil.
+     * Рассчитывает разницу и применяет точечные обновления.
+     */
     fun submitList(newList: List<ContentBlock>) {
+        val oldList = items.toList()
+        val diffCallback = BlockDiffCallback(oldList, newList)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        
         items = newList.toMutableList()
-        notifyDataSetChanged()
+        diffResult.dispatchUpdatesTo(this)
     }
 
     fun getItem(position: Int): ContentBlock = items[position]
@@ -85,5 +94,27 @@ class ContentBlockAdapter(
         private const val VIEW_TYPE_TEXT = 0
         private const val VIEW_TYPE_IMAGE = 1
         private const val VIEW_TYPE_TABLE = 2
+    }
+}
+
+/**
+ * DiffUtil callback для вычисления разницы между списками блоков.
+ */
+class BlockDiffCallback(
+    private val oldList: List<ContentBlock>,
+    private val newList: List<ContentBlock>
+) : DiffUtil.Callback() {
+
+    override fun getOldListSize(): Int = oldList.size
+
+    override fun getNewListSize(): Int = newList.size
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        return oldList[oldItemPosition]::class == newList[newItemPosition]::class &&
+               oldList[oldItemPosition] == newList[newItemPosition]
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        return oldList[oldItemPosition] == newList[newItemPosition]
     }
 }
