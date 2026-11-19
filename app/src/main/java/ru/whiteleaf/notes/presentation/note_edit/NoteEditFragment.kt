@@ -21,12 +21,14 @@ import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
 import ru.whiteleaf.notes.common.utils.ContextMenuHelper
 import ru.whiteleaf.notes.common.utils.ContentBlockParser
 import ru.whiteleaf.notes.common.utils.DialogHelper
+import ru.whiteleaf.notes.common.utils.RecyclerViewScrollManager
 import ru.whiteleaf.notes.common.utils.syncTextsFromRecyclerView
 import ru.whiteleaf.notes.common.utils.ShareHelper
 import ru.whiteleaf.notes.databinding.FragmentNoteEditBinding
@@ -113,6 +115,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         setupOptionsMenu()
         setupObservers()
         setupScrollDown()
+        setupEditTexts()
         setupClickListeners()
         setupBackCallback()
         setupSearchView()
@@ -214,11 +217,34 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     private fun setupScrollDown() {
-        // Scroll detection for RecyclerView instead of EditText
+        // Scroll detection for RecyclerView
+        RecyclerViewScrollManager.setupScrollDetection(
+            recyclerView = binding.noteEditRecycler,
+            scrollView = noteScrollView,
+            button = buttonScroll
+        )
+        
+        // Также обновляем scroll position при скролле
         noteScrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-            val scrollThreshold = 200
-            buttonScroll.visibility = if (scrollY > scrollThreshold) View.VISIBLE else View.GONE
+            viewModel.rememberNoteScrollPosition(scrollY)
         }
+    }
+
+    private fun setupEditTexts() {
+        // Обновляем состояние режима редактирования
+//        binding.noteEditRecycler.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+//            override fun onChildViewAttachedToWindow(view: View) {
+//                if (view is EditText) {
+//                    RecyclerViewScrollManager.isEditingMode = true
+//                }
+//            }
+//
+//            override fun onChildViewDetachedFromWindow(view: View) {
+//                if (view is EditText) {
+//                    RecyclerViewScrollManager.isEditingMode = false
+//                }
+//            }
+//        })
     }
 
     private fun setupClickListeners() {
