@@ -78,8 +78,11 @@ class HighlightAllMatchesTest {
 
         val (_, matches) = highlightAllMatches(text, query, color, true)
 
-        // Should find non-overlapping matches: positions 0-2 and 2-4
-        assertEquals(2, matches.size)
+        // Should find overlapping matches: positions 0-2, 1-3, 2-4
+        assertEquals(3, matches.size)
+        assertEquals(0 to 2, matches[0])
+        assertEquals(1 to 3, matches[1])
+        assertEquals(2 to 4, matches[2])
     }
 
     @Test

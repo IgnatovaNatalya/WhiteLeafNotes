@@ -4,21 +4,24 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
+import androidx.recyclerview.widget.RecyclerView
+import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.domain.model.ContentBlock
 
 /**
  * ViewHolder для текстового блока.
- * Обновляет контент только при потере фокуса, чтобы не сбрасывать курсор при вводе.
+ * Обновляет контент через debounce (500мс) после окончания ввода.
  */
 class TextBlockViewHolder(
     private val editText: EditText
 ) : BlockViewHolder(editText) {
 
     private var textWatcher: TextWatcher? = null
-    private var onTextChanged: ((String) -> Unit)? = null
+    private var onTextChanged: ((Int, String) -> Unit)? = null
     private var currentText: String = ""
+    private var adapterPosition: Int = RecyclerView.NO_POSITION
 
-    override fun bind(block: Any, onTextChanged: ((String) -> Unit)?) {
+    override fun bind(block: Any, onTextChanged: ((Int, String) -> Unit)?) {
         this.onTextChanged = onTextChanged
         
         // Удаляем предыдущий watcher
@@ -28,21 +31,16 @@ class TextBlockViewHolder(
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                currentText = s?.toString() ?: ""
+                val newText = s?.toString() ?: ""
+                if (newText != currentText) {
+                    currentText = newText
+                    // Вызываем callback — debounce происходит в ContentBlockAdapter
+                    onTextChanged?.invoke(adapterPosition, newText)
+                }
             }
         }
         
         editText.addTextChangedListener(textWatcher)
-        editText.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                // При потере фокуса отправляем обновлённый текст
-                val text = editText.text?.toString() ?: ""
-                if (currentText != text) {
-                    currentText = text
-                    onTextChanged?.invoke(text)
-                }
-            }
-        }
         
         val text = (block as? ContentBlock.Text)?.text ?: ""
         editText.setText(text)
@@ -51,11 +49,17 @@ class TextBlockViewHolder(
     }
 
     /**
+     * Устанавливает позицию блока в адаптере.
+     */
+    fun setAdapterPosition(position: Int) {
+        this.adapterPosition = position
+        editText.tag = position
+    }
+
+    /**
      * Возвращает актуальный текст из EditText.
-     * Сначала синхронизирует currentText с editText.text.
      */
     override fun getContent(): String {
-        // Синхронизируем с EditText
         val text = editText.text?.toString() ?: ""
         if (currentText != text) {
             currentText = text
@@ -63,7 +67,9 @@ class TextBlockViewHolder(
         return currentText
     }
 
+    override fun getEditText(): EditText? = editText
+
     override fun toString(): String {
-        return "TextBlockViewHolder(text='${editText.text}')"
+        return "TextBlockViewHolder(position=$adapterPosition, text='${editText.text}')"
     }
 }

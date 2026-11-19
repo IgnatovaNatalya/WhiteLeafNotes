@@ -21,7 +21,6 @@ import androidx.core.widget.NestedScrollView
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import ru.whiteleaf.notes.R
 import ru.whiteleaf.notes.common.classes.BindingFragment
@@ -126,17 +125,17 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         binding.noteEditRecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.noteEditRecycler.adapter = blockAdapter
 
-        blockAdapter.setOnTextChanged { position, text ->
-            // Точечное обновление текста блока
-            blockAdapter.updateTextAt(position, text)
-            // Обновляем контент в ViewModel
-            viewModel.updateNoteContent(blockAdapter.currentList.joinToString("\n\n") { block ->
+        // Устанавливаем callback для сохранения заметки
+        // Debounce (500мс) происходит автоматически внутри adapter при каждом изменении текста
+        blockAdapter.setOnNoteSaved {
+            val content = blockAdapter.currentList.joinToString("\n\n") { block ->
                 when (block) {
                     is ContentBlock.Text -> block.text
                     is ContentBlock.Image -> block.imagePath
                     is ContentBlock.Table -> block.rows.joinToString("\n") { it.joinToString("|") }
                 }
-            })
+            }
+            viewModel.updateNoteContent(content)
         }
     }
 
@@ -193,13 +192,13 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         if (!hasFocus) {
             //при переходе фокуса, клавиатура скрывается системой
 
-            viewModel.updateNoteTitleIfChanged(titleEditText.text.toString()) //обновляем только заголовок, т.к. контент и так сохраняется при любом изменении
+            viewModel.updateNoteTitleIfChanged(titleEditText.text.toString()) //Обновляем только заголовок, т.к. контент и так сохраняется при любом изменении
             viewModel.rememberNoteScrollPosition(noteScrollView.scrollY)
             wasInterrupted = true
             println("DEBUG: NoteEditFragment: Focus cleared")
         } else if (wasInterrupted) {
             wasInterrupted = false
-            //contentEditText.clearFocus() //снимаем фокус с контента, чтобы клавитура могла включиться потом
+            //contentEditText.clearFocus() //снимаем фокус с контента, чтобы клавиатура могла включиться потом
 
             println("DEBUG: NoteEditFragment: Window focus received")
             viewModel.reloadNotePosition()

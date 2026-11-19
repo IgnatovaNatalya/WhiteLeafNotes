@@ -1,5 +1,7 @@
 package ru.whiteleaf.notes.presentation.note_edit.adapter
 
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.EditText
@@ -16,10 +18,27 @@ class ContentBlockAdapter :
     RecyclerView.Adapter<BlockViewHolder>() {
 
     private val items: MutableList<ContentBlock> = mutableListOf()
-    private var onTextChanged: ((Int, String) -> Unit)? = null
+    private var onNoteSaved: (() -> Unit)? = null
+    private var onBindCallback: ((Int, ContentBlock, (Int, String) -> Unit) -> Unit)? = null
 
-    fun setOnTextChanged(listener: (Int, String) -> Unit) {
-        onTextChanged = listener
+    // Debounce handler для отложенного обновления текста
+    private val debounceHandler = Handler(Looper.getMainLooper())
+    private val debounceDelay = 500L // 500мс
+    private val pendingUpdates = mutableMapOf<Int, String>() // position -> text
+
+    /**
+     * Устанавливает callback для сохранения всей заметки.
+     * Вызывается при debounce обновлении текста.
+     */
+    fun setOnNoteSaved(listener: () -> Unit) {
+        onNoteSaved = listener
+    }
+
+    /**
+     * Устанавливает callback для bind ViewHolder.
+     */
+    fun setOnBindCallback(listener: (Int, ContentBlock, (Int, String) -> Unit) -> Unit) {
+        onBindCallback = listener
     }
 
     /**
@@ -47,6 +66,7 @@ class ContentBlockAdapter :
             is ContentBlock.Text -> oldBlock.copy(text = text)
             is ContentBlock.Image -> oldBlock.copy(caption = text)
             is ContentBlock.Table -> oldBlock
+
         }
         
         items[position] = newBlock
@@ -54,11 +74,36 @@ class ContentBlockAdapter :
 
     /**
      * Точечное обновление текста блока с перерисовкой ViewHolder.
-     * Используется при потере фокуса EditText.
      */
     fun updateTextAt(position: Int, text: String) {
         updateDataOnly(position, text)
         notifyItemChanged(position)
+    }
+
+    /**
+     * Обновляет текст блока с debounce (задержкой).
+     * Вызывается при каждом изменении текста в EditText.
+     * Реальное обновление происходит через 500мс после окончания ввода.
+     */
+    fun updateTextWithDebounce(position: Int, text: String) {
+        // Сохраняем текст для debounce
+        pendingUpdates[position] = text
+        
+        // Удаляем предыдущую задачу debounce
+        debounceHandler.removeCallbacksAndMessages(position)
+        
+        // Планируем обновление через 500мс
+        val runnable = Runnable {
+            val newText = pendingUpdates.remove(position) ?: return@Runnable
+            
+            // Обновляем данные
+            updateDataOnly(position, newText)
+            
+            // Сохраняем заметку
+            onNoteSaved?.invoke()
+        }
+        
+        debounceHandler.postDelayed(runnable, debounceDelay)
     }
 
     val currentList: List<ContentBlock>
@@ -71,6 +116,7 @@ class ContentBlockAdapter :
             is ContentBlock.Text -> VIEW_TYPE_TEXT
             is ContentBlock.Image -> VIEW_TYPE_IMAGE
             is ContentBlock.Table -> VIEW_TYPE_TABLE
+            else -> VIEW_TYPE_TEXT
         }
     }
 
@@ -103,7 +149,18 @@ class ContentBlockAdapter :
 
     override fun onBindViewHolder(holder: BlockViewHolder, position: Int) {
         val block = items[position]
-        holder.bind(block, null) // onTextChanged обрабатывается через updateTextAt
+        
+        // Устанавливаем позицию в ViewHolder
+        when (holder) {
+            is TextBlockViewHolder -> holder.setAdapterPosition(position)
+            is ImageBlockViewHolder -> holder.setAdapterPosition(position)
+            is TableBlockViewHolder -> holder.setAdapterPosition(position)
+        }
+        
+        // Передаём callback — debounce происходит внутри updateTextWithDebounce
+        holder.bind(block) { pos, text ->
+            updateTextWithDebounce(pos, text)
+        }
     }
 
     override fun getItemCount(): Int = items.size

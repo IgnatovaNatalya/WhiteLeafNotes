@@ -1,13 +1,13 @@
 package ru.whiteleaf.notes.common.utils
 
 import android.util.Log
-import android.widget.EditText
 import android.widget.ImageButton
 import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.OnScrollListener
 import ru.whiteleaf.notes.presentation.note_edit.adapter.TextBlockViewHolder
+import androidx.core.view.size
 
 /**
  * Менеджер скролла для RecyclerView с поддержкой:
@@ -19,7 +19,8 @@ object RecyclerViewScrollManager {
     private const val TAG = "RecyclerViewScrollMgr"
 
     /**
-     * Ищем следующий блок, чей верх ещё НЕ дошёл до верха экрана
+     * Ищем следующий блок, чей верх ещё НЕ дошёл до верха экрана.
+     * Используем RecyclerView.getChildAt() для итерации по видимым элементам.
      */
     private fun findNextBlockToScroll(
         recyclerView: RecyclerView,
@@ -38,15 +39,32 @@ object RecyclerViewScrollManager {
         // Небольшой допуск, чтобы не зациклиться на блоке, который уже почти вверху
         val tolerance = 4 // px
 
-        for (i in 0 until itemCount) {
-            val vh = recyclerView.findViewHolderForAdapterPosition(i) ?: continue
+        // Итерируемся по видимым элементам RecyclerView
+        for (i in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(i) ?: continue
+            val vh = recyclerView.getChildViewHolder(child)
+            val position = vh.adapterPosition
+            
+            if (position == RecyclerView.NO_POSITION || position >= itemCount) continue
+            
             val itemTopInContent = viewHolderTopInContent(recyclerView, vh)
 
             // Если верх блока ниже текущего верха экрана — это наш следующий блок
             if (itemTopInContent > viewportTop + tolerance) {
-                return i
+                return position
             }
         }
+        
+        // Если не нашли среди видимых — возвращаем следующий после последнего видимого
+        val lastVisiblePosition = recyclerView.size - 1
+        if (lastVisiblePosition >= 0) {
+            val lastVh = recyclerView.getChildViewHolder(recyclerView.getChildAt(lastVisiblePosition))
+            val nextPosition = lastVh.adapterPosition + 1
+            if (nextPosition < itemCount) {
+                return nextPosition
+            }
+        }
+        
         return RecyclerView.NO_POSITION
     }
 
@@ -162,11 +180,9 @@ object RecyclerViewScrollManager {
         scrollView.smoothScrollTo(0, targetY)
 
         // Курсор в начало — если это текстовый блок
-        if (vh is TextBlockViewHolder) {
-            val editText = vh.itemView as? EditText ?: return
-            editText.requestFocus()
-            editText.setSelection(0)
-        }
+        val editText = (vh as? TextBlockViewHolder)?.getEditText()
+        editText?.requestFocus()
+        editText?.setSelection(0)
     }
 
     /**

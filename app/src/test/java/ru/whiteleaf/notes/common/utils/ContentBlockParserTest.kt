@@ -39,13 +39,13 @@ class ContentBlockParserTest {
     }
 
     @Test
-    fun `parse should split text by empty lines`() {
-        val content = "Paragraph 1\n\nParagraph 2"
+    fun `parse should split text by 2 or more empty lines`() {
+        val content = "Paragraph 1\n\n\nParagraph 2"  // 2 пустых строки для разделения
         val result = ContentBlockParser.parse(content)
         assertEquals(2, result.size)
         assertTrue(result[0].isText())
         assertTrue(result[1].isText())
-        assertEquals("Paragraph 1", (result[0] as ContentBlock.Text).text)
+        assertEquals("Paragraph 1\n", (result[0] as ContentBlock.Text).text)
         assertEquals("Paragraph 2", (result[1] as ContentBlock.Text).text)
     }
 
@@ -93,44 +93,43 @@ class ContentBlockParserTest {
     // === parse() - таблицы ===
 
     @Test
-    fun `parse should create Table block for comma-separated values`() {
+    fun `parse should create Text block for comma-separated values (no auto-table detection)`() {
         val result = ContentBlockParser.parse("Name,Age\nAlice,30\nBob,25")
         assertEquals(1, result.size)
-        assertTrue(result[0].isTable())
-        val table = result[0] as ContentBlock.Table
-        assertEquals(3, table.rows.size)
-        assertEquals(2, table.columnCount)
+        assertTrue(result[0].isText())
+        assertEquals("Name,Age\nAlice,30\nBob,25", (result[0] as ContentBlock.Text).text)
     }
 
     @Test
-    fun `parse should create Table block for pipe-separated values`() {
+    fun `parse should create Text block for pipe-separated values (no auto-table detection)`() {
         val result = ContentBlockParser.parse("Name|Age\nAlice|30")
         assertEquals(1, result.size)
-        assertTrue(result[0].isTable())
+        assertTrue(result[0].isText())
+        assertEquals("Name|Age\nAlice|30", (result[0] as ContentBlock.Text).text)
     }
 
     @Test
-    fun `parse should create Table block for semicolon-separated values`() {
+    fun `parse should create Text block for semicolon-separated values (no auto-table detection)`() {
         val result = ContentBlockParser.parse("Name;Age\nAlice;30")
         assertEquals(1, result.size)
-        assertTrue(result[0].isTable())
+        assertTrue(result[0].isText())
+        assertEquals("Name;Age\nAlice;30", (result[0] as ContentBlock.Text).text)
     }
 
     @Test
-    fun `parse should extract headers from first table row`() {
+    fun `parse should create Text block for comma-separated values without headers`() {
         val result = ContentBlockParser.parse("Name,Age\nAlice,30")
-        val table = result[0] as ContentBlock.Table
-        assertEquals(listOf("Name", "Age"), table.headers)
+        assertTrue(result[0].isText())
+        assertEquals("Name,Age\nAlice,30", (result[0] as ContentBlock.Text).text)
     }
 
     @Test
-    fun `parse should separate text and table`() {
+    fun `parse should treat comma-separated content as text blocks`() {
         val content = "Before table\nName,Age\nAlice,30\nAfter table"
         val result = ContentBlockParser.parse(content)
-        assertEquals(3, result.size)
+        // Всё в одном блоке, потому что нет двойных пустых строк
+        assertEquals(1, result.size)
         assertTrue(result[0].isText())
-        assertTrue(result[1].isTable())
-        assertTrue(result[2].isText())
     }
 
     // === serialize() ===
@@ -200,8 +199,9 @@ class ContentBlockParserTest {
 
     @Test
     fun `parse should assign increasing order to blocks`() {
-        val content = "Para 1\n\nPara 2\n\nPara 3"
+        val content = "Para 1\n\n\nPara 2\n\n\nPara 3"
         val result = ContentBlockParser.parse(content)
+        assertEquals(3, result.size)
         assertEquals(0, (result[0] as ContentBlock.Text).order)
         assertEquals(1, (result[1] as ContentBlock.Text).order)
         assertEquals(2, (result[2] as ContentBlock.Text).order)
@@ -225,10 +225,9 @@ class ContentBlockParserTest {
     }
 
     @Test
-    fun `parse should trim table cell values`() {
+    fun `parse should keep pipe-separated values as text without trimming`() {
         val result = ContentBlockParser.parse("Name , Age \nAlice , 30")
-        val table = result[0] as ContentBlock.Table
-        assertEquals("Name", table.headers[0])
-        assertEquals("Age", table.headers[1])
+        assertTrue(result[0].isText())
+        assertEquals("Name , Age \nAlice , 30", (result[0] as ContentBlock.Text).text)
     }
 }

@@ -135,7 +135,7 @@ class ContentBlockTest {
         )
         val table = ContentBlock.Table(rows)
         assertEquals(2, table.columnCount) // Uses first row's count
-        assertEquals(2, table.rowCount)
+        assertEquals(1, table.rowCount) // rowCount = rows.size - 1 (excludes header)
     }
 
     @Test

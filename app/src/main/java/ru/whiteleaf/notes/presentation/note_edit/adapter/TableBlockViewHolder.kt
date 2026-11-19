@@ -15,6 +15,7 @@ class TableBlockViewHolder(itemView: View) : BlockViewHolder(itemView) {
 
     private val tableRecyclerView: RecyclerView = itemView.findViewById(R.id.item_table_block_recycler)
     private var cellAdapter: TableCellAdapter? = null
+    private var adapterPosition: Int = RecyclerView.NO_POSITION
 
     init {
         tableRecyclerView.layoutManager = GridLayoutManager(itemView.context, 1)
@@ -22,7 +23,7 @@ class TableBlockViewHolder(itemView: View) : BlockViewHolder(itemView) {
         tableRecyclerView.adapter = cellAdapter
     }
 
-    override fun bind(block: Any, onTextChanged: ((String) -> Unit)?) {
+    override fun bind(block: Any, onTextChanged: ((Int, String) -> Unit)?) {
         val tableBlock = block as? ContentBlock.Table ?: return
         
         val rows = tableBlock.rows
@@ -31,10 +32,11 @@ class TableBlockViewHolder(itemView: View) : BlockViewHolder(itemView) {
         val columnCount = rows.first().size
         cellAdapter = TableCellAdapter(rows, columnCount)
         tableRecyclerView.adapter = cellAdapter
+        cellAdapter?.setAdapterPosition(adapterPosition)
         
         // Обновляем данные при изменении ячеек
         cellAdapter?.setOnDataChanged { newRows ->
-            onTextChanged?.invoke(newRows.joinToString("\n") { it.joinToString("|") })
+            onTextChanged?.invoke(adapterPosition, newRows.joinToString("\n") { it.joinToString("|") })
         }
     }
 
@@ -47,6 +49,10 @@ class TableBlockViewHolder(itemView: View) : BlockViewHolder(itemView) {
         val rows = cellAdapter?.getRows() ?: emptyList()
         return "TableBlockViewHolder(rows=${rows.size})"
     }
+
+    fun setAdapterPosition(position: Int) {
+        this.adapterPosition = position
+    }
 }
 
 /**
@@ -58,20 +64,25 @@ class TableCellAdapter(
 ) : RecyclerView.Adapter<TableCellAdapter.CellViewHolder>() {
 
     private var onDataChanged: ((List<List<String>>) -> Unit)? = null
+    private var tableAdapterPosition: Int = RecyclerView.NO_POSITION
 
     fun setOnDataChanged(listener: (List<List<String>>) -> Unit) {
         onDataChanged = listener
     }
 
+    fun setAdapterPosition(position: Int) {
+        this.tableAdapterPosition = position
+    }
+
     fun getRows(): List<List<String>> = rows
 
-    inner class CellViewHolder(itemView: EditText) : RecyclerView.ViewHolder(itemView) {
+    inner class CellViewHolder(private val view: EditText) : RecyclerView.ViewHolder(view) {
         fun bind(value: String, row: Int, col: Int) {
-            (itemView as EditText).setText(value)
-            (itemView as EditText).setOnFocusChangeListener { _, hasFocus ->
+            view.setText(value)
+            view.setOnFocusChangeListener { _, hasFocus ->
                 if (!hasFocus) {
                     // При потере фокуса сохраняем значение
-                    val newValue = (itemView as? EditText)?.text?.toString() ?: ""
+                    val newValue = view.text?.toString() ?: ""
                     updateCell(row, col, newValue)
                 }
             }

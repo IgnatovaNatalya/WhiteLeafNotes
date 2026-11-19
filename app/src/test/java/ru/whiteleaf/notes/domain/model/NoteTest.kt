@@ -367,14 +367,14 @@ class NoteTest {
     fun `isEmpty should handle unicode whitespace`() {
         val note = Note(
             id = "note_123",
-            title = "\u00A0\u2003",  // non-breaking space and em space
+            title = "\u00A0\u2003",  // non-breaking space and em space (removed by Kotlin's trim())
             content = "\t\n",
             modifiedAt = System.currentTimeMillis()
         )
 
-        // trim() removes standard whitespace but not all unicode whitespace
-        // This test documents current behavior
-        assertFalse(note.isEmpty())
+        // Kotlin's trim() removes all Unicode whitespace including \u00A0 and \u2003
+        // So both title and content are empty after trim()
+        assertTrue(note.isEmpty())
     }
 
     @Test
