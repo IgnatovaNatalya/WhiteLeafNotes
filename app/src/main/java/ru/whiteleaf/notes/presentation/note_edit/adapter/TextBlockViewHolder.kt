@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.text.style.BackgroundColorSpan
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ru.whiteleaf.notes.domain.model.ContentBlock
 
@@ -72,29 +73,6 @@ class TextBlockViewHolder(
     override fun getEditText(): EditText? = editText
 
     /**
-     * Подсвечивает диапазон текста в EditText.
-     */
-    fun highlightText(start: Int, end: Int, color: Int) {
-        val text = editText.text ?: return
-        val spannable = SpannableString(text.toString())
-        
-        // Удаляем старую подсветку
-        spannable.getSpans(0, spannable.length, BackgroundColorSpan::class.java)
-            .forEach { spannable.removeSpan(it) }
-        
-        // Добавляем новую подсветку
-        if (start >= 0 && end <= spannable.length && start < end) {
-            spannable.setSpan(
-                BackgroundColorSpan(color),
-                start,
-                end,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            editText.editableText.replace(0, editText.text.length, spannable)
-        }
-    }
-
-    /**
      * Очищает всю подсветку в EditText.
      */
     fun clearHighlight() {
@@ -104,7 +82,27 @@ class TextBlockViewHolder(
         spannable.getSpans(0, spannable.length, BackgroundColorSpan::class.java)
             .forEach { spannable.removeSpan(it) }
         
-        editText.editableText.replace(0, editText.text.length, spannable)
+        editText.setText(spannable, TextView.BufferType.SPANNABLE)
+    }
+
+    /**
+     * Подсвечивает диапазон текста в EditText (добавляет подсветку без удаления существующих).
+     */
+    fun highlightText(start: Int, end: Int, color: Int) {
+        val text = editText.text ?: return
+        val spannable = SpannableString(text.toString())
+        
+        // Добавляем новую подсветку (не удаляя существующие)
+        if (start >= 0 && end <= spannable.length && start < end) {
+            spannable.setSpan(
+                BackgroundColorSpan(color),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+        
+        editText.setText(spannable, TextView.BufferType.SPANNABLE)
     }
 
     override fun toString(): String {

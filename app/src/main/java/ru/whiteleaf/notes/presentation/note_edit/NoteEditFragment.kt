@@ -36,7 +36,6 @@ import org.koin.core.parameter.parametersOf
 import ru.whiteleaf.notes.common.utils.DialogHelper.createChangeDateDialog
 import ru.whiteleaf.notes.common.utils.formatDate
 import ru.whiteleaf.notes.common.utils.hideKeyboard
-import ru.whiteleaf.notes.common.utils.highlightNoteMatches
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.domain.model.ContentBlock
 import ru.whiteleaf.notes.presentation.note_edit.adapter.ContentBlockAdapter
@@ -473,29 +472,29 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     private fun renderSearchResults(state: SearchState) {
         val note = viewModel.getNote() ?: return
 
-        val result = highlightNoteMatches(
-            title = note.title,
-            content = note.content,
-            query = state.query,
-            highlightColor = highlightColor
-        )
+        // Устанавливаем заголовок без подсветки
+        titleEditText.setText(note.title, TextView.BufferType.SPANNABLE)
 
-        titleEditText.setText(result.title, TextView.BufferType.SPANNABLE)
+        // Подсвечиваем все TITLE match одним цветом
+        highlightAllTitleMatches(state)
 
-        // Подсвечиваем все match и текущий match
+        // Подсвечиваем все CONTENT match одним цветом
         val allMatches = state.matches
         if (allMatches.isNotEmpty()) {
-            // Сначала подсвечиваем ВСЕ CONTENT match обычным цветом
+            // Очищаем все подсветки контента
+            blockAdapter.clearAllHighlights(binding.noteEditRecycler)
+            
+            // Подсвечиваем ВСЕ CONTENT match одним цветом
             highlightAllContentMatches(allMatches, highlightColor)
             
-            // Затем подсвечиваем ТЕКУЩИЙ match ярким цветом
+            // Получаем текущий match
             val currentMatch = allMatches[state.currentMatchIndex]
-            highlightCurrentMatch(currentMatch)
             
             // Скроллим к текущему match
             scrollToCurrentMatch(currentMatch)
             
             // Устанавливаем selection в заголовке если match в заголовке
+            // Текущее вхождение выделяется через setSelection (системная подсветка)
             if (currentMatch.target == SearchMatchTarget.TITLE) {
                 titleEditText.post {
                     val safeStart = currentMatch.start.coerceIn(0, titleEditText.text.length)
@@ -514,7 +513,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     /**
-     * Подсвечивает все CONTENT match обычным цветом.
+     * Подсвечивает все CONTENT match одним цветом.
      */
     private fun highlightAllContentMatches(matches: List<SearchMatch>, color: Int) {
         // Очищаем все подсветки сначала
@@ -529,15 +528,32 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
     }
 
     /**
-     * Подсвечивает ТЕКУЩИЙ match ярким цветом.
+     * Подсвечивает все TITLE match одним цветом.
+     * Текущий TITLE match выделяется через setSelection (системная подсветка).
      */
-    private fun highlightCurrentMatch(match: SearchMatch) {
-        // Получаем blue_accent цвет
-        val brightColor = ContextCompat.getColor(requireContext(), R.color.accent_blue)
+    private fun highlightAllTitleMatches(state: SearchState) {
+        val text = titleEditText.text ?: return
+        val spannable = android.text.SpannableString(text)
         
-        if (match.target == SearchMatchTarget.CONTENT) {
-            blockAdapter.highlightMatch(match, brightColor, binding.noteEditRecycler)
+        // Удаляем старую подсветку
+        spannable.getSpans(0, spannable.length, BackgroundColorSpan::class.java)
+            .forEach { spannable.removeSpan(it) }
+        
+        // Подсвечиваем все TITLE match одним цветом
+        for ((start, end, target) in state.matches) {
+            if (target == SearchMatchTarget.TITLE) {
+                if (start >= 0 && end <= spannable.length && start < end) {
+                    spannable.setSpan(
+                        BackgroundColorSpan(highlightColor),
+                        start,
+                        end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+            }
         }
+        
+        titleEditText.setText(spannable, TextView.BufferType.SPANNABLE)
     }
 
     /**
