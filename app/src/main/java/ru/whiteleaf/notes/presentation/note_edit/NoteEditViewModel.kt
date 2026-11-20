@@ -194,7 +194,7 @@ class NoteEditViewModel(
 
     private fun resolveStartIndex(matches: List<SearchMatch>, cursorPosition: Int?): Int {
         if (cursorPosition == null) return -1
-        //0. обнуляем начальное положение вхождения, чтобы оно не повлияло на последюущие поиски
+        //0. обнуляем начальное положение вхождения, чтобы оно не повлияло на последующие поиски
         startContentPosition = null
 
         if (matches.isEmpty()) return -1

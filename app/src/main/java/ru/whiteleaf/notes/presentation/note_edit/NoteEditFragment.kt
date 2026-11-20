@@ -40,6 +40,7 @@ import ru.whiteleaf.notes.common.utils.highlightNoteMatches
 import ru.whiteleaf.notes.common.utils.toggleSecurePreview
 import ru.whiteleaf.notes.domain.model.ContentBlock
 import ru.whiteleaf.notes.presentation.note_edit.adapter.ContentBlockAdapter
+import ru.whiteleaf.notes.presentation.note_edit.adapter.TextBlockViewHolder
 import ru.whiteleaf.notes.presentation.root.RootActivity
 import ru.whiteleaf.notes.presentation.root.RootViewModel
 import ru.whiteleaf.notes.presentation.search.SearchableFragment
@@ -276,6 +277,22 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         }
     }
 
+    /**
+     * Очищает все подсветки (заголовок и контент).
+     */
+    private fun clearHighlights() {
+        // Очищаем заголовок
+        val titleText = titleEditText.text as? Spannable ?: return
+        titleText.getSpans(0, titleText.length, BackgroundColorSpan::class.java)
+            .forEach { titleText.removeSpan(it) }
+        
+        // Очищаем контент в RecyclerView
+        blockAdapter.clearAllHighlights(binding.noteEditRecycler)
+        
+        // Снимаем выделение с заголовка
+        titleEditText.setSelection(0)
+    }
+
     override fun onSearchQuerySubmitted(query: String) {
         viewModel.onSearchQuerySubmitted(query)
         isExternalSearch = false
@@ -380,23 +397,22 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
                 val searchState = state.searchState
 
+                // ВСЕГДА заполняем blockAdapter блоками из контента
+                // Это нужно для корректного сохранения при onPause
+                val blocks = ContentBlockParser.parse(note.content).takeIf { it.isNotEmpty() }
+                    ?: listOf(ContentBlock.Text(""))
+                blockAdapter.submitList(blocks)
+                isEditing = false
+
                 if (searchState != null) {
                     //результаты поиска
                     optionsButton.visibility = View.GONE
                     println("DEBUG: NoteEditFragment: rendering matches")
-                    isEditing = false
                     renderSearchResults(searchState)
                 } else {
                     //Обычный вид
                     optionsButton.visibility = View.VISIBLE
                     println("DEBUG: NoteEditFragment: rendering note no search")
-
-                    // Конвертируем content в блоки и отображаем
-                    // Если контент пустой — создаём один пустой TextBlock
-                    val blocks = ContentBlockParser.parse(note.content).takeIf { it.isNotEmpty() }
-                        ?: listOf(ContentBlock.Text(""))
-                    blockAdapter.submitList(blocks)
-                    isEditing = false
 
                     noteScrollView.post { noteScrollView.scrollTo(0, state.scrollPosition) }
                     llMatchButtons.visibility = View.GONE
@@ -452,13 +468,7 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         }
     }
 
-    private fun clearHighlights() {
-        val text = titleEditText.text as? Spannable ?: return
-        println("DEBUG: clearHighlights: in ${text.take(10)} ")
-        text.getSpans(0, text.length, BackgroundColorSpan::class.java)
-            .forEach { text.removeSpan(it) }
 
-    }
 
     private fun renderSearchResults(state: SearchState) {
         val note = viewModel.getNote() ?: return
@@ -472,16 +482,103 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
 
         titleEditText.setText(result.title, TextView.BufferType.SPANNABLE)
 
-        val match = state.matches.getOrNull(state.currentMatchIndex)
-        if (match != null) {
-            // TODO: Scroll to match in RecyclerView
-            titleEditText.post { titleEditText.setSelection(match.start, match.end) }
+        // Подсвечиваем все match и текущий match
+        val allMatches = state.matches
+        if (allMatches.isNotEmpty()) {
+            // Сначала подсвечиваем ВСЕ CONTENT match обычным цветом
+            highlightAllContentMatches(allMatches, highlightColor)
+            
+            // Затем подсвечиваем ТЕКУЩИЙ match ярким цветом
+            val currentMatch = allMatches[state.currentMatchIndex]
+            highlightCurrentMatch(currentMatch)
+            
+            // Скроллим к текущему match
+            scrollToCurrentMatch(currentMatch)
+            
+            // Устанавливаем selection в заголовке если match в заголовке
+            if (currentMatch.target == SearchMatchTarget.TITLE) {
+                titleEditText.post {
+                    val safeStart = currentMatch.start.coerceIn(0, titleEditText.text.length)
+                    val safeEnd = currentMatch.end.coerceIn(0, titleEditText.text.length)
+                    if (safeStart < safeEnd) {
+                        titleEditText.setSelection(safeStart, safeEnd)
+                    }
+                }
+            }
         }
 
         buttonScroll.visibility = View.GONE
-        llMatchButtons.visibility = if (state.matches.size > 1) View.VISIBLE else View.GONE
+        llMatchButtons.visibility = if (allMatches.size > 1) View.VISIBLE else View.GONE
         prevButton.isEnabled = state.currentMatchIndex > 0
-        nextButton.isEnabled = state.currentMatchIndex < state.matches.lastIndex
+        nextButton.isEnabled = state.currentMatchIndex < allMatches.lastIndex
+    }
+
+    /**
+     * Подсвечивает все CONTENT match обычным цветом.
+     */
+    private fun highlightAllContentMatches(matches: List<SearchMatch>, color: Int) {
+        // Очищаем все подсветки сначала
+        blockAdapter.clearAllHighlights(binding.noteEditRecycler)
+        
+        // Подсвечиваем все CONTENT match
+        for (match in matches) {
+            if (match.target == SearchMatchTarget.CONTENT) {
+                blockAdapter.highlightMatch(match, color, binding.noteEditRecycler)
+            }
+        }
+    }
+
+    /**
+     * Подсвечивает ТЕКУЩИЙ match ярким цветом.
+     */
+    private fun highlightCurrentMatch(match: SearchMatch) {
+        // Получаем blue_accent цвет
+        val brightColor = ContextCompat.getColor(requireContext(), R.color.accent_blue)
+        
+        if (match.target == SearchMatchTarget.CONTENT) {
+            blockAdapter.highlightMatch(match, brightColor, binding.noteEditRecycler)
+        }
+    }
+
+    /**
+     * Скроллит к текущему match.
+     */
+    private fun scrollToCurrentMatch(match: SearchMatch) {
+        if (match.target == SearchMatchTarget.CONTENT) {
+            scrollToContentMatch(match)
+        }
+    }
+
+    /**
+     * Скроллит к TextBlock, содержащему match в контенте.
+     */
+    private fun scrollToContentMatch(match: SearchMatch) {
+        // Находим позицию блока в RecyclerView
+        var currentOffset = 0
+        for (i in 0 until blockAdapter.itemCount) {
+            val block = blockAdapter.getItem(i)
+            if (block is ContentBlock.Text) {
+                val blockLength = block.text.length + 2 // +2 для \n\n
+                if (match.start in currentOffset until currentOffset + block.text.length) {
+                    // Нашли блок — скроллим к нему
+                    binding.noteEditRecycler.post {
+                        val holder = binding.noteEditRecycler.findViewHolderForAdapterPosition(i)
+                        if (holder is TextBlockViewHolder) {
+                            // Скроллим NestedScrollView к этому блоку
+                            val targetY = holder.itemView.top + noteScrollView.scrollY
+                            noteScrollView.smoothScrollTo(0, targetY)
+                            
+                            // Устанавливаем курсор на позицию match
+                            val localOffset = match.start - currentOffset
+                            holder.highlightText(match.start, match.end, highlightColor)
+                            holder.getEditText()?.setSelection(localOffset)
+                        }
+                    }
+                    return
+                }
+                currentOffset += blockLength
+            }
+        }
     }
 
     private fun renderEvent(event: NoteEditNavigationEvent?) {

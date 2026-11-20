@@ -6,7 +6,7 @@
     style="@style/NoteEditText"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/blue_transparent"
+    android:background="@null"
     android:gravity="start|top"
     android:imeOptions="actionNext"
     android:inputType="textMultiLine|textCapSentences"
