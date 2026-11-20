@@ -25,6 +25,7 @@ import ru.whiteleaf.notes.domain.use_case.recent.SaveRecentNoteUseCase
 import ru.whiteleaf.notes.domain.use_case.encryption.UnlockNotebookUseCase
 import ru.whiteleaf.notes.domain.use_case.notebooks.GetNotebooksUseCase
 import ru.whiteleaf.notes.domain.use_case.notes.UpdateNoteDateUseCase
+import ru.whiteleaf.notes.domain.use_case.notes.UpdateFullNoteUseCase
 
 class NoteEditViewModel(
     private val getNoteUseCase: GetNoteUseCase,
@@ -32,6 +33,7 @@ class NoteEditViewModel(
     private val renameNoteUseCase: RenameNoteUseCase,
     private val moveNoteUseCase: MoveNoteUseCase,
     private val saveNoteContentUseCase: SaveNoteContentUseCase,
+    private val updateFullNoteUseCase: UpdateFullNoteUseCase,
     private val shareNoteFileUseCase: ShareNoteFileUseCase,
     private val updateNoteDateUseCase: UpdateNoteDateUseCase,
     private val noteId: String?,
@@ -246,7 +248,6 @@ class NoteEditViewModel(
     fun updateNoteTitleIfChanged(newTitle: String) {
         val note = currentNote ?: return
         if (newTitle == note.title) return
-        //currentNote = note.copy(title = newTitle)
 
         viewModelScope.launch {
             try {
@@ -276,6 +277,30 @@ class NoteEditViewModel(
             } catch (e: Exception) {
                 showMessage("Ошибка при сохранении текста заметки: ${e.message}")
                 println("DEBUG: NoteEditVM: error: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Атомарно обновляет заголовок и контент заметки.
+     * Используется в onPause для предотвращения создания дубликатов при переименовании.
+     */
+    fun updateNoteInFull(newTitle: String, newContent: String) {
+        val note = currentNote ?: return
+        
+        println("DEBUG: NoteEditVM: updateNoteInFull: title='${note.title}' -> '$newTitle', content=${newContent.take(20)}")
+        
+        viewModelScope.launch {
+            try {
+                currentNote = updateFullNoteUseCase(note, newTitle, newContent)
+                postNote(currentNote!!)
+            } catch (e: AuthenticationRequiredException) {
+                pendingSaveContent = newContent
+                _noteEditState.postValue(NoteEditState.Blocked(false))
+                println("DEBUG: NoteEditVM: key not unlocked while updating full note: ${e.message}")
+            } catch (e: Exception) {
+                showMessage("Ошибка при сохранении заметки: ${e.message}")
+                println("DEBUG: NoteEditVM: error updating full note: ${e.message}")
             }
         }
     }

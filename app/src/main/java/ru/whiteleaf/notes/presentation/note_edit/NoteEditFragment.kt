@@ -531,10 +531,10 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
         super.onPause()
 
         if (!notSaveOnPause) {
-            viewModel.updateNoteTitleIfChanged(titleEditText.text.toString())
             // Синхронизируем текст из всех EditText в RecyclerView
             binding.noteEditRecycler.syncTextsFromRecyclerView(blockAdapter)
-            // Сохраняем контент из всех блоков
+            // Сохраняем заголовок и контент атомарно через UpdateFullNoteUseCase
+            val newTitle = titleEditText.text.toString()
             val content = blockAdapter.currentList.joinToString("\n\n") { block ->
                 when (block) {
                     is ContentBlock.Text -> block.text
@@ -542,8 +542,8 @@ class NoteEditFragment : BindingFragment<FragmentNoteEditBinding>(), SearchableF
                     is ContentBlock.Table -> block.rows.joinToString("\n") { it.joinToString("|") }
                 }
             }
-            println("DEBUG: NoteEditFragment: onPause saving content='$content'")
-            viewModel.updateNoteContent(content)
+            println("DEBUG: NoteEditFragment: onPause saving title='$newTitle', content='$content'")
+            viewModel.updateNoteInFull(newTitle, content)
             viewModel.saveNoteScrollPosition(noteScrollView.scrollY)
             viewModel.saveToRecent()
         } else println("Debug: NoteEditFragment: Paused and not saved")
