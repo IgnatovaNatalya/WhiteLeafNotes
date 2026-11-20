@@ -261,7 +261,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
                         R.id.options_rename_notebook -> onOptionsRenameNotebook()
                         R.id.options_unprotect_notebook -> onOptionsDecryptNotebook()
                         R.id.options_protect_notebook -> onOptionsEncryptNotebook()
-                        R.id.options_export_notebook -> onOptionsShareNotebook()
+                        R.id.options_export_notebook -> onOptionsExportNotebook()
                         R.id.options_delete_notebook -> onOptionsDeleteNotebook()
                     }
                 }
@@ -301,7 +301,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
     private fun onOptionsEncryptNotebook() = viewModel.encryptNotebook(requireContext())
     private fun onOptionsDecryptNotebook() = viewModel.decryptNotebook(requireContext())
 
-    private fun onOptionsShareNotebook() {
+    private fun onOptionsExportNotebook() {
         DialogHelper.createExportDialog(
             requireContext(),
             viewModel.exportPath,
@@ -489,7 +489,7 @@ class NoteListFragment : BindingFragment<FragmentNoteListBinding>(), ContextNote
 
                 binding.searchHeaderTitle.visibility = View.VISIBLE
 
-                if (!state.foundNotes.isNotEmpty()) {
+                if (state.foundNotes.isEmpty()) {
                     binding.emptyList.visibility = View.VISIBLE
                     binding.emptyList.text = "Не найдено"
                     binding.searchRecyclerView.visibility = View.GONE

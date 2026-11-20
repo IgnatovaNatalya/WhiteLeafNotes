@@ -41,11 +41,11 @@ class ExportNotebookUseCase(
                 "Для экспорта"
             ) else true
 
-        return if (unlocked != UnlockResult.Success) {
+        return if (unlocked == UnlockResult.Success) {
             notesToExport.addAll(noteRepository.getNotes(notebookPath))
 
-//            println("DEBUG: ExportNotebookUseCase: added notes to export: ${notesToExport.size} notes")
-//            notesToExport.forEach { note->println("DEBUG: ExportNotebookUseCase: note ${note.printDebug()} ")}
+            println("DEBUG: ExportNotebookUseCase: added notes to export: ${notesToExport.size} notes")
+            notesToExport.forEach { note->println("DEBUG: ExportNotebookUseCase: note ${note.printDebug()} ")}
             Result.success(
                 exportRepository.createExportZip(notesToExport, listOf(notebook), password)
             )
